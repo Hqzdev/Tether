@@ -1,0 +1,67 @@
+import { mkdir, appendFile } from "node:fs/promises";
+import path from "node:path";
+import { NextRequest, NextResponse } from "next/server";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function waitlistFilePath() {
+  return (
+    process.env.LOOM_WAITLIST_FILE ??
+    path.join(process.cwd(), "data", "waitlist.ndjson")
+  );
+}
+
+async function payloadFromRequest(request: NextRequest) {
+  const contentType = request.headers.get("content-type") ?? "";
+
+  if (contentType.includes("application/json")) {
+    const json = await request.json();
+    return {
+      email: String(json.email ?? ""),
+      source: String(json.source ?? "site"),
+      company: String(json.company ?? ""),
+    };
+  }
+
+  const formData = await request.formData();
+  return {
+    email: String(formData.get("email") ?? ""),
+    source: String(formData.get("source") ?? "site"),
+    company: String(formData.get("company") ?? ""),
+  };
+}
+
+export async function POST(request: NextRequest) {
+  const payload = await payloadFromRequest(request);
+  const email = payload.email.trim().toLowerCase();
+  const source = payload.source.trim() || "site";
+
+  if (payload.company.trim()) {
+    return NextResponse.json({ ok: true });
+  }
+
+  if (!EMAIL_PATTERN.test(email)) {
+    return NextResponse.json(
+      { ok: false, error: "Enter a valid email address." },
+      { status: 400 },
+    );
+  }
+
+  const filePath = waitlistFilePath();
+  await mkdir(path.dirname(filePath), { recursive: true });
+  await appendFile(
+    filePath,
+    JSON.stringify({
+      email,
+      source,
+      createdAt: new Date().toISOString(),
+      userAgent: request.headers.get("user-agent") ?? "",
+    }) + "\n",
+    "utf8",
+  );
+
+  return NextResponse.json({ ok: true });
+}

@@ -7,12 +7,18 @@
 //!   3. MISS → forward upstream, *tee* the response (stream to client while
 //!      accumulating a copy), and store it on clean 2xx completion.
 //!
-//! Day-2 scope: caching. WebSocket push to the UI is still day 3.
+//! The macOS UI reads live captured calls through `/api/traces/current`.
+
+mod auth;
+mod crypto;
+mod error;
+mod settings;
+mod trace;
 
 use std::fmt::Write as _;
 use std::io::Write;
 use std::sync::{Arc, Mutex};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 use axum::{
     Router,
@@ -24,9 +30,10 @@ use axum::{
 use bytes::Bytes;
 use futures_util::StreamExt;
 use rusqlite::{Connection, OptionalExtension, params};
-use serde_json::Value;
 use sha2::{Digest, Sha256};
 use tokio_stream::wrappers::ReceiverStream;
+
+use auth::AuthContext;
 
 const RESET: &str = "\x1b[0m";
 const BOLD: &str = "\x1b[1m";
@@ -40,12 +47,13 @@ const CYAN: &str = "\x1b[36m";
 const MAX_BODY: usize = 100 * 1024 * 1024;
 
 #[derive(Clone)]
-struct AppState {
+pub(crate) struct AppState {
     client: reqwest::Client,
     openai_upstream: Arc<str>,
     anthropic_upstream: Arc<str>,
     db: Arc<Mutex<Connection>>,
     cache_enabled: bool,
+    auth: Option<Arc<AuthContext>>,
 }
 
 /// A response we can replay from the cache.
@@ -67,7 +75,8 @@ async fn main() {
         .map(|v| v != "off" && v != "0" && v != "false")
         .unwrap_or(true);
 
-    let conn = Connection::open(&db_path).unwrap_or_else(|e| panic!("loom: cannot open {db_path}: {e}"));
+    let conn =
+        Connection::open(&db_path).unwrap_or_else(|e| panic!("loom: cannot open {db_path}: {e}"));
     conn.execute_batch(
         "PRAGMA journal_mode=WAL;
          CREATE TABLE IF NOT EXISTS cache (
@@ -83,16 +92,29 @@ async fn main() {
          );",
     )
     .expect("loom: cannot init cache schema");
+    trace::init_schema(&conn).expect("loom: cannot init trace schema");
+
+    let client = reqwest::Client::new();
+    let auth = AuthContext::from_env(client.clone())
+        .await
+        .unwrap_or_else(|error| panic!("loom: cannot init auth context: {}", error.message))
+        .map(Arc::new);
 
     let state = AppState {
-        client: reqwest::Client::new(),
+        client,
         openai_upstream: Arc::from(openai.as_str()),
         anthropic_upstream: Arc::from(anthropic.as_str()),
         db: Arc::new(Mutex::new(conn)),
         cache_enabled,
+        auth,
     };
 
-    let app = Router::new().fallback(proxy).with_state(state);
+    let app = Router::new()
+        .merge(auth::router())
+        .merge(settings::router())
+        .merge(trace::router())
+        .fallback(proxy)
+        .with_state(state);
 
     let listener = tokio::net::TcpListener::bind(&addr)
         .await
@@ -113,6 +135,7 @@ async fn main() {
 
 /// Catch-all handler: cache → forward+tee → store.
 async fn proxy(State(state): State<AppState>, req: Request) -> Response {
+    let started = Instant::now();
     let (parts, body) = req.into_parts();
     let method = parts.method;
     let uri = parts.uri;
@@ -137,7 +160,10 @@ async fn proxy(State(state): State<AppState>, req: Request) -> Response {
         }
     };
 
-    let (model, preview) = summarize(&body_bytes);
+    let trace_capture =
+        trace::TraceCapture::from_request(method.as_str(), &path, label, &body_bytes);
+    let model = trace_capture.model.clone();
+    let preview = trace_capture.preview.clone();
     log_request(&method, &path, label, base.as_ref(), &model, &preview);
 
     // Only cache idempotent-ish POSTs (the actual LLM calls) when enabled.
@@ -153,7 +179,29 @@ async fn proxy(State(state): State<AppState>, req: Request) -> Response {
         let db = state.db.clone();
         let k = key.clone();
         if let Ok(Some(c)) = tokio::task::spawn_blocking(move || cache_get(&db, &k)).await {
-            log_cached(StatusCode::from_u16(c.status).unwrap_or(StatusCode::OK), c.body.len());
+            let latency_ms = started.elapsed().as_millis() as i64;
+            let trace_db = state.db.clone();
+            let cached_capture = trace_capture.clone();
+            let cached_body = c.body.clone();
+            let cached_content_type = c.content_type.clone();
+            let cached_status = c.status;
+            let _ = tokio::task::spawn_blocking(move || {
+                trace::record_response(
+                    &trace_db,
+                    &cached_capture,
+                    cached_status,
+                    &cached_content_type,
+                    None,
+                    &cached_body,
+                    "hit",
+                    latency_ms,
+                );
+            })
+            .await;
+            log_cached(
+                StatusCode::from_u16(c.status).unwrap_or(StatusCode::OK),
+                c.body.len(),
+            );
             return cached_response(c);
         }
     }
@@ -178,12 +226,21 @@ async fn proxy(State(state): State<AppState>, req: Request) -> Response {
     let resp = match upstream {
         Ok(r) => r,
         Err(e) => {
+            let latency_ms = started.elapsed().as_millis() as i64;
+            let trace_db = state.db.clone();
+            let failed_capture = trace_capture.clone();
+            let message = e.to_string();
+            let _ = tokio::task::spawn_blocking(move || {
+                trace::record_upstream_error(&trace_db, &failed_capture, &message, latency_ms);
+            })
+            .await;
             eprintln!("{RED}◀ upstream error: {e}{RESET}\n");
             return (StatusCode::BAD_GATEWAY, format!("loom upstream error: {e}")).into_response();
         }
     };
 
     let status = resp.status();
+    let upstream_request_id = trace::response_request_id(resp.headers());
     let ctype = resp
         .headers()
         .get(CONTENT_TYPE)
@@ -199,7 +256,10 @@ async fn proxy(State(state): State<AppState>, req: Request) -> Response {
         }
         out_headers.insert(name.clone(), value.clone());
     }
-    out_headers.insert(HeaderName::from_static("x-loom-cache"), HeaderValue::from_static("miss"));
+    out_headers.insert(
+        HeaderName::from_static("x-loom-cache"),
+        HeaderValue::from_static("miss"),
+    );
 
     let store = cacheable && status.is_success();
 
@@ -209,15 +269,22 @@ async fn proxy(State(state): State<AppState>, req: Request) -> Response {
     let provider = label.to_string();
     let status_code = status.as_u16();
     let ct_store = ctype.clone();
+    let trace_capture_for_stream = trace_capture.clone();
+    let cache_status = "miss".to_string();
     tokio::spawn(async move {
         let mut acc: Vec<u8> = Vec::new();
         let mut completed = true;
+        let mut stream_error: Option<String> = None;
         let mut stream = resp.bytes_stream();
         while let Some(item) = stream.next().await {
             match item {
                 Ok(chunk) => {
                     if store {
                         acc.extend_from_slice(&chunk);
+                    } else if acc.len() < trace::MAX_CAPTURE_BYTES {
+                        let remaining = trace::MAX_CAPTURE_BYTES - acc.len();
+                        let take = chunk.len().min(remaining);
+                        acc.extend_from_slice(&chunk[..take]);
                     }
                     if tx.send(Ok(chunk)).await.is_err() {
                         completed = false; // client disconnected
@@ -225,15 +292,45 @@ async fn proxy(State(state): State<AppState>, req: Request) -> Response {
                     }
                 }
                 Err(e) => {
+                    stream_error = Some(e.to_string());
                     let _ = tx.send(Err(e)).await;
                     completed = false; // don't cache a partial/errored stream
                     break;
                 }
             }
         }
-        if store && completed {
+        if completed {
+            let latency_ms = started.elapsed().as_millis() as i64;
             let _ = tokio::task::spawn_blocking(move || {
-                cache_put(&db, &key, &provider, &model, &preview, status_code, &ct_store, &acc);
+                trace::record_response(
+                    &db,
+                    &trace_capture_for_stream,
+                    status_code,
+                    &ct_store,
+                    upstream_request_id.as_deref(),
+                    &acc,
+                    &cache_status,
+                    latency_ms,
+                );
+
+                if store {
+                    cache_put(
+                        &db,
+                        &key,
+                        &provider,
+                        &model,
+                        &preview,
+                        status_code,
+                        &ct_store,
+                        &acc,
+                    );
+                }
+            })
+            .await;
+        } else if let Some(message) = stream_error {
+            let latency_ms = started.elapsed().as_millis() as i64;
+            let _ = tokio::task::spawn_blocking(move || {
+                trace::record_upstream_error(&db, &trace_capture_for_stream, &message, latency_ms);
             })
             .await;
         }
@@ -255,7 +352,10 @@ fn cached_response(c: CachedResponse) -> Response {
             h.insert(CONTENT_TYPE, v);
         }
     }
-    h.insert(HeaderName::from_static("x-loom-cache"), HeaderValue::from_static("hit"));
+    h.insert(
+        HeaderName::from_static("x-loom-cache"),
+        HeaderValue::from_static("hit"),
+    );
     response
 }
 
@@ -301,7 +401,16 @@ fn cache_put(
                 (key, created_at, provider, model, req_preview, status, content_type, body, hits)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8,
                 COALESCE((SELECT hits FROM cache WHERE key = ?1), 0))",
-            params![key, now_unix(), provider, model, preview, status as i64, content_type, body],
+            params![
+                key,
+                now_unix(),
+                provider,
+                model,
+                preview,
+                status as i64,
+                content_type,
+                body
+            ],
         );
     }
 }
@@ -371,72 +480,4 @@ fn log_response(status: StatusCode, ctype: &str) {
 fn log_cached(status: StatusCode, bytes: usize) {
     println!("{YELLOW}◀ {status}{RESET}  {DIM}🟡 cache hit · {bytes} bytes · 0 ms · $0{RESET}\n");
     let _ = std::io::stdout().flush();
-}
-
-// ---------- request body summary for the console + cache metadata ----------
-
-/// Best-effort `(model, last-message-preview)`. Handles OpenAI chat (`messages`),
-/// OpenAI Responses (`input`), and Anthropic Messages (`messages` + block content).
-fn summarize(body: &Bytes) -> (String, String) {
-    match serde_json::from_slice::<Value>(body) {
-        Ok(v) => {
-            let model = v
-                .get("model")
-                .and_then(|m| m.as_str())
-                .unwrap_or("-")
-                .to_string();
-            let preview = extract_last_text(&v).unwrap_or_else(|| "-".to_string());
-            (model, truncate_one_line(&preview, 300))
-        }
-        Err(_) => ("-".to_string(), format!("<{} bytes, non-JSON>", body.len())),
-    }
-}
-
-fn extract_last_text(v: &Value) -> Option<String> {
-    let arr = v
-        .get("messages")
-        .and_then(|m| m.as_array())
-        .or_else(|| v.get("input").and_then(|m| m.as_array()));
-    if let Some(arr) = arr {
-        if let Some(last) = arr.last() {
-            let content = last.get("content").unwrap_or(last);
-            return Some(content_to_string(content));
-        }
-    }
-    if let Some(s) = v.get("input").and_then(|x| x.as_str()) {
-        return Some(s.to_string());
-    }
-    if let Some(s) = v.get("prompt").and_then(|x| x.as_str()) {
-        return Some(s.to_string());
-    }
-    None
-}
-
-fn content_to_string(c: &Value) -> String {
-    match c {
-        Value::String(s) => s.clone(),
-        Value::Array(items) => {
-            let mut out = String::new();
-            for it in items {
-                if let Some(t) = it.get("text").and_then(|x| x.as_str()) {
-                    out.push_str(t);
-                } else if let Some(t) = it.as_str() {
-                    out.push_str(t);
-                }
-                out.push(' ');
-            }
-            out
-        }
-        other => other.to_string(),
-    }
-}
-
-fn truncate_one_line(s: &str, max: usize) -> String {
-    let one = s.split_whitespace().collect::<Vec<_>>().join(" ");
-    if one.chars().count() > max {
-        let truncated: String = one.chars().take(max).collect();
-        format!("{truncated}…")
-    } else {
-        one
-    }
 }

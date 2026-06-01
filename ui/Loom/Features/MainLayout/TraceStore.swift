@@ -1,0 +1,252 @@
+import Combine
+import SwiftUI
+
+enum ProxyConnectionStatus: Equatable {
+    case connecting
+    case online
+    case observingCodex(String)
+    case offline(String)
+
+    var title: String {
+        switch self {
+        case .connecting:
+            return "Local Proxy"
+        case .online:
+            return "Local Proxy"
+        case .observingCodex:
+            return "Codex Observer"
+        case .offline:
+            return "Proxy Offline"
+        }
+    }
+
+    var detail: String {
+        switch self {
+        case .connecting:
+            return "Connecting to 127.0.0.1:8080"
+        case .online:
+            return "Capturing real agent calls"
+        case .observingCodex(let message):
+            return message
+        case .offline(let message):
+            return message.isEmpty ? "Start the proxy to capture calls" : message
+        }
+    }
+
+    func color(_ palette: AgentTracePalette) -> Color {
+        switch self {
+        case .connecting:
+            return palette.amber
+        case .online:
+            return palette.green
+        case .observingCodex:
+            return palette.green
+        case .offline:
+            return palette.pink
+        }
+    }
+}
+
+@MainActor
+final class TraceStore: ObservableObject {
+    @Published private(set) var session: TraceSession?
+    @Published private(set) var sessions: [TraceSession] = []
+    @Published private(set) var currentSessionId: TraceSession.ID?
+    @Published private(set) var selectedSessionId: TraceSession.ID?
+    @Published private(set) var nodes: [AgentNode] = []
+    @Published private(set) var proxyStatus: ProxyConnectionStatus = .connecting
+
+    private let client: TraceAPIClient
+    private let codexObserver: CodexLogObserver
+    private var pollingTask: Task<Void, Never>?
+    private var codexBaselineLogId: Int?
+
+    init(
+        client: TraceAPIClient? = nil,
+        codexObserver: CodexLogObserver = CodexLogObserver()
+    ) {
+        self.client = client ?? TraceAPIClient()
+        self.codexObserver = codexObserver
+    }
+
+    func startPolling() {
+        guard pollingTask == nil else { return }
+
+        pollingTask = Task { [weak self] in
+            guard let self else { return }
+
+            while !Task.isCancelled {
+                await refresh()
+
+                do {
+                    try await Task.sleep(for: .seconds(1.2))
+                } catch {
+                    break
+                }
+            }
+        }
+    }
+
+    func stopPolling() {
+        pollingTask?.cancel()
+        pollingTask = nil
+    }
+
+    func refresh() async {
+        async let proxySessionsResult = loadProxySessions()
+        async let codexResult = loadCodexSnapshot()
+
+        let (sessionList, codex) = await (proxySessionsResult, codexResult)
+        let proxySessions = try? sessionList.get()
+        let codexSnapshot = try? codex.get()
+        var proxySnapshot: TraceSnapshot?
+        var proxyError: Error?
+
+        if let proxySessions {
+            apply(sessionList: proxySessions)
+            let sessionId = selectedSessionId ?? proxySessions.currentSessionId
+            let proxyResult = await loadProxySnapshot(sessionId: sessionId)
+            proxySnapshot = try? proxyResult.get()
+            if case .failure(let error) = proxyResult {
+                proxyError = error
+            }
+        } else if case .failure(let error) = sessionList {
+            sessions = []
+            currentSessionId = nil
+            selectedSessionId = nil
+            proxyError = error
+        }
+
+        if let proxySnapshot, !proxySnapshot.nodes.isEmpty {
+            apply(snapshot: proxySnapshot)
+            proxyStatus = .online
+            return
+        }
+
+        if sessions.isEmpty, let codexSnapshot, !codexSnapshot.nodes.isEmpty {
+            apply(snapshot: codexSnapshot)
+            proxyStatus = .observingCodex("Watching Terminal Codex automatically")
+            return
+        }
+
+        if let proxySnapshot {
+            apply(snapshot: proxySnapshot)
+            proxyStatus = .online
+            return
+        }
+
+        if sessions.isEmpty, let codexSnapshot {
+            apply(snapshot: codexSnapshot)
+            proxyStatus = .observingCodex("Open Terminal and run codex")
+            return
+        }
+
+        proxyStatus = .offline(proxyError?.localizedDescription ?? "Start the proxy or run codex in Terminal")
+    }
+
+    func clearTrace() {
+        Task {
+            await clearAllTraces()
+        }
+    }
+
+    func startNewSession() {
+        Task {
+            await createNewSession()
+        }
+    }
+
+    func selectSession(_ sessionId: TraceSession.ID) {
+        selectedSessionId = sessionId
+        Task {
+            await refresh()
+        }
+    }
+
+    func reload() {
+        Task {
+            await refresh()
+        }
+    }
+
+    private func apply(snapshot: TraceSnapshot) {
+        session = snapshot.session
+        nodes = snapshot.nodes
+    }
+
+    private func apply(sessionList: TraceSessionList) {
+        sessions = sessionList.sessions
+        currentSessionId = sessionList.currentSessionId
+
+        if let selectedSessionId, sessions.contains(where: { $0.id == selectedSessionId }) {
+            return
+        }
+
+        selectedSessionId = sessionList.currentSessionId ?? sessions.first?.id
+    }
+
+    private func loadProxySessions() async -> Result<TraceSessionList, Error> {
+        do {
+            return .success(try await client.sessions())
+        } catch {
+            return .failure(error)
+        }
+    }
+
+    private func loadProxySnapshot(sessionId: TraceSession.ID?) async -> Result<TraceSnapshot, Error> {
+        do {
+            return .success(try await client.currentTrace(sessionId: sessionId))
+        } catch {
+            return .failure(error)
+        }
+    }
+
+    private func loadCodexSnapshot() async -> Result<TraceSnapshot?, Error> {
+        do {
+            return .success(try await codexObserver.currentSnapshot(afterLogId: codexBaselineLogId))
+        } catch {
+            return .failure(error)
+        }
+    }
+
+    private func createNewSession() async {
+        codexBaselineLogId = try? await codexObserver.latestResponseEventId()
+        session = nil
+        nodes = []
+
+        do {
+            let newSession = try await client.createSession()
+            selectedSessionId = newSession.id
+            currentSessionId = newSession.id
+            if !sessions.contains(where: { $0.id == newSession.id }) {
+                sessions.insert(newSession, at: 0)
+            }
+            proxyStatus = .online
+            await refresh()
+        } catch {
+            proxyStatus = .observingCodex("Open Terminal and run codex")
+        }
+    }
+
+    private func clearAllTraces() async {
+        codexBaselineLogId = try? await codexObserver.latestResponseEventId()
+        session = nil
+        nodes = []
+
+        do {
+            try await client.clearTrace()
+            selectedSessionId = nil
+            proxyStatus = .online
+            await refresh()
+        } catch {
+            proxyStatus = .observingCodex("Open Terminal and run codex")
+        }
+    }
+}
+
+private extension Result where Failure == Error {
+    var errorDescription: String? {
+        guard case .failure(let error) = self else { return nil }
+        return error.localizedDescription
+    }
+}

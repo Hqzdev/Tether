@@ -1,120 +1,81 @@
-//
-//  ContentView.swift
-//  Loom
-//
-//  Two-pane skeleton: left = call tree (color-coded nodes),
-//  right = detail with segmented Prompt / Response tabs.
-//
-
+import AppKit
 import SwiftUI
 
 struct ContentView: View {
-    private let calls = CallNode.sample
-    @State private var selectedID: CallNode.ID?
+    @AppStorage("hasSeenWelcome") private var hasSeenWelcome = false
+    @AppStorage("agenttrace.themeMode") private var themeModeRaw = AgentTraceThemeMode.system.rawValue
+
+    private var themeMode: AgentTraceThemeMode {
+        AgentTraceThemeMode(rawValue: themeModeRaw) ?? .system
+    }
 
     var body: some View {
-        NavigationSplitView {
-            List(calls, selection: $selectedID) { call in
-                CallRow(call: call)
-            }
-            .navigationSplitViewColumnWidth(min: 220, ideal: 260)
-            .navigationTitle("Calls")
-        } detail: {
-            if let id = selectedID, let call = calls.first(where: { $0.id == id }) {
-                CallDetail(call: call)
+        Group {
+            if hasSeenWelcome {
+                MainThreePaneLayoutView()
+                    .frame(minWidth: 800, minHeight: 520)
             } else {
-                ContentUnavailableView(
-                    "Select a call",
-                    systemImage: "point.3.connected.trianglepath.dotted",
-                    description: Text("Pick a node from the tree to inspect its prompt and response.")
-                )
+                WelcomeView()
+                    .frame(width: 720, height: 540)
             }
         }
+        .background(WindowSizeConfigurator(mode: hasSeenWelcome ? .workspace : .welcome))
+        .preferredColorScheme(hasSeenWelcome ? themeMode.preferredColorScheme : .dark)
+        .transition(.opacity)
     }
 }
 
-/// A single row in the call list: status dot + step + model + time.
-struct CallRow: View {
-    let call: CallNode
-
-    var body: some View {
-        HStack(spacing: 10) {
-            Circle()
-                .fill(call.status.color)
-                .frame(width: 9, height: 9)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(call.step)
-                Text(call.model)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            Spacer()
-            Text(call.timestamp, format: .dateTime.hour().minute().second())
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-        }
-        .padding(.vertical, 2)
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
     }
 }
 
-/// Detail pane: status header + segmented Prompt/Response tabs (monospaced, scrollable).
-struct CallDetail: View {
-    let call: CallNode
-    @State private var tab: Tab = .prompt
-
-    enum Tab: String, CaseIterable, Identifiable {
-        case prompt = "Prompt"
-        case response = "Response"
-        var id: String { rawValue }
+private struct WindowSizeConfigurator: NSViewRepresentable {
+    enum Mode: Equatable {
+        case welcome
+        case workspace
     }
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            header
-            Divider()
-            Picker("View", selection: $tab) {
-                ForEach(Tab.allCases) { Text($0.rawValue).tag($0) }
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            .padding()
+    let mode: Mode
 
-            ScrollView {
-                Text(tab == .prompt ? call.prompt : call.response)
-                    .font(.system(.body, design: .monospaced))
-                    .textSelection(.enabled)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView(frame: .zero)
+
+        DispatchQueue.main.async {
+            configure(window: view.window)
+        }
+
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {
+        DispatchQueue.main.async {
+            configure(window: nsView.window)
+        }
+    }
+
+    private func configure(window: NSWindow?) {
+        guard let window else { return }
+
+        switch mode {
+        case .welcome:
+            let size = CGSize(width: 720, height: 540)
+            window.minSize = size
+            window.maxSize = size
+            window.setContentSize(size)
+
+        case .workspace:
+            let minimumSize = CGSize(width: 800, height: 520)
+            window.minSize = minimumSize
+            window.maxSize = CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
+
+            if window.frame.width < minimumSize.width || window.frame.height < minimumSize.height {
+                window.setContentSize(CGSize(
+                    width: max(window.frame.width, minimumSize.width),
+                    height: max(window.frame.height, minimumSize.height)
+                ))
             }
         }
-        .navigationTitle(call.step)
     }
-
-    private var header: some View {
-        HStack(spacing: 10) {
-            Circle()
-                .fill(call.status.color)
-                .frame(width: 10, height: 10)
-            Text(call.status.label)
-                .font(.headline)
-                .foregroundStyle(call.status.color)
-            Text(call.model)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            Spacer()
-            if let tokens = call.tokens {
-                Label("\(tokens) tok", systemImage: "number")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            Text(call.timestamp, format: .dateTime.hour().minute().second())
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
-        .padding()
-    }
-}
-
-#Preview {
-    ContentView()
 }

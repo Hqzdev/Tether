@@ -1,0 +1,30 @@
+# Loom
+
+> Local-first observability and debugging tool for AI agents and LLM applications on macOS.
+
+Loom is a macOS developer tool that intercepts, inspects, and replays every LLM call made by AI agents — entirely locally, with no data leaving the machine.
+
+## What Loom does
+
+- Runs a local HTTP proxy; developers point their AI client's `base_url` at `http://localhost:8080/v1`
+- Captures every request and response in real time without any SDK changes
+- Visualizes complex multi-step agent trees so developers can see exactly what each agent called and why
+- Lets developers replay past requests or mock responses for offline testing
+- Stores API keys in the macOS Keychain — they never appear in plain text
+
+## Who it's for
+
+Developers building AI agents with OpenAI, Anthropic, Ollama, LM Studio, LangChain, LangGraph, LlamaIndex, or any OpenAI-compatible API.
+
+## Key facts
+
+- Free during alpha; open-source core
+- Requires macOS 13+
+- Air-gapped by default — prompts, responses, and keys never leave the machine
+- No account required to use
+
+## Links
+
+- Homepage: https://useloom.dev
+- Download: https://useloom.dev/#download
+- Features: https://useloom.dev/#features

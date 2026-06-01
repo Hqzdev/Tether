@@ -14,3 +14,6 @@
 
 # Build output
 /tmp/loom-dd/
+/dist/
+/web/data/*.ndjson
+/web/public/downloads/*.dmg
