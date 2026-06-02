@@ -644,25 +644,6 @@ h2.title {
   padding: 0 14px;
 }
 .waitlist-row input::placeholder { color: var(--text-4); }
-.waitlist-select {
-  min-width: 0;
-  min-height: 48px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--bg-window);
-  color: var(--text);
-  font: inherit;
-  font-size: 16px;
-  padding: 0 36px 0 14px;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  cursor: pointer;
-  width: 100%;
-}
-.waitlist-select:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
-.waitlist-select option[value=""] { color: var(--text-4); }
 .waitlist-row input:user-invalid {
   border-color: var(--pink-dim);
   box-shadow: 0 0 0 1px rgba(255,138,164,.18);
@@ -681,6 +662,17 @@ h2.title {
 }
 .waitlist-message.error { color: var(--pink); }
 .honeypot {
+  position: absolute;
+  clip-path: inset(50%);
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  white-space: nowrap;
+}
+.sr-only {
   position: absolute;
   clip-path: inset(50%);
   overflow: hidden;

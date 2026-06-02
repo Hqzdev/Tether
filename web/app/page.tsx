@@ -163,7 +163,7 @@ const FEATURES: {
     view: "cache",
     acc: "cyan",
     icon: "bolt",
-    title: "Smart Caching",
+    title: "Local Response Cache",
     copy: "Inspect cache metadata: is_cached, 0ms latency, $0.",
   },
   {
@@ -347,8 +347,6 @@ export default function TetherLanding() {
   const [activeView, setActiveView] = useState<InspectorView>("graph");
   const [replayState, setReplayState] = useState<ReplayState>("idle");
   const [waitlistEmail, setWaitlistEmail] = useState("");
-  const [waitlistName, setWaitlistName] = useState("");
-  const [waitlistReason, setWaitlistReason] = useState("");
   const [waitlistState, setWaitlistState] = useState<WaitlistState>("idle");
   const [waitlistMessage, setWaitlistMessage] = useState("");
 
@@ -495,8 +493,6 @@ export default function TetherLanding() {
       setWaitlistState("done");
       setWaitlistMessage("You're on the alpha list. I'll send the DMG link when the next build is ready.");
       setWaitlistEmail("");
-      setWaitlistName("");
-      setWaitlistReason("");
       form.reset();
     } catch (error) {
       setWaitlistState("error");
@@ -534,7 +530,7 @@ export default function TetherLanding() {
               <span className="sp-av" style={{ background: "linear-gradient(135deg,#ff8aa4,#f5cd7a)" }} />
             </div>
             <span className="sp-text">
-              <b>500+</b> developers already tracing their agents
+              Used by developers building production AI agents
             </span>
           </div>
         </div>
@@ -542,9 +538,8 @@ export default function TetherLanding() {
           Stop debugging AI agents <span className="grad">in the dark.</span>
         </h1>
         <p className="lead">
-          Tether intercepts every LLM call, visualizes complex agent trees,
-          and mocks responses - entirely locally, on your Mac. No SDK, no cloud,
-          no token leaks.
+          Point your agent at localhost. Every LLM call becomes a node in a live trace tree -
+          with caching, mocking, and zero data leaving your machine.
         </p>
         <div className="cta-row">
           <a className="btn btn-primary pulse" href="#download">
@@ -720,10 +715,11 @@ export default function TetherLanding() {
               <div className="bico">
                 <LandingIcon name="bolt" />
               </div>
-              <h3>Smart Edge Caching</h3>
+              <h3>Local Response Cache</h3>
               <p>
-                Identical prompts hit a local SQLite cache. Iterate on
-                downstream logic without re-paying for upstream calls.
+                Identical prompts return instantly from local cache. Iterate on
+                downstream logic without re-running - or re-paying for - upstream
+                calls. $0.0000 per cached hit.
               </p>
               <div className="bstat">
                 <span className="metric-chip cy">&lt;1ms</span>
@@ -736,8 +732,9 @@ export default function TetherLanding() {
               </div>
               <h3>Time-Travel Mocking</h3>
               <p>
-                Click any node in the past, rewrite its JSON output, and replay
-                the chain from that point forward.
+                Your agent failed at step 4. Rewrite that node&apos;s output and
+                replay from there - no re-running the full chain, no wasted
+                tokens. Fix the exact break, not the whole pipeline.
               </p>
               <div className="bstat">
                 <span className="metric-chip">replay from any node</span>
@@ -965,7 +962,11 @@ export default function TetherLanding() {
           <div className="step reveal">
             <div className="num">03 -</div>
             <h4>Inspect &amp; replay</h4>
-            <p>Open the canvas, click a node, rewrite its output, and replay the chain to test the fix.</p>
+            <p>
+              Open the canvas, click the node that broke, rewrite its output,
+              and replay forward. See exactly where your agent fails - without
+              re-running the whole chain.
+            </p>
             <div className="codebox">
               <span className="cm"># in Tether</span>
               <br />
@@ -985,12 +986,16 @@ export default function TetherLanding() {
         <div className="faq-list">
           {[
             {
-              q: "How does Tether intercept LLM calls without changing my code?",
-              a: "Tether runs a local HTTP proxy on your machine. You point your AI client's base_url at http://localhost:8080/v1 — that's the only change. Tether transparently forwards every request to the real provider and records the full request/response pair locally.",
+              q: "Is Tether free?",
+              a: "Yes. Tether is free during the alpha period and the core proxy is open source. No credit card or account required.",
             },
             {
               q: "Does Tether send my prompts or API keys anywhere?",
               a: "No. Tether is fully air-gapped. Your prompts, responses, and API keys never leave your Mac. API keys are stored encrypted in the macOS Keychain and are never written to disk in plain text.",
+            },
+            {
+              q: "How does Tether intercept LLM calls without changing my code?",
+              a: "Tether runs a local HTTP proxy on your machine. You point your AI client's base_url at http://localhost:8080/v1 — that's the only change. Tether transparently forwards every request to the real provider and records the full request/response pair locally.",
             },
             {
               q: "Which LLM providers and frameworks does Tether support?",
@@ -1003,10 +1008,6 @@ export default function TetherLanding() {
             {
               q: "What is time-travel mocking?",
               a: "Time-travel mocking lets you click any past node in the agent trace, edit its response JSON, and replay the entire chain from that point forward — without re-running earlier steps or spending tokens. You can test how your agent would behave with a different LLM output in seconds.",
-            },
-            {
-              q: "Is Tether free?",
-              a: "Yes. Tether is free during the alpha period and the core proxy is open source. No credit card or account required.",
             },
           ].map(({ q, a }) => (
             <details className="faq-item reveal" key={q}>
@@ -1025,8 +1026,8 @@ export default function TetherLanding() {
             in under a minute.
           </h2>
           <p>
-            Free during alpha. Join the waitlist and get the signed download
-            the moment it's ready. Your keys and prompts never leave your Mac.
+            Free during alpha. Get the signed DMG the moment it's ready - no
+            account, no cloud, no strings.
           </p>
           <div className="download-actions">
             <div className="download-direct">
@@ -1051,23 +1052,13 @@ export default function TetherLanding() {
                 type="text"
               />
               <input name="source" type="hidden" value="download-cta" />
-              <label htmlFor="waitlist-email">Get the next alpha build</label>
+              <label className="sr-only" htmlFor="waitlist-email">Email address</label>
               <div className="waitlist-row">
                 <input
-                  autoComplete="given-name"
-                  enterKeyHint="next"
-                  id="waitlist-name"
-                  name="name"
-                  onChange={(event) => setWaitlistName(event.target.value)}
-                  placeholder="Your name"
-                  required
-                  type="text"
-                  value={waitlistName}
-                />
-                <input
                   autoComplete="email"
-                  enterKeyHint="next"
+                  enterKeyHint="done"
                   id="waitlist-email"
+                  inputMode="email"
                   name="email"
                   onChange={(event) => setWaitlistEmail(event.target.value)}
                   placeholder="you@example.com"
@@ -1075,31 +1066,13 @@ export default function TetherLanding() {
                   type="email"
                   value={waitlistEmail}
                 />
-              </div>
-              <div className="waitlist-row">
-                <select
-                  id="waitlist-reason"
-                  name="reason"
-                  onChange={(event) => setWaitlistReason(event.target.value)}
-                  required
-                  value={waitlistReason}
-                  className="waitlist-select"
-                >
-                  <option value="" disabled>Why are you interested in Tether?</option>
-                  <option value="Debugging AI agent behavior">Debugging AI agent behavior</option>
-                  <option value="Monitoring LLM API costs">Monitoring LLM API costs</option>
-                  <option value="Replaying and mocking responses">Replaying and mocking responses</option>
-                  <option value="Keeping data private — no cloud">Keeping data private — no cloud</option>
-                  <option value="Building AI agents professionally">Building AI agents professionally</option>
-                  <option value="Other">Other</option>
-                </select>
                 <button
                   className="btn btn-ghost"
                   disabled={waitlistState === "submitting"}
                   type="submit"
                 >
                   <LandingIcon name={waitlistState === "done" ? "check" : "arrow-down-long"} />
-                  {waitlistState === "submitting" ? "Joining..." : waitlistState === "done" ? "Joined" : "Join list"}
+                  {waitlistState === "submitting" ? "Joining..." : waitlistState === "done" ? "Joined" : "Get early access"}
                 </button>
               </div>
               <p
