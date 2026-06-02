@@ -1,6 +1,9 @@
 import { mkdir, appendFile } from "node:fs/promises";
 import path from "node:path";
 import { NextRequest, NextResponse } from "next/server";
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -62,6 +65,13 @@ export async function POST(request: NextRequest) {
     }) + "\n",
     "utf8",
   );
+
+  await resend.emails.send({
+    from: "onboarding@resend.dev",
+    to: "wkeyqwert@gmail.com",
+    subject: `Новая заявка в вейтлист: ${email}`,
+    html: `<p><strong>Email:</strong> ${email}</p><p><strong>Source:</strong> ${source}</p><p><strong>Время:</strong> ${new Date().toISOString()}</p>`,
+  });
 
   return NextResponse.json({ ok: true });
 }
