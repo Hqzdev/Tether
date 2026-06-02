@@ -86,28 +86,28 @@ The product is local-first by design. Prompts stay on the machine. API keys stay
 ## UI Preview
 
 ### Website / Homepage
-![Website Homepage](../images/1.png)
+![Website Homepage](images/1.png)
 
 ### Website / Product Story
-![Website Product Story](../images/2.png)
+![Website Product Story](images/2.png)
 
 ### Website / Features
-![Website Features](../images/3.png)
+![Website Features](images/3.png)
 
 ### Website / Download & Waitlist
-![Website Download and Waitlist](../images/4.png)
+![Website Download and Waitlist](images/4.png)
 
 ### App / Trace Dashboard
-![App Trace Dashboard](../images/5.png)
+![App Trace Dashboard](images/5.png)
 
 ### App / Agent Graph
-![App Agent Graph](../images/6.png)
+![App Agent Graph](images/6.png)
 
 ### App / Inspector
-![App Inspector](../images/7.png)
+![App Inspector](images/7.png)
 
 ### App / Replay & Settings
-![App Replay and Settings](../images/8.png)
+![App Replay and Settings](images/8.png)
 
 ---
 
