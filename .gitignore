@@ -1,20 +1,71 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs and temp files
+*.log
+*.tmp
+*.temp
+*.bak
+.cache/
+
+# Environment files
+.env
+.env.*
+!.env.example
+!**/.env.example
+
 # Rust
 /proxy/target/
+**/target/
 **/*.rs.bk
 
 # SQLite cache / history
 *.sqlite
+*.sqlite3
+*.db
 *.sqlite-shm
 *.sqlite-wal
 
-# Xcode
+# Node / Next.js
+/web/node_modules/
+/web/node_modules 2/
+/web/.next/
+/web/out/
+/web/coverage/
+/web/.vercel/
+/web/tsconfig.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Xcode / Swift
+/ui/.build/
+/ui/.swiftpm/
 /ui/**/xcuserdata/
 /ui/**/*.xcuserstate
-.DS_Store
+/ui/**/DerivedData/
+DerivedData/
+*.xcscmblueprint
 
 # Build output
 /tmp/Tether-dd/
 /dist/
+*.dmg
+*.zip
+*.tar.gz
+
+# Local runtime data
 /web/data/*.ndjson
+!/web/data/.gitkeep
 /web/public/downloads/*.dmg
-.env
