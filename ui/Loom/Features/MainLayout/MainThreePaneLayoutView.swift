@@ -1,5 +1,9 @@
 import AppKit
+import ComposableArchitecture
+import Core
+import Networking
 import SwiftUI
+import UI
 import UniformTypeIdentifiers
 
 struct MainThreePaneLayoutView: View {
@@ -235,10 +239,10 @@ struct MainThreePaneLayoutView: View {
         traceStore.clearTrace()
     }
 
-    private func selectSession(_ session: TraceSession) {
+    private func selectSession(_ sessionId: TraceSession.ID) {
         responseEdits.removeAll()
         selectedNodeId = nil
-        traceStore.selectSession(session.id)
+        traceStore.selectSession(sessionId)
     }
 
     private func copySelection() {

@@ -1,14 +1,15 @@
 import Foundation
 
-final class LocalProxyLauncher {
-    static let shared = LocalProxyLauncher()
+@MainActor
+public final class LocalProxyLauncher {
+    public static let shared = LocalProxyLauncher()
 
     private var process: Process?
 
     private init() {}
 
     @discardableResult
-    func startIfAvailable() -> Bool {
+    public func startIfAvailable() -> Bool {
         if process?.isRunning == true {
             return true
         }
@@ -36,14 +37,14 @@ final class LocalProxyLauncher {
         }
     }
 
-    func stop() {
+    public func stop() {
         guard let process, process.isRunning else { return }
         process.terminate()
         self.process = nil
     }
 
     @discardableResult
-    func restart() -> Bool {
+    public func restart() -> Bool {
         stop()
         return startIfAvailable()
     }
@@ -57,8 +58,8 @@ final class LocalProxyLauncher {
             .deletingLastPathComponent()
 
         let candidates = [
-            repoRoot.appendingPathComponent("proxy/target/debug/Tether-proxy"),
-            Bundle.main.bundleURL.appendingPathComponent("Contents/Helpers/Tether-proxy")
+            repoRoot.appendingPathComponent("proxy/target/debug/loom-proxy"),
+            Bundle.main.bundleURL.appendingPathComponent("Contents/Helpers/loom-proxy")
         ]
 
         return candidates.first { FileManager.default.isExecutableFile(atPath: $0.path) }

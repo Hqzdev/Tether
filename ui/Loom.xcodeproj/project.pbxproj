@@ -7,54 +7,42 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		C0D300000000000000000001 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D400000000000000000001 /* ContentView.swift */; };
-		C0D300000000000000000002 /* AgentTracePalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D400000000000000000002 /* AgentTracePalette.swift */; };
-		C0D300000000000000000003 /* AgentTraceThemeMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D400000000000000000003 /* AgentTraceThemeMode.swift */; };
-		C0D300000000000000000004 /* TraceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D400000000000000000004 /* TraceModels.swift */; };
-		C0D300000000000000000005 /* GraphPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D400000000000000000005 /* GraphPane.swift */; };
-		C0D300000000000000000006 /* InspectorPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D400000000000000000006 /* InspectorPane.swift */; };
-		C0D300000000000000000007 /* MainThreePaneLayoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D400000000000000000007 /* MainThreePaneLayoutView.swift */; };
-		C0D300000000000000000008 /* TraceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D400000000000000000008 /* TraceStore.swift */; };
-		C0D300000000000000000009 /* AgentTraceMenuCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D400000000000000000009 /* AgentTraceMenuCommands.swift */; };
-		C0D30000000000000000000A /* AppSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D40000000000000000000A /* AppSettingsView.swift */; };
-		C0D30000000000000000000B /* TitleBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D40000000000000000000B /* TitleBar.swift */; };
-		C0D30000000000000000000C /* Sidebar.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D40000000000000000000C /* Sidebar.swift */; };
-		C0D30000000000000000000D /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D40000000000000000000D /* WelcomeView.swift */; };
-		C0D30000000000000000000E /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D40000000000000000000E /* Item.swift */; };
-		C0D30000000000000000000F /* LoomApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D40000000000000000000F /* LoomApp.swift */; };
-		C0D300000000000000000010 /* CodexLogObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D400000000000000000010 /* CodexLogObserver.swift */; };
-		C0D300000000000000000011 /* LocalProxyLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D400000000000000000011 /* LocalProxyLauncher.swift */; };
-		C0D300000000000000000012 /* ProxySettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D400000000000000000012 /* ProxySettingsStore.swift */; };
-		C0D300000000000000000013 /* TraceAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D400000000000000000013 /* TraceAPIClient.swift */; };
-		C0D300000000000000000014 /* TraceSharedViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D400000000000000000014 /* TraceSharedViews.swift */; };
-		C0D300000000000000000015 /* WindowChromeHider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D400000000000000000015 /* WindowChromeHider.swift */; };
-		C0D300000000000000000016 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C0D400000000000000000016 /* Assets.xcassets */; };
+		C0D300000000000000000001 /* Loom/ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D400000000000000000001 /* Loom/ContentView.swift */; };
+		C0D300000000000000000005 /* Loom/Features/Graph/GraphPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D400000000000000000005 /* Loom/Features/Graph/GraphPane.swift */; };
+		C0D300000000000000000006 /* Loom/Features/Inspector/InspectorPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D400000000000000000006 /* Loom/Features/Inspector/InspectorPane.swift */; };
+		C0D300000000000000000007 /* Loom/Features/MainLayout/MainThreePaneLayoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D400000000000000000007 /* Loom/Features/MainLayout/MainThreePaneLayoutView.swift */; };
+		C0D300000000000000000008 /* Loom/Features/MainLayout/TraceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D400000000000000000008 /* Loom/Features/MainLayout/TraceStore.swift */; };
+		C0D300000000000000000009 /* Loom/Features/Menu/AgentTraceMenuCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D400000000000000000009 /* Loom/Features/Menu/AgentTraceMenuCommands.swift */; };
+		C0D30000000000000000000A /* Loom/Features/Settings/AppSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D40000000000000000000A /* Loom/Features/Settings/AppSettingsView.swift */; };
+		C0D30000000000000000000B /* Loom/Features/Shell/TitleBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D40000000000000000000B /* Loom/Features/Shell/TitleBar.swift */; };
+		C0D30000000000000000000C /* Loom/Features/Sidebar/Sidebar.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D40000000000000000000C /* Loom/Features/Sidebar/Sidebar.swift */; };
+		C0D30000000000000000000D /* Loom/Features/Welcome/WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D40000000000000000000D /* Loom/Features/Welcome/WelcomeView.swift */; };
+		C0D30000000000000000000E /* Loom/Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D40000000000000000000E /* Loom/Item.swift */; };
+		C0D30000000000000000000F /* Loom/LoomApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D40000000000000000000F /* Loom/LoomApp.swift */; };
+		C0D300000000000000000015 /* Loom/Shared/WindowChromeHider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D400000000000000000015 /* Loom/Shared/WindowChromeHider.swift */; };
+		C0D300000000000000000016 /* Loom/Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C0D400000000000000000016 /* Loom/Assets.xcassets */; };
+		C0D500000000000000000001 /* Core in Frameworks */ = {isa = PBXBuildFile; productRef = C0D600000000000000000001 /* Core */; };
+		C0D500000000000000000002 /* UI in Frameworks */ = {isa = PBXBuildFile; productRef = C0D600000000000000000002 /* UI */; };
+		C0D500000000000000000003 /* Networking in Frameworks */ = {isa = PBXBuildFile; productRef = C0D600000000000000000003 /* Networking */; };
+		C0D500000000000000000004 /* App in Frameworks */ = {isa = PBXBuildFile; productRef = C0D600000000000000000004 /* App */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		13B6D8F92FCAC593004EDF4E /* Tether.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tether.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		C0D400000000000000000001 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/ContentView.swift; sourceTree = SOURCE_ROOT; };
-		C0D400000000000000000002 /* AgentTracePalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/DesignSystem/AgentTracePalette.swift; sourceTree = SOURCE_ROOT; };
-		C0D400000000000000000003 /* AgentTraceThemeMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/DesignSystem/AgentTraceThemeMode.swift; sourceTree = SOURCE_ROOT; };
-		C0D400000000000000000004 /* TraceModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Domain/TraceModels.swift; sourceTree = SOURCE_ROOT; };
-		C0D400000000000000000005 /* GraphPane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Graph/GraphPane.swift; sourceTree = SOURCE_ROOT; };
-		C0D400000000000000000006 /* InspectorPane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Inspector/InspectorPane.swift; sourceTree = SOURCE_ROOT; };
-		C0D400000000000000000007 /* MainThreePaneLayoutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/MainLayout/MainThreePaneLayoutView.swift; sourceTree = SOURCE_ROOT; };
-		C0D400000000000000000008 /* TraceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/MainLayout/TraceStore.swift; sourceTree = SOURCE_ROOT; };
-		C0D400000000000000000009 /* AgentTraceMenuCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Menu/AgentTraceMenuCommands.swift; sourceTree = SOURCE_ROOT; };
-		C0D40000000000000000000A /* AppSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Settings/AppSettingsView.swift; sourceTree = SOURCE_ROOT; };
-		C0D40000000000000000000B /* TitleBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Shell/TitleBar.swift; sourceTree = SOURCE_ROOT; };
-		C0D40000000000000000000C /* Sidebar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Sidebar/Sidebar.swift; sourceTree = SOURCE_ROOT; };
-		C0D40000000000000000000D /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Welcome/WelcomeView.swift; sourceTree = SOURCE_ROOT; };
-		C0D40000000000000000000E /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Item.swift; sourceTree = SOURCE_ROOT; };
-		C0D40000000000000000000F /* LoomApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/LoomApp.swift; sourceTree = SOURCE_ROOT; };
-		C0D400000000000000000010 /* CodexLogObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Services/CodexLogObserver.swift; sourceTree = SOURCE_ROOT; };
-		C0D400000000000000000011 /* LocalProxyLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Services/LocalProxyLauncher.swift; sourceTree = SOURCE_ROOT; };
-		C0D400000000000000000012 /* ProxySettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Services/ProxySettingsStore.swift; sourceTree = SOURCE_ROOT; };
-		C0D400000000000000000013 /* TraceAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Services/TraceAPIClient.swift; sourceTree = SOURCE_ROOT; };
-		C0D400000000000000000014 /* TraceSharedViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Shared/TraceSharedViews.swift; sourceTree = SOURCE_ROOT; };
-		C0D400000000000000000015 /* WindowChromeHider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Shared/WindowChromeHider.swift; sourceTree = SOURCE_ROOT; };
-		C0D400000000000000000016 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Loom/Assets.xcassets; sourceTree = SOURCE_ROOT; };
+		C0D400000000000000000001 /* Loom/ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/ContentView.swift; sourceTree = SOURCE_ROOT; };
+		C0D400000000000000000005 /* Loom/Features/Graph/GraphPane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Graph/GraphPane.swift; sourceTree = SOURCE_ROOT; };
+		C0D400000000000000000006 /* Loom/Features/Inspector/InspectorPane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Inspector/InspectorPane.swift; sourceTree = SOURCE_ROOT; };
+		C0D400000000000000000007 /* Loom/Features/MainLayout/MainThreePaneLayoutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/MainLayout/MainThreePaneLayoutView.swift; sourceTree = SOURCE_ROOT; };
+		C0D400000000000000000008 /* Loom/Features/MainLayout/TraceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/MainLayout/TraceStore.swift; sourceTree = SOURCE_ROOT; };
+		C0D400000000000000000009 /* Loom/Features/Menu/AgentTraceMenuCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Menu/AgentTraceMenuCommands.swift; sourceTree = SOURCE_ROOT; };
+		C0D40000000000000000000A /* Loom/Features/Settings/AppSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Settings/AppSettingsView.swift; sourceTree = SOURCE_ROOT; };
+		C0D40000000000000000000B /* Loom/Features/Shell/TitleBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Shell/TitleBar.swift; sourceTree = SOURCE_ROOT; };
+		C0D40000000000000000000C /* Loom/Features/Sidebar/Sidebar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Sidebar/Sidebar.swift; sourceTree = SOURCE_ROOT; };
+		C0D40000000000000000000D /* Loom/Features/Welcome/WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Welcome/WelcomeView.swift; sourceTree = SOURCE_ROOT; };
+		C0D40000000000000000000E /* Loom/Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Item.swift; sourceTree = SOURCE_ROOT; };
+		C0D40000000000000000000F /* Loom/LoomApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/LoomApp.swift; sourceTree = SOURCE_ROOT; };
+		C0D400000000000000000015 /* Loom/Shared/WindowChromeHider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Shared/WindowChromeHider.swift; sourceTree = SOURCE_ROOT; };
+		C0D400000000000000000016 /* Loom/Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Loom/Assets.xcassets; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -70,6 +58,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C0D500000000000000000004 /* App in Frameworks */,
+				C0D500000000000000000001 /* Core in Frameworks */,
+				C0D500000000000000000003 /* Networking in Frameworks */,
+				C0D500000000000000000002 /* UI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -81,6 +73,7 @@
 			children = (
 				13B6D8FB2FCAC593004EDF4E /* Loom */,
 				13B6D8FA2FCAC593004EDF4E /* Products */,
+				13F79DB62FD6E63F004BCB7D /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -90,6 +83,27 @@
 				13B6D8F92FCAC593004EDF4E /* Tether.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		13F79DB62FD6E63F004BCB7D /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				C0D40000000000000000000A /* Loom/Features/Settings/AppSettingsView.swift */,
+				C0D400000000000000000009 /* Loom/Features/Menu/AgentTraceMenuCommands.swift */,
+				C0D400000000000000000001 /* Loom/ContentView.swift */,
+				C0D400000000000000000005 /* Loom/Features/Graph/GraphPane.swift */,
+				C0D400000000000000000006 /* Loom/Features/Inspector/InspectorPane.swift */,
+				C0D40000000000000000000E /* Loom/Item.swift */,
+				C0D40000000000000000000F /* Loom/LoomApp.swift */,
+				C0D400000000000000000007 /* Loom/Features/MainLayout/MainThreePaneLayoutView.swift */,
+				C0D40000000000000000000C /* Loom/Features/Sidebar/Sidebar.swift */,
+				C0D40000000000000000000B /* Loom/Features/Shell/TitleBar.swift */,
+				C0D400000000000000000008 /* Loom/Features/MainLayout/TraceStore.swift */,
+				C0D40000000000000000000D /* Loom/Features/Welcome/WelcomeView.swift */,
+				C0D400000000000000000015 /* Loom/Shared/WindowChromeHider.swift */,
+				C0D400000000000000000016 /* Loom/Assets.xcassets */,
+			);
+			name = "Recovered References";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -109,6 +123,10 @@
 			);
 			name = Tether;
 			packageProductDependencies = (
+				C0D600000000000000000001 /* Core */,
+				C0D600000000000000000002 /* UI */,
+				C0D600000000000000000003 /* Networking */,
+				C0D600000000000000000004 /* App */,
 			);
 			productName = Tether;
 			productReference = 13B6D8F92FCAC593004EDF4E /* Tether.app */;
@@ -129,7 +147,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 13B6D8F42FCAC593004EDF4E /* Build configuration list for PBXProject "Tether" */;
+			buildConfigurationList = 13B6D8F42FCAC593004EDF4E /* Build configuration list for PBXProject "Loom" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -138,6 +156,9 @@
 			);
 			mainGroup = 13B6D8F02FCAC593004EDF4E;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				C0D700000000000000000001 /* XCLocalSwiftPackageReference "." */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 13B6D8FA2FCAC593004EDF4E /* Products */;
 			projectDirPath = "";
@@ -153,7 +174,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C0D300000000000000000016 /* Assets.xcassets in Resources */,
+				C0D300000000000000000016 /* Loom/Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -164,27 +185,19 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C0D30000000000000000000A /* AppSettingsView.swift in Sources */,
-				C0D300000000000000000009 /* AgentTraceMenuCommands.swift in Sources */,
-				C0D300000000000000000002 /* AgentTracePalette.swift in Sources */,
-				C0D300000000000000000003 /* AgentTraceThemeMode.swift in Sources */,
-				C0D300000000000000000010 /* CodexLogObserver.swift in Sources */,
-				C0D300000000000000000001 /* ContentView.swift in Sources */,
-				C0D300000000000000000005 /* GraphPane.swift in Sources */,
-				C0D300000000000000000006 /* InspectorPane.swift in Sources */,
-				C0D30000000000000000000E /* Item.swift in Sources */,
-				C0D300000000000000000011 /* LocalProxyLauncher.swift in Sources */,
-				C0D30000000000000000000F /* LoomApp.swift in Sources */,
-				C0D300000000000000000007 /* MainThreePaneLayoutView.swift in Sources */,
-				C0D300000000000000000012 /* ProxySettingsStore.swift in Sources */,
-				C0D30000000000000000000C /* Sidebar.swift in Sources */,
-				C0D30000000000000000000B /* TitleBar.swift in Sources */,
-				C0D300000000000000000013 /* TraceAPIClient.swift in Sources */,
-				C0D300000000000000000008 /* TraceStore.swift in Sources */,
-				C0D300000000000000000004 /* TraceModels.swift in Sources */,
-				C0D300000000000000000014 /* TraceSharedViews.swift in Sources */,
-				C0D30000000000000000000D /* WelcomeView.swift in Sources */,
-				C0D300000000000000000015 /* WindowChromeHider.swift in Sources */,
+				C0D30000000000000000000A /* Loom/Features/Settings/AppSettingsView.swift in Sources */,
+				C0D300000000000000000009 /* Loom/Features/Menu/AgentTraceMenuCommands.swift in Sources */,
+				C0D300000000000000000001 /* Loom/ContentView.swift in Sources */,
+				C0D300000000000000000005 /* Loom/Features/Graph/GraphPane.swift in Sources */,
+				C0D300000000000000000006 /* Loom/Features/Inspector/InspectorPane.swift in Sources */,
+				C0D30000000000000000000E /* Loom/Item.swift in Sources */,
+				C0D30000000000000000000F /* Loom/LoomApp.swift in Sources */,
+				C0D300000000000000000007 /* Loom/Features/MainLayout/MainThreePaneLayoutView.swift in Sources */,
+				C0D30000000000000000000C /* Loom/Features/Sidebar/Sidebar.swift in Sources */,
+				C0D30000000000000000000B /* Loom/Features/Shell/TitleBar.swift in Sources */,
+				C0D300000000000000000008 /* Loom/Features/MainLayout/TraceStore.swift in Sources */,
+				C0D30000000000000000000D /* Loom/Features/Welcome/WelcomeView.swift in Sources */,
+				C0D300000000000000000015 /* Loom/Shared/WindowChromeHider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -378,7 +391,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		13B6D8F42FCAC593004EDF4E /* Build configuration list for PBXProject "Tether" */ = {
+		13B6D8F42FCAC593004EDF4E /* Build configuration list for PBXProject "Loom" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				13B6D9042FCAC594004EDF4E /* Debug */,
@@ -397,6 +410,36 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		C0D700000000000000000001 /* XCLocalSwiftPackageReference "." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = .;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C0D600000000000000000001 /* Core */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C0D700000000000000000001 /* XCLocalSwiftPackageReference "." */;
+			productName = Core;
+		};
+		C0D600000000000000000002 /* UI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C0D700000000000000000001 /* XCLocalSwiftPackageReference "." */;
+			productName = UI;
+		};
+		C0D600000000000000000003 /* Networking */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C0D700000000000000000001 /* XCLocalSwiftPackageReference "." */;
+			productName = Networking;
+		};
+		C0D600000000000000000004 /* App */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C0D700000000000000000001 /* XCLocalSwiftPackageReference "." */;
+			productName = App;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 13B6D8F12FCAC593004EDF4E /* Project object */;
 }

@@ -1,13 +1,13 @@
 import SwiftUI
 
-enum AgentTraceThemeMode: String, CaseIterable, Identifiable {
+public enum AgentTraceThemeMode: String, CaseIterable, Identifiable, Sendable {
     case system
     case light
     case dark
 
-    var id: String { rawValue }
+    public var id: String { rawValue }
 
-    var title: String {
+    public var title: String {
         switch self {
         case .system:
             return "System"
@@ -18,7 +18,7 @@ enum AgentTraceThemeMode: String, CaseIterable, Identifiable {
         }
     }
 
-    var preferredColorScheme: ColorScheme? {
+    public var preferredColorScheme: ColorScheme? {
         switch self {
         case .system:
             return nil
@@ -29,7 +29,7 @@ enum AgentTraceThemeMode: String, CaseIterable, Identifiable {
         }
     }
 
-    func isLight(systemColorScheme: ColorScheme) -> Bool {
+    public func isLight(systemColorScheme: ColorScheme) -> Bool {
         switch self {
         case .system:
             return systemColorScheme == .light

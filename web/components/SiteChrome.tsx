@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Icon } from "@/components/Icon";
 
 const PRODUCT_LINKS = [
   { label: "Features", href: "/features" },
@@ -33,40 +34,6 @@ function LogoMark() {
       src="/Tether.PNG"
       width="28"
     />
-  );
-}
-
-function CircleIcon() {
-  return (
-    <svg aria-hidden="true" className="ic" fill="currentColor" viewBox="0 0 24 24">
-      <circle cx="12" cy="12" r="8" />
-    </svg>
-  );
-}
-
-function AppleIcon() {
-  return (
-    <svg aria-hidden="true" className="ic" fill="currentColor" viewBox="0 0 24 24">
-      <path d="M16.37 12.78c-.02-2.2 1.8-3.26 1.88-3.31-1.03-1.5-2.62-1.71-3.19-1.73-1.36-.14-2.65.8-3.34.8-.69 0-1.75-.78-2.88-.76-1.48.02-2.85.86-3.61 2.19-1.54 2.67-.39 6.62 1.11 8.79.73 1.06 1.6 2.25 2.74 2.21 1.1-.04 1.51-.71 2.84-.71 1.32 0 1.7.71 2.86.69 1.18-.02 1.93-1.08 2.65-2.15.84-1.23 1.18-2.42 1.2-2.48-.03-.01-2.29-.88-2.31-3.49zM14.4 6.24c.61-.74 1.02-1.77.91-2.8-.88.04-1.95.59-2.58 1.33-.56.65-1.06 1.7-.93 2.7.98.08 1.99-.5 2.6-1.23z" />
-    </svg>
-  );
-}
-
-function ArrowIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="ic"
-      fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.7"
-      viewBox="0 0 24 24"
-    >
-      <path d="M5 12h14" />
-      <path d="m13 6 6 6-6 6" />
-    </svg>
   );
 }
 
@@ -109,11 +76,11 @@ export function SiteHeader() {
         </div>
         <div className="nav-right">
           <Link className="gh-pill" href="/download" aria-label="Get the Tether alpha build">
-            <CircleIcon />
+            <Icon className="ic" name="circle" strokeWidth={1.7} />
             Alpha build
           </Link>
           <Link className="btn btn-primary btn-sm" href="/download">
-            <AppleIcon />
+            <Icon className="ic" name="apple" strokeWidth={1.7} />
             Download
           </Link>
         </div>
@@ -171,7 +138,7 @@ export function SiteFooter() {
       <div className="foot-bottom">
         <span>&copy; 2026 Tether - Crafted for the Mac</span>
         <span>
-          <ArrowIcon /> All systems local
+          <Icon className="ic" name="arrow-right" strokeWidth={1.7} /> All systems local
         </span>
       </div>
     </footer>

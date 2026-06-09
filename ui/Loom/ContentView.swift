@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import UI
 
 struct ContentView: View {
     @AppStorage("hasSeenWelcome") private var hasSeenWelcome = false

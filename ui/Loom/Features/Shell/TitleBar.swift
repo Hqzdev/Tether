@@ -1,4 +1,6 @@
+import Core
 import SwiftUI
+import UI
 
 struct TitleBar: View {
     let session: TraceSession?

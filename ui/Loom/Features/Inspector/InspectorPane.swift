@@ -1,4 +1,6 @@
+import Core
 import SwiftUI
+import UI
 
 struct InspectorPane: View {
     let node: AgentNode?
@@ -341,12 +343,30 @@ private struct CodeLineView: View {
                 }
 
             if let label = row.label {
-                Text(label.uppercased())
-                    .font(.system(size: 10, weight: .bold, design: .monospaced))
-                    .tracking(0.6)
-                    .foregroundStyle(palette.textQuaternary)
-                    .frame(maxWidth: .infinity, minHeight: 20, alignment: .leading)
-                    .padding(.horizontal, 16)
+                let labelAccent = sectionLabelAccent(for: label)
+
+                HStack(spacing: 8) {
+                    Text(label.uppercased())
+                        .font(.system(size: 10, weight: .bold, design: .monospaced))
+                        .tracking(0.8)
+                        .foregroundStyle(labelAccent)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 2)
+                        .background(labelAccent.opacity(0.14))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                .stroke(labelAccent.opacity(0.32), lineWidth: 1)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+
+                    Rectangle()
+                        .fill(labelAccent.opacity(0.18))
+                        .frame(height: 1)
+                }
+                .frame(maxWidth: .infinity, minHeight: 26, alignment: .leading)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 4)
+                .background(palette.panel.opacity(0.56))
             } else {
                 syntaxText(row.text ?? "")
                     .font(.system(size: 12, design: .monospaced))
@@ -372,6 +392,19 @@ private struct CodeLineView: View {
         }
 
         return Text(text.isEmpty ? " " : text)
+    }
+
+    private func sectionLabelAccent(for label: String) -> Color {
+        switch label.lowercased() {
+        case "system":
+            return palette.violet
+        case "user":
+            return palette.accent
+        case "assistant":
+            return palette.green
+        default:
+            return palette.textTertiary
+        }
     }
 }
 

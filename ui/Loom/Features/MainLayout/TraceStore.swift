@@ -1,5 +1,8 @@
 import Combine
+import Core
+import Networking
 import SwiftUI
+import UI
 
 enum ProxyConnectionStatus: Equatable {
     case connecting

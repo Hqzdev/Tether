@@ -1,4 +1,5 @@
 import AppKit
+import Networking
 import SwiftUI
 
 struct AppSettingsView: View {

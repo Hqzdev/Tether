@@ -1,5 +1,8 @@
 import AppKit
+import ComposableArchitecture
+import Core
 import SwiftUI
+import UI
 
 struct Sidebar: View {
     @Environment(\.openSettings) private var openSettings
@@ -12,7 +15,7 @@ struct Sidebar: View {
     let sessions: [TraceSession]
     let selectedSessionId: TraceSession.ID?
     let liveSessionId: TraceSession.ID?
-    let onSelectSession: (TraceSession) -> Void
+    let onSelectSession: (TraceSession.ID) -> Void
     let onSelect: (AgentNode) -> Void
     let palette: AgentTracePalette
 
@@ -53,42 +56,18 @@ struct Sidebar: View {
             .padding(.top, 12)
             .padding(.bottom, 8)
 
-            SidebarSectionHeader(
-                title: "Sessions",
-                detail: sessions.isEmpty ? "0" : "\(sessions.count)",
-                palette: palette
-            )
-
-            ScrollView {
-                LazyVStack(spacing: 1) {
-                    if sessions.isEmpty {
-                        Text("No proxy sessions")
-                            .font(.caption)
-                            .foregroundStyle(palette.textQuaternary)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 18)
-                    } else {
-                        ForEach(sessions) { session in
-                            SessionRow(
-                                session: session,
-                                selected: session.id == selectedSessionId,
-                                live: session.id == liveSessionId,
-                                onSelect: { onSelectSession(session) },
-                                palette: palette
-                            )
+            SessionListView(
+                store: Store(initialState: sessionListState) {
+                    SessionListFeature()
+                } withDependencies: {
+                    $0.sessionSelectionClient.select = { sessionId in
+                        await MainActor.run {
+                            onSelectSession(sessionId)
                         }
                     }
-                }
-                .padding(.horizontal, 8)
-                .padding(.bottom, 8)
-            }
-            .frame(maxHeight: 154)
-            .scrollIndicators(.automatic)
-            .overlay(alignment: .bottom) {
-                Rectangle()
-                    .fill(palette.borderSoft)
-                    .frame(height: 1)
-            }
+                },
+                palette: palette
+            )
 
             VStack(spacing: 10) {
                 HStack(spacing: 0) {
@@ -155,6 +134,14 @@ struct Sidebar: View {
         }
         .background(palette.panel.opacity(0.56))
     }
+
+    private var sessionListState: SessionListFeature.State {
+        SessionListFeature.State(
+            sessions: sessions,
+            selectedSessionId: selectedSessionId,
+            liveSessionId: liveSessionId
+        )
+    }
 }
 
 private struct SidebarEmptyState: View {
@@ -172,6 +159,33 @@ private struct SidebarEmptyState: View {
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 210)
         }
+    }
+}
+
+private struct SessionsEmptyState: View {
+    let palette: AgentTracePalette
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "tray")
+                .font(.system(size: 22, weight: .light))
+                .symbolRenderingMode(.hierarchical)
+                .foregroundStyle(palette.textQuaternary)
+
+            VStack(spacing: 3) {
+                Text("No proxy sessions")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(palette.textTertiary)
+
+                Text("Sessions appear here once traffic flows through the proxy.")
+                    .font(.system(size: 10.5))
+                    .foregroundStyle(palette.textQuaternary)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(1.5)
+                    .frame(maxWidth: 200)
+            }
+        }
+        .padding(.horizontal, 12)
     }
 }
 
@@ -275,11 +289,11 @@ private struct CallRow: View {
         Button(action: onSelect) {
             HStack(alignment: .top, spacing: 9) {
                 VStack {
-                    StatusDot(status: node.status, palette: palette)
+                    StatusDot(status: node.status, palette: palette, size: 12)
                         .padding(.top, 3)
                     Spacer(minLength: 0)
                 }
-                .frame(width: 14)
+                .frame(width: 16)
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(node.stepName)

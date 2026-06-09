@@ -1,37 +1,27 @@
+import Core
 import Foundation
 
-nonisolated struct CodexLogObserver {
-    nonisolated func currentSnapshot(afterLogId baselineLogId: Int? = nil) async throws -> TraceSnapshot? {
-        try await withCheckedThrowingContinuation { continuation in
-            DispatchQueue.global(qos: .utility).async {
-                do {
-                    continuation.resume(returning: try Self.loadSnapshot(afterLogId: baselineLogId))
-                } catch {
-                    continuation.resume(throwing: error)
-                }
-            }
-        }
+public actor CodexLogObserver {
+    public init() {}
+
+    public func currentSnapshot(afterLogId baselineLogId: Int? = nil) async throws -> TraceSnapshot? {
+        try await Task.detached(priority: .utility) {
+            try Self.loadSnapshot(afterLogId: baselineLogId)
+        }.value
     }
 
-    nonisolated func latestResponseEventId() async throws -> Int? {
-        try await withCheckedThrowingContinuation { continuation in
-            DispatchQueue.global(qos: .utility).async {
-                do {
-                    let codexDirectory = FileManager.default.homeDirectoryForCurrentUser
-                        .appendingPathComponent(".codex", isDirectory: true)
-                    let logsPath = codexDirectory.appendingPathComponent("logs_2.sqlite").path
+    public func latestResponseEventId() async throws -> Int? {
+        try await Task.detached(priority: .utility) {
+            let codexDirectory = FileManager.default.homeDirectoryForCurrentUser
+                .appendingPathComponent(".codex", isDirectory: true)
+            let logsPath = codexDirectory.appendingPathComponent("logs_2.sqlite").path
 
-                    guard FileManager.default.fileExists(atPath: logsPath) else {
-                        continuation.resume(returning: nil)
-                        return
-                    }
-
-                    continuation.resume(returning: try Self.latestResponseEventId(from: logsPath))
-                } catch {
-                    continuation.resume(throwing: error)
-                }
+            guard FileManager.default.fileExists(atPath: logsPath) else {
+                return nil
             }
-        }
+
+            return try Self.latestResponseEventId(from: logsPath)
+        }.value
     }
 
     nonisolated private static func loadSnapshot(afterLogId baselineLogId: Int?) throws -> TraceSnapshot? {

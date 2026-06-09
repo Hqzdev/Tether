@@ -1,22 +1,34 @@
 import Foundation
 
-struct ProxySettings: Equatable {
-    var port: Int
-    var openAIUpstreamURL: String
-    var anthropicUpstreamURL: String
-    var localCacheEnabled: Bool
+public struct ProxySettings: Equatable, Sendable {
+    public var port: Int
+    public var openAIUpstreamURL: String
+    public var anthropicUpstreamURL: String
+    public var localCacheEnabled: Bool
 
-    var listenAddress: String {
+    public init(
+        port: Int,
+        openAIUpstreamURL: String,
+        anthropicUpstreamURL: String,
+        localCacheEnabled: Bool
+    ) {
+        self.port = port
+        self.openAIUpstreamURL = openAIUpstreamURL
+        self.anthropicUpstreamURL = anthropicUpstreamURL
+        self.localCacheEnabled = localCacheEnabled
+    }
+
+    public var listenAddress: String {
         "127.0.0.1:\(port)"
     }
 
-    var proxyBaseURL: URL {
+    public var proxyBaseURL: URL {
         URL(string: "http://127.0.0.1:\(port)") ?? ProxySettingsStore.defaults.proxyBaseURL
     }
 }
 
-enum ProxySettingsStore {
-    static let defaults = ProxySettings(
+public enum ProxySettingsStore {
+    public static let defaults = ProxySettings(
         port: 8080,
         openAIUpstreamURL: "https://api.openai.com",
         anthropicUpstreamURL: "https://api.anthropic.com",
@@ -30,7 +42,7 @@ enum ProxySettingsStore {
         static let localCacheEnabled = "agenttrace.proxy.localCacheEnabled"
     }
 
-    static var current: ProxySettings {
+    public static var current: ProxySettings {
         let defaultsStore = UserDefaults.standard
         return ProxySettings(
             port: defaultsStore.object(forKey: Key.port) as? Int ?? defaults.port,
@@ -40,7 +52,7 @@ enum ProxySettingsStore {
         )
     }
 
-    static func save(_ settings: ProxySettings) {
+    public static func save(_ settings: ProxySettings) {
         let defaultsStore = UserDefaults.standard
         defaultsStore.set(settings.port, forKey: Key.port)
         defaultsStore.set(settings.openAIUpstreamURL, forKey: Key.openAIUpstreamURL)
@@ -50,11 +62,11 @@ enum ProxySettingsStore {
     }
 }
 
-enum ProxySettingsValidationError: LocalizedError {
+public enum ProxySettingsValidationError: LocalizedError {
     case invalidPort
     case invalidURL(String)
 
-    var errorDescription: String? {
+    public var errorDescription: String? {
         switch self {
         case .invalidPort:
             return "Port must be between 1 and 65535."

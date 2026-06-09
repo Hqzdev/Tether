@@ -1,11 +1,12 @@
+import Core
 import Foundation
 
-struct TraceAPIClient {
-    enum ClientError: LocalizedError {
+public struct TraceAPIClient: Sendable {
+    public enum ClientError: LocalizedError {
         case invalidURL
         case badStatus(Int)
 
-        var errorDescription: String? {
+        public var errorDescription: String? {
             switch self {
             case .invalidURL:
                 return "Invalid local proxy URL."
@@ -22,7 +23,7 @@ struct TraceAPIClient {
         overrideBaseURL ?? ProxySettingsStore.current.proxyBaseURL
     }
 
-    init(
+    public init(
         baseURL: URL? = nil,
         session: URLSession = .shared
     ) {
@@ -30,7 +31,7 @@ struct TraceAPIClient {
         self.session = session
     }
 
-    func currentTrace(sessionId: TraceSession.ID? = nil) async throws -> TraceSnapshot {
+    public func currentTrace(sessionId: TraceSession.ID? = nil) async throws -> TraceSnapshot {
         guard let url = traceURL(sessionId: sessionId) else {
             throw ClientError.invalidURL
         }
@@ -50,7 +51,7 @@ struct TraceAPIClient {
         return try decoder.decode(TraceSnapshot.self, from: data)
     }
 
-    func sessions() async throws -> TraceSessionList {
+    public func sessions() async throws -> TraceSessionList {
         guard let url = URL(string: "/api/sessions", relativeTo: baseURL)?.absoluteURL else {
             throw ClientError.invalidURL
         }
@@ -70,7 +71,7 @@ struct TraceAPIClient {
         return try decoder.decode(TraceSessionList.self, from: data)
     }
 
-    func createSession() async throws -> TraceSession {
+    public func createSession() async throws -> TraceSession {
         guard let url = URL(string: "/api/sessions", relativeTo: baseURL)?.absoluteURL else {
             throw ClientError.invalidURL
         }
@@ -90,7 +91,7 @@ struct TraceAPIClient {
         return try decoder.decode(TraceSession.self, from: data)
     }
 
-    func clearTrace() async throws {
+    public func clearTrace() async throws {
         guard let url = URL(string: "/api/traces/current", relativeTo: baseURL)?.absoluteURL else {
             throw ClientError.invalidURL
         }
@@ -106,7 +107,7 @@ struct TraceAPIClient {
         }
     }
 
-    func clearCache() async throws {
+    public func clearCache() async throws {
         guard let url = URL(string: "/api/cache", relativeTo: baseURL)?.absoluteURL else {
             throw ClientError.invalidURL
         }

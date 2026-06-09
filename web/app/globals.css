@@ -3,7 +3,7 @@
    Mirrors the native macOS app's design tokens (styles.css)
    ============================================================ */
 
-/* ---- Inline-SVG icon system (self-contained, no icon-font CDN) ---- */
+/* ---- Hugeicons SVG sizing ---- */
 svg.ic { width: 1em; height: 1em; display: inline-block; vertical-align: -0.13em; flex: none; }
 svg.ic [fill="none"] { fill: none; }
 svg.ic.spin { animation: ic-spin 1s linear infinite; }
@@ -244,6 +244,31 @@ h2.title {
 .macbar .spacer { flex: 1; }
 .macbar .wdots { display: flex; gap: 7px; color: var(--text-4); }
 
+/* ====== hero product screenshot ====== */
+.product-shot {
+  width: 100%;
+  max-width: 1160px;
+  margin: 56px auto 0;
+  position: relative;
+}
+.product-shot-glow {
+  position: absolute; inset: -2% 8% auto 8%; height: 60%; z-index: -1;
+  background: radial-gradient(closest-side, rgba(116,224,168,.18), transparent 70%);
+  filter: blur(30px);
+}
+.product-shot-frame {
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 18px;
+  background: #000;
+  box-shadow: var(--shadow-window);
+  overflow: hidden;
+}
+.product-shot-image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
 /* ====== HERO DEMO: split editor | mini app ====== */
 .demo-wrap { margin-top: 56px; position: relative; }
 .demo-glow {
@@ -366,43 +391,68 @@ h2.title {
 }
 .tree-stage .ts-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-family: var(--font-mono); font-size: 11.5px; color: var(--text-4); }
 .tree-stage .ts-head .ttl { color: var(--text-2); font-weight: 600; }
-.tree-svg-wrap { position: relative; margin-top: 18px; }
+.tree-svg-wrap { position: relative; margin-top: 18px; overflow: auto; }
 .tline {
-  stroke: var(--border-strong);
+  stroke: var(--text-4);
+  stroke-width: 3;
+  stroke-linecap: round;
   stroke-dasharray: 80;
   stroke-dashoffset: 80;
   transition: stroke-dashoffset .5s ease, stroke .5s ease;
 }
-.tline-0.draw { stroke: var(--green); }
-.tline-1.draw { stroke: var(--cyan); }
-.tline-2.draw { stroke: var(--green); }
-.tline-3.draw { stroke: var(--pink); }
+.tline-success.draw { stroke: var(--green); }
+.tline-error.draw   { stroke: var(--pink); }
+.tline-default.draw { stroke: var(--text-3); }
 .tline.draw { stroke-dashoffset: 0; }
 #treeNodes { position: absolute; inset: 0; pointer-events: none; }
 .s2node {
-  position: absolute; left: 36px; width: calc(100% - 48px);
-  padding: 11px 13px; border-radius: 11px; border: 1px solid var(--border);
+  position: absolute; left: 56px;
+  width: clamp(160px, calc(100% - 80px), 230px);
+  padding: 16px 14px; border-radius: 18px; border: 1px solid var(--border);
   background: linear-gradient(180deg,#1a1a1c,#161618);
   opacity: 0; transform: translateY(10px) scale(.95);
   transition: opacity .45s var(--ease-expo), transform .45s var(--ease-expo);
   display: flex; align-items: center; gap: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.42), 0 2px 6px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.04);
+  pointer-events: auto;
 }
 .s2node.in { opacity: 1; transform: none; }
-.s2node[data-i="0"] { top: 30px; }
-.s2node[data-i="1"] { top: 130px; }
-.s2node[data-i="2"] { top: 230px; }
-.s2node[data-i="3"] { top: 330px; }
+.s2node[data-i="0"] { top: 14px; }
+.s2node[data-i="1"] { top: 114px; }
+.s2node[data-i="2"] { top: 214px; }
+.s2node[data-i="3"] { top: 314px; }
 .s2-ico {
-  width: 26px; height: 26px; border-radius: 7px; display: grid; place-items: center;
-  flex: 0 0 26px; font-size: 13px; border: 1px solid var(--border);
+  width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center;
+  flex: 0 0 30px; font-size: 13px; border: 1px solid var(--border);
   background: var(--bg-panel-2);
 }
 .s2node.success .s2-ico { color: var(--green); background: var(--green-bg); border-color: var(--green-dim); }
 .s2node.cached .s2-ico { color: var(--cyan); background: var(--cyan-bg); border-color: var(--cyan-dim); }
 .s2node.error .s2-ico { color: var(--pink); background: var(--pink-bg); border-color: var(--pink-dim); }
 .s2-copy { min-width: 0; flex: 1; }
-.s2-label { display: block; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.s2-sub { display: block; font-family: var(--font-mono); font-size: 10.5px; color: var(--text-4); margin-top: 2px; }
+.s2-label { display: block; font-size: 13px; font-weight: 600; white-space: normal; overflow-wrap: anywhere; word-break: break-word; }
+.s2-sub { display: block; font-family: var(--font-mono); font-size: 10.5px; color: var(--text-4); margin-top: 3px; white-space: normal; overflow-wrap: anywhere; }
+
+.fit-view-btn {
+  position: absolute; right: 12px; bottom: 12px; z-index: 2;
+  display: inline-flex; align-items: center; gap: 7px;
+  height: 32px; padding: 0 12px; border-radius: 8px;
+  font-family: var(--font-ui); font-size: 12px; font-weight: 580;
+  color: var(--text-2);
+  background: rgba(22,22,24,.85);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(8px) saturate(140%);
+  box-shadow: 0 6px 20px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.04);
+  cursor: pointer;
+  transition: all .2s var(--ease-expo);
+}
+.fit-view-btn:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+  background: rgba(32,32,34,.92);
+  transform: translateY(-1px);
+}
+.fit-view-btn .ic { font-size: 13px; color: var(--green); }
 .s2-status {
   font-size: 9px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase;
   padding: 3px 7px; border-radius: 999px; background: var(--bg-panel-2);
@@ -737,6 +787,8 @@ h2.title {
   .section-pad { padding: 88px 0; }
   .nav-links { display: none; }
   .nav-right .gh-pill { display: none; }
+  .product-shot { margin-top: 40px; }
+  .product-shot-frame { border-radius: 12px; }
   .bento { grid-template-columns: 1fr; }
   .foot-grid { grid-template-columns: 1fr; }
   .hero h1 { letter-spacing: 0; }
