@@ -18,13 +18,20 @@ public final class LocalProxyLauncher {
             return false
         }
 
+        let runtimeDirectory: URL
+        do {
+            runtimeDirectory = try Self.runtimeDirectory()
+        } catch {
+            return false
+        }
+
         let process = Process()
         process.executableURL = binaryURL
         process.currentDirectoryURL = binaryURL.deletingLastPathComponent()
-        process.environment = proxyEnvironment()
+        process.environment = proxyEnvironment(runtimeDirectory: runtimeDirectory)
 
         do {
-            let logURL = try logFileURL()
+            let logURL = try logFileURL(in: runtimeDirectory)
             let logHandle = try FileHandle(forWritingTo: logURL)
             try logHandle.seekToEnd()
             process.standardOutput = logHandle
@@ -65,31 +72,33 @@ public final class LocalProxyLauncher {
         return candidates.first { FileManager.default.isExecutableFile(atPath: $0.path) }
     }
 
-    private func proxyEnvironment() -> [String: String] {
+    private func proxyEnvironment(runtimeDirectory: URL) -> [String: String] {
         var environment = ProcessInfo.processInfo.environment
         let settings = ProxySettingsStore.current
-        environment["Tether_ADDR"] = settings.listenAddress
-        environment["Tether_CACHE"] = settings.localCacheEnabled ? "on" : "off"
+        environment["LOOM_ADDR"] = settings.listenAddress
+        environment["LOOM_CACHE"] = settings.localCacheEnabled ? "on" : "off"
         environment["OPENAI_UPSTREAM"] = settings.openAIUpstreamURL
         environment["ANTHROPIC_UPSTREAM"] = settings.anthropicUpstreamURL
-        environment["Tether_DB"] = appSupportDirectory()
-            .appendingPathComponent("Tether-cache.sqlite")
+        environment["LOOM_DB"] = runtimeDirectory
+            .appendingPathComponent("loom-cache.sqlite")
             .path
         return environment
     }
 
-    private func logFileURL() throws -> URL {
-        let url = appSupportDirectory().appendingPathComponent("proxy.log")
+    private func logFileURL(in runtimeDirectory: URL) throws -> URL {
+        let url = runtimeDirectory.appendingPathComponent("proxy.log")
         if !FileManager.default.fileExists(atPath: url.path) {
-            FileManager.default.createFile(atPath: url.path, contents: nil)
+            guard FileManager.default.createFile(atPath: url.path, contents: nil) else {
+                throw CocoaError(.fileWriteUnknown)
+            }
         }
         return url
     }
 
-    private func appSupportDirectory() -> URL {
-        let root = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        let directory = root.appendingPathComponent("AgentTrace", isDirectory: true)
-        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    private static func runtimeDirectory() throws -> URL {
+        let root = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
+        let directory = root.appendingPathComponent("Loom", isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         return directory
     }
 }

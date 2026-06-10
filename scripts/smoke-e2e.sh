@@ -3,8 +3,8 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/Tether-e2e.XXXXXX")"
-PROXY_PORT="${Tether_E2E_PROXY_PORT:-18080}"
-UPSTREAM_PORT="${Tether_E2E_UPSTREAM_PORT:-18081}"
+PROXY_PORT="${LOOM_E2E_PROXY_PORT:-18080}"
+UPSTREAM_PORT="${LOOM_E2E_UPSTREAM_PORT:-18081}"
 DB_PATH="$TMP_DIR/Tether-e2e.sqlite"
 MOCK_LOG="$TMP_DIR/mock-upstream.log"
 PROXY_LOG="$TMP_DIR/proxy.log"
@@ -112,8 +112,12 @@ server.listen(port, "127.0.0.1", () => {
 });
 JS
 
-echo "==> Building proxy"
-cargo build --manifest-path "$ROOT/proxy/Cargo.toml" >/dev/null
+if [[ "${LOOM_E2E_SKIP_BUILD:-0}" == "1" ]]; then
+  echo "==> Skipping proxy build"
+else
+  echo "==> Building proxy"
+  cargo build --manifest-path "$ROOT/proxy/Cargo.toml" >/dev/null
+fi
 
 echo "==> Starting mock OpenAI upstream on :$UPSTREAM_PORT"
 PORT="$UPSTREAM_PORT" node "$TMP_DIR/mock-upstream.mjs" >"$MOCK_LOG" 2>&1 &
@@ -121,12 +125,12 @@ MOCK_PID="$!"
 wait_for "http://127.0.0.1:$UPSTREAM_PORT/health" "mock upstream"
 
 echo "==> Starting Tether proxy on :$PROXY_PORT"
-Tether_ADDR="127.0.0.1:$PROXY_PORT" \
-Tether_DB="$DB_PATH" \
-Tether_CACHE=on \
+LOOM_ADDR="127.0.0.1:$PROXY_PORT" \
+LOOM_DB="$DB_PATH" \
+LOOM_CACHE=on \
 OPENAI_UPSTREAM="http://127.0.0.1:$UPSTREAM_PORT" \
 ANTHROPIC_UPSTREAM="http://127.0.0.1:$UPSTREAM_PORT" \
-"$ROOT/proxy/target/debug/Tether-proxy" >"$PROXY_LOG" 2>&1 &
+"$ROOT/proxy/target/debug/loom-proxy" >"$PROXY_LOG" 2>&1 &
 PROXY_PID="$!"
 wait_for "http://127.0.0.1:$PROXY_PORT/api/traces/current" "Tether proxy"
 
