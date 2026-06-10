@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/Icon";
+import { trackEvent } from "@/lib/analytics";
 
 const PRODUCT_LINKS = [
   { label: "Features", href: "/features" },
@@ -40,13 +41,22 @@ function LogoMark() {
 function FooterLink({ href, label, external = false }: { href: string; label: string; external?: boolean }) {
   if (external) {
     return (
-      <a href={href} rel="noreferrer" target="_blank">
+      <a
+        href={href}
+        onClick={() => trackEvent("navigation_clicked", { label, location: "footer" })}
+        rel="noreferrer"
+        target="_blank"
+      >
         {label}
       </a>
     );
   }
 
-  return <Link href={href}>{label}</Link>;
+  return (
+    <Link href={href} onClick={() => trackEvent("navigation_clicked", { label, location: "footer" })}>
+      {label}
+    </Link>
+  );
 }
 
 export function SiteHeader() {
@@ -69,18 +79,16 @@ export function SiteHeader() {
           Tether
         </Link>
         <div className="nav-links">
-          <Link href="/features">Features</Link>
-          <Link href="/inspector">Inspector</Link>
-          <Link href="/how-it-works">How it works</Link>
-          <Link href="/download">Download</Link>
-        </div>
-        <div className="nav-right">
-          <Link className="gh-pill" href="/download" aria-label="Get the Tether alpha build">
-            <Icon className="ic" name="circle" strokeWidth={1.7} />
-            Alpha build
+          <Link href="/features" onClick={() => trackEvent("navigation_clicked", { label: "Features", location: "header" })}>
+            Features
           </Link>
-          <Link className="btn btn-primary btn-sm" href="/download">
-            <Icon className="ic" name="apple" strokeWidth={1.7} />
+          <Link href="/inspector" onClick={() => trackEvent("navigation_clicked", { label: "Inspector", location: "header" })}>
+            Inspector
+          </Link>
+          <Link href="/how-it-works" onClick={() => trackEvent("navigation_clicked", { label: "How it works", location: "header" })}>
+            How it works
+          </Link>
+          <Link href="/download" onClick={() => trackEvent("navigation_clicked", { label: "Download", location: "header" })}>
             Download
           </Link>
         </div>

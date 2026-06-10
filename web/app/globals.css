@@ -116,9 +116,9 @@ h2.title {
 .btn:hover { background: var(--bg-hover); border-color: var(--border-strong); transform: translateY(-1px); }
 .btn .ic { font-size: 15px; }
 .btn:focus-visible,
-.gh-pill:focus-visible,
 .flcard:focus-visible,
 .tt-btn:focus-visible,
+.urgency-link:focus-visible,
 .waitlist-form input:focus-visible,
 .waitlist-form select:focus-visible,
 .waitlist-form button:focus-visible {
@@ -138,7 +138,6 @@ h2.title {
 }
 .btn-ghost { background: transparent; }
 .btn-ghost:hover { background: var(--bg-hover); }
-.btn-sm { height: 38px; padding: 0 16px; font-size: 13px; border-radius: 9px; }
 
 .btn-primary.pulse { animation: ctaPulse 3s ease-out infinite; }
 @keyframes ctaPulse {
@@ -172,15 +171,6 @@ h2.title {
   transition: color .2s, background .2s;
 }
 .nav-links a:hover { color: var(--text); background: var(--bg-hover); }
-.nav-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
-.gh-pill {
-  display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px;
-  border: 1px solid var(--border); border-radius: 9px; color: var(--text-2);
-  font-family: var(--font-mono); font-size: 12.5px; background: var(--bg-panel-2);
-  transition: all .2s;
-}
-.gh-pill:hover { color: var(--text); border-color: var(--border-strong); }
-.gh-pill .star { color: var(--amber); }
 
 /* ====== hero ====== */
 .hero { padding: 70px 0 80px; text-align: center; }
@@ -213,6 +203,16 @@ h2.title {
   max-width: 60ch; text-wrap: pretty;
 }
 .hero .cta-row { display: flex; gap: 14px; justify-content: center; margin-top: 36px; flex-wrap: wrap; }
+.urgency-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 16px;
+  color: var(--green);
+  font-size: 13.5px;
+  font-weight: 620;
+}
+.urgency-link:hover { color: #9ef5c8; }
 .hero .meta-row {
   display: flex; gap: 18px; justify-content: center; margin-top: 20px; flex-wrap: wrap;
   font-family: var(--font-mono); font-size: 12px; color: var(--text-4);
@@ -619,6 +619,13 @@ h2.title {
 }
 .finalcta h2 { font-size: clamp(32px, 5vw, 56px); letter-spacing: 0; line-height: 1.02; margin: 0; font-weight: 700; text-wrap: balance; }
 .finalcta p { font-size: 18px; color: var(--text-2); margin: 18px auto 0; max-width: 50ch; }
+.finalcta .alpha-note {
+  color: var(--green);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 620;
+  margin-top: 20px;
+}
 .finalcta .cta-row { display: flex; gap: 14px; justify-content: center; margin-top: 34px; flex-wrap: wrap; }
 .download-actions {
   display: flex;
@@ -786,7 +793,6 @@ h2.title {
 @media (max-width: 640px) {
   .section-pad { padding: 88px 0; }
   .nav-links { display: none; }
-  .nav-right .gh-pill { display: none; }
   .product-shot { margin-top: 40px; }
   .product-shot-frame { border-radius: 12px; }
   .bento { grid-template-columns: 1fr; }

@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import Script from "next/script";
 import "./globals.css";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://useTether.dev";
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -140,6 +142,54 @@ const jsonLd = {
       mainEntity: [
         {
           "@type": "Question",
+          name: "Why not just use print() or logging?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Logging shows you what happened. Tether shows you why. You see the exact point where your agent failed, what response broke it, and you replay with a fix in seconds without re-running the whole chain.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Can I use this with production code?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes. It's a local proxy, so your real code doesn't change. Use it locally for debugging, or keep it running. Tether only stores traces locally and never sends anything anywhere.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "How much money does caching actually save?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "It depends on your agent. If you're iterating on prompt logic and re-running the same retrieval steps, caching saves you 50-90% of API spend while you debug. Each cached hit costs $0.0000.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Will Tether work with my stack?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "If your SDK uses a configurable base_url, including OpenAI SDK, LangChain, LangGraph, LlamaIndex, or Anthropic SDK, it works with one line change. If you use a different provider or custom setup, Tether still works as a transparent proxy.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Does Tether add latency to my agent?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Negligible. Tether runs locally on your Mac. The only overhead is the proxy hop, which is less than 1ms. Real LLM calls are the bottleneck, not Tether.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Can I share traces with my team?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Not yet. Each developer runs their own Tether instance locally. Export as JSON is coming in a later release.",
+          },
+        },
+        {
+          "@type": "Question",
           name: "How does Tether intercept LLM calls without SDK changes?",
           acceptedAnswer: {
             "@type": "Answer",
@@ -184,7 +234,29 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body>{children}</body>
+      <body>
+        {GA_ID ? (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script
+              id="ga4-init"
+              strategy="afterInteractive"
+              dangerouslySetInnerHTML={{
+                __html: `
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', ${JSON.stringify(GA_ID)}, { send_page_view: true });
+`,
+              }}
+            />
+          </>
+        ) : null}
+        {children}
+      </body>
     </html>
   );
 }

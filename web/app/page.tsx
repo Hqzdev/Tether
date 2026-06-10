@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { type FormEvent, useEffect, useRef, useState } from "react";
+import { type FormEvent, type ReactNode, useEffect, useRef, useState } from "react";
 import { Icon, type IconName } from "@/components/Icon";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
+import { trackEvent } from "@/lib/analytics";
 import { NODES, type NodeStatus, type TraceNode } from "@/lib/data";
 
 const DOWNLOAD_HREF = "/downloads/Tether.dmg";
@@ -84,6 +85,62 @@ const TREE_LAYOUT: {
   { status: "cached", icon: "bolt", label: "Vector DB Retrieval", sub: "cached - 0ms" },
   { status: "success", icon: "check-circle", label: "Context Synthesis", sub: "claude-3.5-sonnet" },
   { status: "error", icon: "circle-exclamation", label: "Response Generation", sub: "timeout - 4.10s" },
+];
+
+const FAQ_ITEMS: { q: string; a: ReactNode }[] = [
+  {
+    q: "Is Tether free?",
+    a: "Yes. Tether is free during the alpha period and the core proxy is open source. No credit card or account required.",
+  },
+  {
+    q: "Does Tether send my prompts or API keys anywhere?",
+    a: "No. Tether is fully air-gapped. Your prompts, responses, and API keys never leave your Mac. API keys are stored encrypted in the macOS Keychain and are never written to disk in plain text.",
+  },
+  {
+    q: "How does Tether intercept LLM calls without changing my code?",
+    a: "Tether runs a local HTTP proxy on your machine. You point your AI client's base_url at http://localhost:8080/v1 — that's the only change. Tether transparently forwards every request to the real provider and records the full request/response pair locally.",
+  },
+  {
+    q: "Which LLM providers and frameworks does Tether support?",
+    a: "Tether supports OpenAI, Anthropic (Claude), Ollama, LM Studio, and any provider that accepts an OpenAI-compatible base_url. It works with LangChain, LangGraph, LlamaIndex, and any SDK with a configurable endpoint.",
+  },
+  {
+    q: "How is Tether different from LangSmith or Weights & Biases?",
+    a: "LangSmith and W&B send your traces to cloud servers. Tether keeps everything on your machine — there is no cloud, no account, and nothing leaves your Mac. It's designed for developers who can't or won't send production prompts to third-party services.",
+  },
+  {
+    q: "What is time-travel mocking?",
+    a: "Time-travel mocking lets you click any past node in the agent trace, edit its response JSON, and replay the entire chain from that point forward — without re-running earlier steps or spending tokens. You can test how your agent would behave with a different LLM output in seconds.",
+  },
+  {
+    q: "Why not just use print() or logging?",
+    a: (
+      <>
+        Logging shows you what happened. Tether shows you <em>why</em>. You see the exact point where your agent
+        failed, what response broke it, and you replay with a fix in seconds—no re-running the whole chain.
+      </>
+    ),
+  },
+  {
+    q: "Can I use this with production code?",
+    a: "Yes. It's a local proxy—your real code doesn't change. Use it locally for debugging, or keep it running. Tether only stores traces locally, never sends anything anywhere.",
+  },
+  {
+    q: "How much money does caching actually save?",
+    a: "It depends on your agent. If you're iterating on prompt logic and re-running the same retrieval steps, caching saves you 50-90% of API spend while you debug. Each cached hit costs $0.0000.",
+  },
+  {
+    q: "Will Tether work with my stack?",
+    a: "If your SDK uses a configurable base_url (OpenAI SDK, LangChain, LangGraph, LlamaIndex, Anthropic SDK), it works. One line change. If you use a different provider (Claude API via REST, custom setup), Tether still works—it's a transparent proxy.",
+  },
+  {
+    q: "Does Tether add latency to my agent?",
+    a: "Negligible. Tether runs locally on your Mac. The only overhead is the proxy hop, which is <1ms. Real LLM calls are the bottleneck, not Tether.",
+  },
+  {
+    q: "Can I share traces with my team?",
+    a: "Not yet. Each developer runs their own Tether instance locally. Export as JSON is coming in a later release.",
+  },
 ];
 
 type InspectorView = "graph" | "cache" | "time" | "privacy";
@@ -265,6 +322,7 @@ export default function TetherLanding() {
   }
 
   function replayChain() {
+    trackEvent("replay_started", { location: "inspector" });
     setReplayState("running");
     window.setTimeout(() => {
       setReplayState("done");
@@ -280,6 +338,7 @@ export default function TetherLanding() {
 
     setWaitlistState("submitting");
     setWaitlistMessage("");
+    trackEvent("waitlist_submitted", { form_type: "alpha_waitlist", location: "final_cta" });
 
     try {
       const formData = new FormData(form);
@@ -294,11 +353,13 @@ export default function TetherLanding() {
       }
 
       setWaitlistState("done");
+      trackEvent("waitlist_joined", { form_type: "alpha_waitlist", location: "final_cta" });
       setWaitlistMessage("You're on the alpha list. I'll send the DMG link when the next build is ready.");
       setWaitlistEmail("");
       form.reset();
     } catch (error) {
       setWaitlistState("error");
+      trackEvent("waitlist_failed", { form_type: "alpha_waitlist", location: "final_cta" });
       setWaitlistMessage(error instanceof Error ? error.message : "Could not join the waitlist.");
     }
   }
@@ -345,27 +406,57 @@ export default function TetherLanding() {
           with caching, mocking, and zero data leaving your machine.
         </p>
         <div className="cta-row">
-          <a className="btn btn-primary pulse" href="#download">
+          <a
+            className="btn btn-primary pulse"
+            href="#download"
+            onClick={() =>
+              trackEvent("cta_clicked", {
+                button_text: "Download for macOS",
+                location: "hero",
+              })
+            }
+          >
             <LandingIcon name="apple" />
             Download for macOS
           </a>
-          <a className="btn btn-ghost" href="#features">
+          <a
+            className="btn btn-ghost"
+            href="#features"
+            onClick={() =>
+              trackEvent("cta_clicked", {
+                button_text: "See it in action",
+                location: "hero",
+              })
+            }
+          >
             <LandingIcon name="play" />
             See it in action
           </a>
         </div>
+        <a
+          className="urgency-link"
+          href="#download"
+          onClick={() =>
+            trackEvent("cta_clicked", {
+              button_text: "Currently alpha limited seats",
+              location: "hero_urgency",
+            })
+          }
+        >
+          Currently alpha — limited seats. Get access now <span aria-hidden="true">→</span>
+        </a>
         <div className="meta-row">
           <span>
             <LandingIcon name="microchip" />
-            Alpha DMG for macOS
+            Free alpha. No signup.
           </span>
           <span>
             <LandingIcon name="feather" />
-            Local proxy included
+            1-minute setup.
           </span>
           <span>
             <LandingIcon name="shield-halved" />
-            Air-gapped by default
+            Everything stays on your Mac.
           </span>
         </div>
 
@@ -459,7 +550,10 @@ export default function TetherLanding() {
               <button
                 type="button"
                 className="fit-view-btn"
-                onClick={fitTreeView}
+                onClick={() => {
+                  fitTreeView();
+                  trackEvent("control_clicked", { control: "fit_to_screen", location: "visual_tree_canvas" });
+                }}
                 aria-label="Fit to screen"
               >
                 <LandingIcon name="layout" />
@@ -557,7 +651,14 @@ export default function TetherLanding() {
                 data-acc={feature.acc}
                 data-view={feature.view}
                 key={feature.view}
-                onClick={() => setActiveView(feature.view)}
+                onClick={() => {
+                  setActiveView(feature.view);
+                  trackEvent("feature_selected", {
+                    feature: feature.view,
+                    location: "inspector_feature_list",
+                    title: feature.title,
+                  });
+                }}
                 onMouseEnter={() => handleFeatureHover(feature.view)}
                 type="button"
               >
@@ -759,32 +860,7 @@ export default function TetherLanding() {
           <h2 className="title">Everything you need to know.</h2>
         </div>
         <div className="faq-list">
-          {[
-            {
-              q: "Is Tether free?",
-              a: "Yes. Tether is free during the alpha period and the core proxy is open source. No credit card or account required.",
-            },
-            {
-              q: "Does Tether send my prompts or API keys anywhere?",
-              a: "No. Tether is fully air-gapped. Your prompts, responses, and API keys never leave your Mac. API keys are stored encrypted in the macOS Keychain and are never written to disk in plain text.",
-            },
-            {
-              q: "How does Tether intercept LLM calls without changing my code?",
-              a: "Tether runs a local HTTP proxy on your machine. You point your AI client's base_url at http://localhost:8080/v1 — that's the only change. Tether transparently forwards every request to the real provider and records the full request/response pair locally.",
-            },
-            {
-              q: "Which LLM providers and frameworks does Tether support?",
-              a: "Tether supports OpenAI, Anthropic (Claude), Ollama, LM Studio, and any provider that accepts an OpenAI-compatible base_url. It works with LangChain, LangGraph, LlamaIndex, and any SDK with a configurable endpoint.",
-            },
-            {
-              q: "How is Tether different from LangSmith or Weights & Biases?",
-              a: "LangSmith and W&B send your traces to cloud servers. Tether keeps everything on your machine — there is no cloud, no account, and nothing leaves your Mac. It's designed for developers who can't or won't send production prompts to third-party services.",
-            },
-            {
-              q: "What is time-travel mocking?",
-              a: "Time-travel mocking lets you click any past node in the agent trace, edit its response JSON, and replay the entire chain from that point forward — without re-running earlier steps or spending tokens. You can test how your agent would behave with a different LLM output in seconds.",
-            },
-          ].map(({ q, a }) => (
+          {FAQ_ITEMS.map(({ q, a }) => (
             <details className="faq-item reveal" key={q}>
               <summary className="faq-q">{q}</summary>
               <p className="faq-a">{a}</p>
@@ -804,9 +880,20 @@ export default function TetherLanding() {
             Free during alpha. Get the signed DMG the moment it's ready - no
             account, no cloud, no strings.
           </p>
+          <p className="alpha-note">⚡ Limited alpha slots. Mac only for now.</p>
           <div className="download-actions">
             <div className="download-direct">
-              <a className="btn btn-primary pulse" href={DOWNLOAD_HREF} download>
+              <a
+                className="btn btn-primary pulse"
+                href={DOWNLOAD_HREF}
+                download
+                onClick={() =>
+                  trackEvent("download_clicked", {
+                    asset: "Tether.dmg",
+                    location: "final_cta",
+                  })
+                }
+              >
                 <LandingIcon name="apple" />
                 Download DMG
               </a>
@@ -859,11 +946,29 @@ export default function TetherLanding() {
             </form>
           </div>
           <div className="cta-row secondary-downloads">
-            <a className="btn btn-ghost" href="#how">
+            <a
+              className="btn btn-ghost"
+              href="#how"
+              onClick={() =>
+                trackEvent("cta_clicked", {
+                  button_text: "Setup steps",
+                  location: "final_cta",
+                })
+              }
+            >
               <LandingIcon name="file-lines" />
               Setup steps
             </a>
-            <a className="btn btn-ghost" href="#features">
+            <a
+              className="btn btn-ghost"
+              href="#features"
+              onClick={() =>
+                trackEvent("cta_clicked", {
+                  button_text: "See product",
+                  location: "final_cta",
+                })
+              }
+            >
               <LandingIcon name="play" />
               See product
             </a>
