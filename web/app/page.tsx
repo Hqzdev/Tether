@@ -530,11 +530,11 @@ export default function TetherLanding() {
           </div>
         </div>
         <h1>
-          Agent demo stuck on a failure you <span className="grad">cannot explain?</span>
+          Your agent failed at step 3. <span className="grad">You have no idea why.</span>
         </h1>
         <p className="lead">
-          Point your agent at localhost. Tether turns every LLM call, tool execution, cache hit,
-          and failed branch into a local trace you can inspect, replay, and show as proof.
+          Tether shows you the exact call, the exact response, and lets you replay from there. One
+          base_url change. No code rewrites.
         </p>
         <div className="cta-row">
           <a
