@@ -59,6 +59,7 @@ struct TraceQuery {
 #[derive(Serialize)]
 struct AgentNodeDto {
     id: String,
+    agent_name: String,
     depth: i64,
     step_name: String,
     timestamp: String,
@@ -615,9 +616,11 @@ fn row_to_node(index: usize, row: TraceRow, max_latency: i64) -> AgentNodeDto {
         row.provider.to_ascii_uppercase(),
         compact_path(&row.path)
     );
+    let agent_name = agent_name_for(&row.provider, &row.model);
 
     AgentNodeDto {
         id: row.id,
+        agent_name,
         depth: index as i64,
         step_name,
         timestamp: format_timestamp(row.created_at),
@@ -645,6 +648,19 @@ fn row_to_node(index: usize, row: TraceRow, max_latency: i64) -> AgentNodeDto {
             message: row.error_message.unwrap_or_default(),
             detail: row.error_detail.unwrap_or_default(),
         }),
+    }
+}
+
+fn agent_name_for(provider: &str, model: &str) -> String {
+    let provider = provider.to_ascii_lowercase();
+    let model = model.to_ascii_lowercase();
+
+    if provider == "anthropic" || model.contains("claude") {
+        "Claude Code".to_string()
+    } else if provider == "openai" {
+        "Codex".to_string()
+    } else {
+        "Agent".to_string()
     }
 }
 

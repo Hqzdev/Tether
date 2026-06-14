@@ -303,6 +303,8 @@ private struct CallRow: View {
                         .lineLimit(1)
 
                     HStack(spacing: 6) {
+                        AgentBadge(name: node.agentName, palette: palette)
+
                         Text(node.model)
                             .font(.system(size: 10, design: .monospaced))
                             .foregroundStyle(palette.violet)
@@ -398,6 +400,8 @@ private extension ProxyConnectionStatus {
             return "checkmark.circle.fill"
         case .observingCodex:
             return "terminal.fill"
+        case .observingAgents:
+            return "rectangle.2.swap"
         case .offline:
             return "exclamationmark.triangle.fill"
         }
@@ -409,7 +413,7 @@ private extension ProxyConnectionStatus {
             return palette.amber.opacity(0.10)
         case .online:
             return palette.green.opacity(0.12)
-        case .observingCodex:
+        case .observingCodex, .observingAgents:
             return palette.green.opacity(0.12)
         case .offline:
             return palette.glassTint

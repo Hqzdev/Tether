@@ -183,6 +183,12 @@ npm start
 
 ---
 
+## Contributing
+
+Read [CONTRIBUTING.md](./CONTRIBUTING.md) before making changes. Code style, required English function comments, and documentation ownership rules live in [CODESTYLE.md](./CODESTYLE.md).
+
+---
+
 ## Roadmap
 
 ### Now

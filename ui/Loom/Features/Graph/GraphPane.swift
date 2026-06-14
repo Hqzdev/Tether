@@ -29,6 +29,10 @@ struct GraphPane: View {
         statusText == "FAILED" ? palette.pink : statusText == "LIVE" ? palette.amber : statusText == "OK" ? palette.green : palette.textTertiary
     }
 
+    private var agentCountText: String {
+        "\(Set(nodes.map(\.agentName)).count)"
+    }
+
     private var headerContext: String {
         let sessionTitle = session?.title ?? "No active session"
         let nodeTitle = selectedNode?.stepName ?? "Waiting for calls"
@@ -57,6 +61,7 @@ struct GraphPane: View {
                 HStack(spacing: 10) {
                     MetricBox(label: "Total Time", value: formatLatency(totalLatencyMs), valueColor: palette.text, palette: palette)
                     MetricBox(label: "Steps", value: "\(nodes.count)", valueColor: palette.text, palette: palette)
+                    MetricBox(label: "Agents", value: agentCountText, valueColor: palette.accent, palette: palette)
                     MetricBox(label: "Status", value: statusText, valueColor: statusColor, palette: palette)
                 }
                 .fixedSize(horizontal: true, vertical: false)
@@ -893,10 +898,14 @@ private struct NodeCard: View {
                         .foregroundStyle(palette.text)
                         .lineLimit(nil)
 
-                    Text("\(node.model) - \(node.requestId)")
-                        .font(.system(size: 10.5, design: .monospaced))
-                        .foregroundStyle(palette.textQuaternary)
-                        .lineLimit(nil)
+                    HStack(spacing: 6) {
+                        AgentBadge(name: node.agentName, palette: palette)
+
+                        Text("\(node.model) - \(node.requestId)")
+                            .font(.system(size: 10.5, design: .monospaced))
+                            .foregroundStyle(palette.textQuaternary)
+                            .lineLimit(1)
+                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
 

@@ -34,6 +34,7 @@ struct MainThreePaneLayoutView: View {
 
         return nodes.filter { node in
             node.stepName.localizedCaseInsensitiveContains(query)
+                || node.agentName.localizedCaseInsensitiveContains(query)
                 || node.model.localizedCaseInsensitiveContains(query)
                 || node.requestId.localizedCaseInsensitiveContains(query)
         }
@@ -283,6 +284,7 @@ struct MainThreePaneLayoutView: View {
         case .metadata:
             return """
             id: \(node.id)
+            agent: \(node.agentName)
             model: \(node.model)
             requestId: \(node.requestId)
             status: \(node.status.label)
@@ -328,6 +330,7 @@ struct MainThreePaneLayoutView: View {
                 "session_id",
                 "session_title",
                 "node_id",
+                "agent",
                 "step",
                 "timestamp",
                 "model",
@@ -346,6 +349,7 @@ struct MainThreePaneLayoutView: View {
                 snapshot.session?.id ?? "",
                 snapshot.session?.title ?? "",
                 node.id,
+                node.agentName,
                 node.stepName,
                 node.timestamp,
                 node.model,
