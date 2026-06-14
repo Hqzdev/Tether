@@ -9,7 +9,8 @@ struct Price {
     output: f64,
 }
 
-/// Longest-prefix match wins, so put more specific ids first.
+/// Longest matching prefix wins (see `estimate_cost`), so ordering here does
+/// not affect correctness — entries are grouped by family for readability.
 const TABLE: &[(&str, Price)] = &[
     // ---- Anthropic ----
     ("claude-opus-4", Price { input: 15.0, output: 75.0 }),
@@ -31,6 +32,8 @@ const TABLE: &[(&str, Price)] = &[
     ("o3", Price { input: 2.0, output: 8.0 }),
     ("o1-mini", Price { input: 1.10, output: 4.40 }),
     ("o1", Price { input: 15.0, output: 60.0 }),
+    ("gpt-5.5", Price { input: 2.0, output: 8.0 }),
+    ("gpt-5", Price { input: 2.0, output: 8.0 }),
     ("gpt-4-turbo", Price { input: 10.0, output: 30.0 }),
     ("gpt-4", Price { input: 30.0, output: 60.0 }),
     ("gpt-3.5", Price { input: 0.50, output: 1.50 }),
@@ -47,7 +50,8 @@ pub(crate) fn estimate_cost(model: &str, tokens_in: i64, tokens_out: i64) -> Str
     let needle = model.trim().to_ascii_lowercase();
     let price = TABLE
         .iter()
-        .find(|(prefix, _)| needle.starts_with(prefix))
+        .filter(|(prefix, _)| needle.starts_with(prefix))
+        .max_by_key(|(prefix, _)| prefix.len())
         .map(|(_, price)| price);
 
     let Some(price) = price else {
