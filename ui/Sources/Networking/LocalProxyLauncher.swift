@@ -82,6 +82,12 @@ public final class LocalProxyLauncher {
         environment["LOOM_DB"] = runtimeDirectory
             .appendingPathComponent("loom-cache.sqlite")
             .path
+        if let openAIKey = KeychainStore.read(.openAIAPIKey) {
+            environment["OPENAI_API_KEY"] = openAIKey
+        }
+        if let anthropicKey = KeychainStore.read(.anthropicAPIKey) {
+            environment["ANTHROPIC_API_KEY"] = anthropicKey
+        }
         return environment
     }
 

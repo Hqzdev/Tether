@@ -25,6 +25,10 @@ private struct ProxySettingsView: View {
     @State private var localCacheEnabled = ProxySettingsStore.current.localCacheEnabled
     @State private var footerMessage = "Requires proxy restart"
     @State private var footerMessageIsError = false
+    @State private var openAIKey = ""
+    @State private var anthropicKey = ""
+    @State private var openAIKeyStored = KeychainStore.hasValue(.openAIAPIKey)
+    @State private var anthropicKeyStored = KeychainStore.hasValue(.anthropicAPIKey)
 
     var body: some View {
         VStack(spacing: 0) {
@@ -50,6 +54,25 @@ private struct ProxySettingsView: View {
                             .settingsField(palette: palette)
                             .frame(maxWidth: 300)
                     }
+                }
+
+                SettingsSection("Provider Keys", palette: palette) {
+                    SettingsRow("OpenAI", palette: palette) {
+                        SecureField(openAIKeyStored ? "•••••••• stored" : "sk-…", text: $openAIKey)
+                            .settingsField(palette: palette)
+                            .frame(maxWidth: 300)
+                    }
+
+                    SettingsRow("Anthropic", palette: palette) {
+                        SecureField(anthropicKeyStored ? "•••••••• stored" : "sk-ant-…", text: $anthropicKey)
+                            .settingsField(palette: palette)
+                            .frame(maxWidth: 300)
+                    }
+
+                    Text("Stored in the macOS Keychain. The proxy injects these on upstream calls when your client doesn't send its own key.")
+                        .font(.caption)
+                        .foregroundStyle(palette.textTertiary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
                 SettingsSection("Cache", palette: palette) {
@@ -109,6 +132,18 @@ private struct ProxySettingsView: View {
         do {
             let settings = try validatedSettings()
             ProxySettingsStore.save(settings)
+
+            if !openAIKey.isEmpty {
+                KeychainStore.save(.openAIAPIKey, value: openAIKey)
+                openAIKey = ""
+                openAIKeyStored = true
+            }
+            if !anthropicKey.isEmpty {
+                KeychainStore.save(.anthropicAPIKey, value: anthropicKey)
+                anthropicKey = ""
+                anthropicKeyStored = true
+            }
+
             LocalProxyLauncher.shared.restart()
             footerMessage = "Requires proxy restart"
             footerMessageIsError = false

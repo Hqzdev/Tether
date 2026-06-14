@@ -54,6 +54,12 @@ pub(crate) struct AppState {
     db: Arc<Mutex<Connection>>,
     cache_enabled: bool,
     auth: Option<Arc<AuthContext>>,
+    /// Provider credentials sourced from the local environment (the macOS app
+    /// reads these out of the Keychain and passes them in at launch). When set,
+    /// the proxy injects them on upstream calls that arrive without their own
+    /// credential — so the agent never needs to hold the key.
+    openai_api_key: Option<Arc<str>>,
+    anthropic_api_key: Option<Arc<str>>,
 }
 
 /// A response we can replay from the cache.
@@ -74,6 +80,8 @@ async fn main() {
     let cache_enabled = std::env::var("LOOM_CACHE")
         .map(|v| v != "off" && v != "0" && v != "false")
         .unwrap_or(true);
+    let openai_api_key = read_api_key("OPENAI_API_KEY");
+    let anthropic_api_key = read_api_key("ANTHROPIC_API_KEY");
 
     let conn =
         Connection::open(&db_path).unwrap_or_else(|e| panic!("loom: cannot open {db_path}: {e}"));
@@ -100,6 +108,8 @@ async fn main() {
         .unwrap_or_else(|error| panic!("loom: cannot init auth context: {}", error.message))
         .map(Arc::new);
 
+    let openai_key_present = openai_api_key.is_some();
+    let anthropic_key_present = anthropic_api_key.is_some();
     let state = AppState {
         client,
         openai_upstream: Arc::from(openai.as_str()),
@@ -107,6 +117,8 @@ async fn main() {
         db: Arc::new(Mutex::new(conn)),
         cache_enabled,
         auth,
+        openai_api_key,
+        anthropic_api_key,
     };
 
     let app = Router::new()
@@ -125,6 +137,12 @@ async fn main() {
     println!("  {DIM}/v1/messages*   → {anthropic}   (Anthropic / Claude Code){RESET}");
     println!("  {DIM}everything else → {openai}   (OpenAI / Codex){RESET}");
     println!("  {DIM}cache: {BOLD}{cache_label}{RESET}{DIM}  ·  db: {db_path}{RESET}");
+    let key_label = |present: bool| if present { "injected from env" } else { "client-supplied" };
+    println!(
+        "  {DIM}openai key: {} · anthropic key: {}{RESET}",
+        key_label(openai_key_present),
+        key_label(anthropic_key_present)
+    );
     println!("{DIM}Point an agent here, e.g.  ANTHROPIC_BASE_URL=http://{addr}{RESET}\n");
     let _ = std::io::stdout().flush();
 
@@ -214,6 +232,11 @@ async fn proxy(State(state): State<AppState>, req: Request) -> Response {
         }
         headers.insert(name.clone(), value.clone());
     }
+
+    // Inject provider credentials sourced from the local environment (Keychain)
+    // only when the incoming request didn't carry its own. Client-supplied keys
+    // always win, so this is backward compatible with key-bearing agents.
+    inject_credentials(&mut headers, label, &state);
 
     let upstream = state
         .client
@@ -438,6 +461,56 @@ fn now_unix() -> i64 {
         .duration_since(UNIX_EPOCH)
         .map(|d| d.as_secs() as i64)
         .unwrap_or(0)
+}
+
+/// Read a non-empty provider API key from the environment.
+fn read_api_key(var: &str) -> Option<Arc<str>> {
+    std::env::var(var)
+        .ok()
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty())
+        .map(|value| Arc::from(value.as_str()))
+}
+
+/// Inject provider credentials into the outbound header set when the client
+/// didn't supply its own. OpenAI uses `Authorization: Bearer <key>`; Anthropic
+/// uses `x-api-key: <key>`. We deliberately do NOT fabricate `anthropic-version`
+/// — that stays the client's responsibility.
+fn inject_credentials(headers: &mut HeaderMap, label: &str, state: &AppState) {
+    match label {
+        "anthropic" => {
+            if headers.contains_key("x-api-key") {
+                return;
+            }
+            if let Some(key) = state.anthropic_api_key.as_deref() {
+                match HeaderValue::from_str(key) {
+                    Ok(mut value) => {
+                        value.set_sensitive(true);
+                        headers.insert(HeaderName::from_static("x-api-key"), value);
+                    }
+                    Err(_) => eprintln!(
+                        "{RED}✖ ANTHROPIC_API_KEY is not a valid header value; not injecting{RESET}"
+                    ),
+                }
+            }
+        }
+        _ => {
+            if headers.contains_key("authorization") {
+                return;
+            }
+            if let Some(key) = state.openai_api_key.as_deref() {
+                match HeaderValue::from_str(&format!("Bearer {key}")) {
+                    Ok(mut value) => {
+                        value.set_sensitive(true);
+                        headers.insert(HeaderName::from_static("authorization"), value);
+                    }
+                    Err(_) => eprintln!(
+                        "{RED}✖ OPENAI_API_KEY is not a valid header value; not injecting{RESET}"
+                    ),
+                }
+            }
+        }
+    }
 }
 
 /// Headers that must not be forwarded across a proxy hop (RFC 9110 §7.6.1).
