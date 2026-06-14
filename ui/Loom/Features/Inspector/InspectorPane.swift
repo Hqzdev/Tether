@@ -39,9 +39,9 @@ struct InspectorPane: View {
                                 .padding(.horizontal, 7)
                                 .padding(.vertical, 2)
                                 .background(palette.violet.opacity(0.07))
-                                .clipShape(Capsule())
+                                .clipShape(RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous))
                                 .overlay(
-                                    Capsule()
+                                    RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous)
                                         .stroke(palette.violetBorder, lineWidth: 1)
                                 )
                         }
@@ -158,13 +158,13 @@ private struct InspectorTabPicker: View {
                         .foregroundStyle(selected ? palette.text : palette.textTertiary)
                         .frame(maxWidth: .infinity)
                         .frame(height: 26)
-                        .contentShape(Capsule(style: .continuous))
+                        .contentShape(RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous))
                         .background {
                             if selected {
                                 Color.clear
                                     .liquidGlass(
                                         palette: palette,
-                                        in: Capsule(style: .continuous),
+                                        in: RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous),
                                         tint: palette.glassTintStrong,
                                         interactive: true,
                                         strokeOpacity: 0.82
@@ -178,10 +178,10 @@ private struct InspectorTabPicker: View {
         }
         .padding(4)
         .background {
-            Capsule(style: .continuous)
+            RoundedRectangle(cornerRadius: palette.panelRadius, style: .continuous)
                 .fill(palette.panelSecondary.opacity(0.55))
                 .overlay {
-                    Capsule(style: .continuous)
+                    RoundedRectangle(cornerRadius: palette.panelRadius, style: .continuous)
                         .stroke(palette.glassStrokeSoft, lineWidth: 1)
                 }
         }
@@ -296,9 +296,9 @@ private struct EditorToolbar: View {
                     .padding(.horizontal, 7)
                     .padding(.vertical, 2)
                     .background(chip == "200 OK" ? palette.greenBackground : chip == "LIVE" ? palette.amber.opacity(0.10) : palette.panel)
-                    .clipShape(Capsule())
+                    .clipShape(RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous))
                     .overlay(
-                        Capsule()
+                        RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous)
                             .stroke(chip == "200 OK" ? palette.greenDim : chip == "LIVE" ? palette.amber.opacity(0.36) : palette.border, lineWidth: 1)
                     )
             }
@@ -404,10 +404,10 @@ private struct CodeLineView: View {
                         .padding(.vertical, 2)
                         .background(labelAccent.opacity(0.14))
                         .overlay(
-                            Capsule()
+                            RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous)
                                 .stroke(labelAccent.opacity(0.32), lineWidth: 1)
                         )
-                        .clipShape(Capsule())
+                        .clipShape(RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous))
 
                     Rectangle()
                         .fill(labelAccent.opacity(0.18))
@@ -576,9 +576,9 @@ private struct TimeTravelButtonStyle: ButtonStyle {
                     endPoint: .trailing
                 )
             )
-            .clipShape(Capsule())
+            .clipShape(RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous))
             .overlay(
-                Capsule()
+                RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous)
                     .stroke(active ? Color(hex: 0xe0a23f) : palette.accent.opacity(0.22), lineWidth: 1)
             )
             .opacity(configuration.isPressed ? 0.86 : 1)

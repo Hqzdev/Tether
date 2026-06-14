@@ -52,9 +52,9 @@ public struct AgentBadge: View {
         .padding(.horizontal, compact ? 6 : 8)
         .padding(.vertical, compact ? 1.5 : 2.5)
         .background(tint.opacity(0.09))
-        .clipShape(Capsule())
+        .clipShape(RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous))
         .overlay {
-            Capsule()
+            RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous)
                 .stroke(tint.opacity(0.22), lineWidth: 1)
         }
         .help(name)

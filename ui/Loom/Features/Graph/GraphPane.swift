@@ -219,7 +219,10 @@ private struct ZoomControls: View {
 
 private struct GraphViewport: View {
     private let freeformCanvasPadding: CGFloat = 360
+    private let panOverscrollPadding: CGFloat = 420
+    private let nodeBoundaryInset: CGFloat = 96
     private let minimumCanvasSize = CGSize(width: 2_400, height: 1_600)
+    private let verticalNodeSpacing: CGFloat = 156
 
     let nodes: [AgentNode]
     let selectedNode: AgentNode?
@@ -237,17 +240,31 @@ private struct GraphViewport: View {
     @State private var activeInteraction: ActiveCanvasInteraction?
 
     private var contentSize: CGSize {
-        let maxDepth = nodes.map(\.depth).max() ?? 0
+        let movedBounds = nodeBounds
+
         return CGSize(
             width: max(
                 minimumCanvasSize.width,
-                freeformCanvasPadding + CGFloat(maxDepth) * depthSpacing + nodeSize.width + freeformCanvasPadding
+                freeformCanvasPadding + nodeSize.width + freeformCanvasPadding,
+                movedBounds.maxX + freeformCanvasPadding
             ),
             height: max(
                 minimumCanvasSize.height,
-                freeformCanvasPadding + CGFloat(nodes.count) * 154 + nodeSize.height
+                freeformCanvasPadding + CGFloat(nodes.count) * verticalNodeSpacing + nodeSize.height,
+                movedBounds.maxY + freeformCanvasPadding
             )
         )
+    }
+
+    private var nodeBounds: CGRect {
+        guard !nodes.isEmpty else { return CGRect(origin: .zero, size: nodeSize) }
+
+        return nodes.enumerated().reduce(CGRect.null) { bounds, indexedNode in
+            let node = indexedNode.element
+            let origin = position(for: node, at: indexedNode.offset)
+            let size = nodeSizes[node.id] ?? nodeSize
+            return bounds.union(CGRect(origin: origin, size: size))
+        }
     }
 
     var body: some View {
@@ -263,7 +280,7 @@ private struct GraphViewport: View {
                     nodeSize: nodeSize,
                     depthSpacing: depthSpacing,
                     contentSize: contentSize,
-                    nodeOffsets: $nodeOffsets,
+                    nodeOffsets: nodeOffsets,
                     nodeSizes: nodeSizes,
                     activeDrag: activeDrag,
                     zoomScale: zoomScale,
@@ -287,8 +304,10 @@ private struct GraphViewport: View {
                 panOffset = clampedPan(panOffset, viewportSize: geometry.size)
             }
             .onChange(of: nodes.count) { _, _ in
-                withAnimation(.smooth(duration: 0.22)) {
-                    panOffset = clampedPan(.zero, viewportSize: geometry.size)
+                var transaction = Transaction()
+                transaction.animation = nil
+                withTransaction(transaction) {
+                    panOffset = clampedPan(panOffset, viewportSize: geometry.size)
                 }
             }
         }
@@ -323,9 +342,15 @@ private struct GraphViewport: View {
                     let translation = unscaledTranslation(value.translation)
                     guard hasMoved || translation.length >= 8 else { return }
 
-                    let finalOffset = movedNodeOffset(startOffset: startOffset, translation: translation)
+                    let finalOffset = movedNodeOffset(
+                        nodeId: nodeId,
+                        startOffset: startOffset,
+                        translation: translation
+                    )
 
-                    activeInteraction = .node(nodeId: nodeId, startOffset: startOffset, hasMoved: true)
+                    if !hasMoved {
+                        activeInteraction = .node(nodeId: nodeId, startOffset: startOffset, hasMoved: true)
+                    }
 
                     var transaction = Transaction()
                     transaction.animation = nil
@@ -358,7 +383,11 @@ private struct GraphViewport: View {
                 case let .node(nodeId, startOffset, hasMoved):
                     if hasMoved {
                         let translation = unscaledTranslation(value.translation)
-                        nodeOffsets[nodeId] = movedNodeOffset(startOffset: startOffset, translation: translation)
+                        nodeOffsets[nodeId] = movedNodeOffset(
+                            nodeId: nodeId,
+                            startOffset: startOffset,
+                            translation: translation
+                        )
                     } else if let node = nodes.first(where: { $0.id == nodeId }) {
                         onSelect(node)
                     }
@@ -397,12 +426,14 @@ private struct GraphViewport: View {
 
     private func clampedPan(_ offset: CGSize, viewportSize: CGSize) -> CGSize {
         let scaledContentSize = CGSize(width: contentSize.width * zoomScale, height: contentSize.height * zoomScale)
-        let minimumX = min(0, viewportSize.width - scaledContentSize.width)
-        let minimumY = min(0, viewportSize.height - scaledContentSize.height)
+        let minimumX = min(0, viewportSize.width - scaledContentSize.width - panOverscrollPadding)
+        let minimumY = min(0, viewportSize.height - scaledContentSize.height - panOverscrollPadding)
+        let maximumX = panOverscrollPadding
+        let maximumY = panOverscrollPadding
 
         return CGSize(
-            width: min(max(offset.width, minimumX), 0),
-            height: min(max(offset.height, minimumY), 0)
+            width: min(max(offset.width, minimumX), maximumX),
+            height: min(max(offset.height, minimumY), maximumY)
         )
     }
 
@@ -449,8 +480,8 @@ private struct GraphViewport: View {
 
     private func defaultPosition(for node: AgentNode, at index: Int) -> CGPoint {
         CGPoint(
-            x: 36 + CGFloat(node.depth) * depthSpacing,
-            y: 30 + CGFloat(index) * 138
+            x: nodeBoundaryInset,
+            y: nodeBoundaryInset + CGFloat(index) * verticalNodeSpacing
         )
     }
 
@@ -463,10 +494,34 @@ private struct GraphViewport: View {
         )
     }
 
-    private func movedNodeOffset(startOffset: CGSize, translation: CGSize) -> CGSize {
-        return CGSize(
+    private func movedNodeOffset(nodeId: AgentNode.ID, startOffset: CGSize, translation: CGSize) -> CGSize {
+        let proposedOffset = CGSize(
             width: startOffset.width + translation.width,
             height: startOffset.height + translation.height
+        )
+
+        guard let indexedNode = nodes.enumerated().first(where: { $0.element.id == nodeId }) else {
+            return proposedOffset
+        }
+
+        let basePosition = defaultPosition(for: indexedNode.element, at: indexedNode.offset)
+        let size = nodeSizes[nodeId] ?? nodeSize
+        let minimumOriginX = nodeBoundaryInset
+        let minimumOriginY = nodeBoundaryInset
+        let maximumOriginX = contentSize.width + panOverscrollPadding - size.width - nodeBoundaryInset
+        let maximumOriginY = contentSize.height + panOverscrollPadding - size.height - nodeBoundaryInset
+        let proposedOrigin = CGPoint(
+            x: basePosition.x + proposedOffset.width,
+            y: basePosition.y + proposedOffset.height
+        )
+        let clampedOrigin = CGPoint(
+            x: min(max(proposedOrigin.x, minimumOriginX), maximumOriginX),
+            y: min(max(proposedOrigin.y, minimumOriginY), maximumOriginY)
+        )
+
+        return CGSize(
+            width: clampedOrigin.x - basePosition.x,
+            height: clampedOrigin.y - basePosition.y
         )
     }
 }
@@ -554,12 +609,15 @@ private struct MacCanvasEventBridge: NSViewRepresentable {
 }
 
 private struct GraphCanvas: View {
+    private let verticalNodeSpacing: CGFloat = 156
+    private let nodeBoundaryInset: CGFloat = 96
+
     let nodes: [AgentNode]
     let selectedNode: AgentNode?
     let nodeSize: CGSize
     let depthSpacing: CGFloat
     let contentSize: CGSize
-    @Binding var nodeOffsets: [AgentNode.ID: CGSize]
+    let nodeOffsets: [AgentNode.ID: CGSize]
     let nodeSizes: [AgentNode.ID: CGSize]
     let activeDrag: ActiveNodeDrag?
     let zoomScale: CGFloat
@@ -574,6 +632,7 @@ private struct GraphCanvas: View {
                 GraphConnections(
                     nodes: nodes,
                     positions: positions,
+                    contentSize: contentSize,
                     nodeSizes: nodeSizes,
                     defaultNodeSize: nodeSize,
                     palette: palette
@@ -618,8 +677,8 @@ private struct GraphCanvas: View {
 
     private func defaultPosition(for node: AgentNode, at index: Int) -> CGPoint {
         CGPoint(
-            x: 36 + CGFloat(node.depth) * depthSpacing,
-            y: 30 + CGFloat(index) * 138
+            x: nodeBoundaryInset,
+            y: nodeBoundaryInset + CGFloat(index) * verticalNodeSpacing
         )
     }
 }
@@ -638,6 +697,7 @@ private enum ActiveCanvasInteraction {
 private struct GraphConnections: View {
     let nodes: [AgentNode]
     let positions: [AgentNode.ID: CGPoint]
+    let contentSize: CGSize
     let nodeSizes: [AgentNode.ID: CGSize]
     let defaultNodeSize: CGSize
     let palette: AgentTracePalette
@@ -682,6 +742,7 @@ private struct GraphConnections: View {
                 )
             }
         }
+        .frame(width: contentSize.width, height: contentSize.height, alignment: .topLeading)
         .allowsHitTesting(false)
     }
 
@@ -865,18 +926,15 @@ private struct MovableNodeCard: View {
                 x: basePosition.x + currentOffset.width + nodeSize.width / 2,
                 y: basePosition.y + currentOffset.height + nodeSize.height / 2
             )
-            .scaleEffect(isDragging ? 1.015 : 1)
-            .shadow(
-                color: isDragging ? palette.accent.opacity(palette.light ? 0.18 : 0.30) : .clear,
-                radius: isDragging ? 18 : 0,
-                x: 0,
-                y: isDragging ? 10 : 0
-            )
+            .scaleEffect(isDragging ? 1.008 : 1)
             .zIndex(isDragging ? 30 : selected ? 10 : 1)
             .contentShape(RoundedRectangle(cornerRadius: palette.panelRadius, style: .continuous))
             .allowsHitTesting(false)
-            .animation(.smooth(duration: 0.12), value: isDragging)
-            .animation(.smooth(duration: 0.12), value: selected)
+            .transaction { transaction in
+                if isDragging {
+                    transaction.animation = nil
+                }
+            }
     }
 }
 
@@ -916,7 +974,7 @@ private struct NodeCard: View {
                     .padding(.horizontal, 7)
                     .padding(.vertical, 3)
                     .background(palette.background(for: node.status))
-                    .clipShape(Capsule())
+                    .clipShape(RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous))
             }
 
             ProgressBar(value: node.barPercent, status: node.status, palette: palette)
@@ -1014,10 +1072,10 @@ private struct ProgressBar: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .leading) {
-                Capsule()
+                RoundedRectangle(cornerRadius: 2, style: .continuous)
                     .fill(palette.panelSecondary)
 
-                Capsule()
+                RoundedRectangle(cornerRadius: 2, style: .continuous)
                     .fill(
                         LinearGradient(
                             colors: [palette.dimColor(for: status), palette.color(for: status)],
