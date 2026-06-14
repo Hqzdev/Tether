@@ -1,0 +1,24 @@
+# Files intentionally allowed to exceed the line limit (scripts/check-file-size.sh).
+# One repo-relative path per line. Keep this list short and justify each entry.
+#
+# During the modular-monolith migration the god files below are being split phase
+# by phase (see docs/architecture/06-migration-plan.md). Each is removed from this
+# list as its split lands. Do NOT add new entries without an accompanying reason.
+
+# Phase 2 target — Rust proxy god files
+proxy/src/trace.rs
+proxy/src/main.rs
+proxy/src/auth/mod.rs
+proxy/src/settings.rs
+proxy/src/auth/oauth.rs
+
+# Phase 5 target — SwiftUI app god files
+ui/Loom/Features/Graph/GraphPane.swift
+ui/Loom/Features/Inspector/InspectorPane.swift
+ui/Loom/Features/MainLayout/MainThreePaneLayoutView.swift
+ui/Loom/Features/MainLayout/TraceStore.swift
+ui/Loom/Features/Settings/AppSettingsView.swift
+ui/Loom/Features/Sidebar/Sidebar.swift
+ui/Loom/Features/Welcome/WelcomeView.swift
+ui/Sources/Core/Models/TraceModels.swift
+ui/Sources/Networking/CodexLogObserver.swift
