@@ -8,7 +8,7 @@ use axum::{
 };
 use chrono::{DateTime, Local, TimeZone};
 use rusqlite::{Connection, OptionalExtension, params};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use serde_json::Value;
 use uuid::Uuid;
 
@@ -31,71 +31,16 @@ pub(crate) struct TraceCapture {
     temperature: Option<f64>,
 }
 
-#[derive(Serialize)]
-struct TraceSnapshot {
-    session: Option<TraceSessionDto>,
-    nodes: Vec<AgentNodeDto>,
-}
-
-#[derive(Clone, Serialize)]
-struct TraceSessionDto {
-    id: String,
-    title: String,
-    trigger: String,
-    started_at: String,
-}
-
-#[derive(Serialize)]
-struct SessionListDto {
-    sessions: Vec<TraceSessionDto>,
-    current_session_id: Option<String>,
-}
+// Wire DTOs live in loom-domain (the shared model crate). Only the request
+// query type below is HTTP-specific and stays here.
+use loom_domain::{
+    AgentErrorDto, AgentNodeDto, AgentPromptDto, AgentResponseDto, SessionListDto, TraceSessionDto,
+    TraceSnapshot,
+};
 
 #[derive(Deserialize)]
 struct TraceQuery {
     session_id: Option<String>,
-}
-
-#[derive(Serialize)]
-struct AgentNodeDto {
-    id: String,
-    agent_name: String,
-    depth: i64,
-    step_name: String,
-    timestamp: String,
-    model: String,
-    cost: String,
-    latency: String,
-    latency_ms: i64,
-    bar_percent: f64,
-    tokens_in: i64,
-    tokens_out: i64,
-    request_id: String,
-    cache_status: String,
-    temperature: Option<f64>,
-    status: String,
-    prompt: AgentPromptDto,
-    response: AgentResponseDto,
-    error: Option<AgentErrorDto>,
-}
-
-#[derive(Serialize)]
-struct AgentPromptDto {
-    system: String,
-    user: String,
-}
-
-#[derive(Serialize)]
-struct AgentResponseDto {
-    language: String,
-    text: String,
-}
-
-#[derive(Serialize)]
-struct AgentErrorDto {
-    code: String,
-    message: String,
-    detail: String,
 }
 
 struct TraceRow {

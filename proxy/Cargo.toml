@@ -10,6 +10,7 @@ members = ["crates/*"]
 
 [dependencies]
 loom-crypto = { path = "crates/loom-crypto" }
+loom-domain = { path = "crates/loom-domain" }
 tokio = { version = "1", features = ["full"] }
 tokio-stream = "0.1"
 axum = "0.8"

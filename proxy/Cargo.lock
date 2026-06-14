@@ -1163,6 +1163,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "loom-domain"
+version = "0.1.0"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "loom-proxy"
 version = "0.1.0"
 dependencies = [
@@ -1174,6 +1181,7 @@ dependencies = [
  "futures-util",
  "jsonwebtoken",
  "loom-crypto",
+ "loom-domain",
  "rand_core",
  "reqwest",
  "rusqlite",
