@@ -10,7 +10,6 @@
 //! The macOS UI reads live captured calls through `/api/traces/current`.
 
 mod auth;
-mod crypto;
 mod error;
 mod settings;
 mod trace;

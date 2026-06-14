@@ -19,7 +19,9 @@ use serde::{Deserialize, Serialize};
 use sqlx::{PgPool, Row, postgres::PgPoolOptions};
 use uuid::Uuid;
 
-use crate::{AppState, crypto::KeyCipher, error::ApiError};
+use loom_crypto::KeyCipher;
+
+use crate::{AppState, error::ApiError};
 
 pub(crate) const ACCESS_TOKEN_TTL_SECONDS: i64 = 60 * 60;
 
