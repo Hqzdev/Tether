@@ -23,6 +23,9 @@ Documentation is produced at three levels: **in-code reference**, **API contract
 - `loom-contracts` DTOs and route definitions are annotated (e.g. `utoipa`) to generate an
   **OpenAPI 3 spec** served at `GET /openapi.json` and committed as
   `docs/api/openapi.json` for review diffs.
+- Until every route/DTO is promoted into `loom-contracts`, Phase 4 serves a committed static
+  `docs/api/openapi.json` with `include_str!` so the runtime endpoint and reviewed artifact
+  are identical.
 - This spec is the **single source of truth** for the wire format. The Swift `Core/Models`
   are documented as derived from it; a CI step can later diff generated models against the
   hand-written ones to catch drift.

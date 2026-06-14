@@ -137,6 +137,7 @@ fn now_unix() -> i64 {
 mod tests {
     use super::*;
 
+    /// Verifies identical cache inputs produce the same SHA-256 key.
     #[test]
     fn cache_key_is_stable_and_path_sensitive() {
         let a = cache_key("POST", "/v1/chat", b"{\"x\":1}");
@@ -147,11 +148,31 @@ mod tests {
         assert_eq!(a.len(), 64); // sha256 hex
     }
 
+    /// Verifies method and body are part of the cache-key identity.
+    #[test]
+    fn cache_key_changes_with_method_and_body() {
+        let post = cache_key("POST", "/v1/chat", b"{\"x\":1}");
+        let get = cache_key("GET", "/v1/chat", b"{\"x\":1}");
+        let other_body = cache_key("POST", "/v1/chat", b"{\"x\":2}");
+        assert_ne!(post, get);
+        assert_ne!(post, other_body);
+    }
+
+    /// Verifies cache rows can be inserted and read from SQLite.
     #[test]
     fn round_trips_through_sqlite() {
         let db = Mutex::new(Connection::open_in_memory().unwrap());
         init_schema(&db.lock().unwrap()).unwrap();
-        put(&db, "k1", "openai", "gpt", "hi", 200, "application/json", b"body");
+        put(
+            &db,
+            "k1",
+            "openai",
+            "gpt",
+            "hi",
+            200,
+            "application/json",
+            b"body",
+        );
         let got = get(&db, "k1").expect("hit");
         assert_eq!(got.status, 200);
         assert_eq!(got.body, b"body");

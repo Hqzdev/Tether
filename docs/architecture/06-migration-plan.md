@@ -27,18 +27,29 @@ Incremental and **always-shippable**. Every phase ends with the app building and
 - Handlers stop touching SQL; they call traits backed by `loom-storage` repos.
 - `main.rs` becomes the thin composition root.
 - **Exit:** every Rust file ≤200 lines; all endpoints behave as before; smoke green.
+- **Status:** implemented in the current module/workspace layout. `main.rs` is now the
+  composition root; gateway, auth, settings, trace, cache, crypto, and domain concerns are
+  split into ≤200-line modules/crates. `loom-contracts`/`loom-storage` promotion remains a
+  later boundary-hardening step.
 
 ## Phase 3 — Decouple the hot path  · M
 - Introduce the `TraceSink` channel: gateway emits `CapturedCall`; `loom-trace` consumes it
   in a background worker. Forward path no longer blocks on trace writes.
 - Add focused tests for summarizer, cost calc, cache-key derivation, snapshot query.
 - **Exit:** measured forward latency ≤ today; trace logic unit-tested in isolation.
+- **Status:** implemented in the current proxy module layout via `trace::TraceSink`,
+  `trace::spawn_ingest_worker`, and ADR-0003. Phase 4 should promote the same boundary into
+  public rustdoc/OpenAPI-facing documentation without changing runtime behavior.
 
 ## Phase 4 — Documentation pass  · M
 - rustdoc `///` on all public items; `//!` crate docs; per-crate `README.md`.
 - Generate & commit `docs/api/openapi.json` (utoipa) + serve `/openapi.json`; write the
   endpoint guide. Remaining ADRs (0003 ingestion, 0004 OpenAPI source of truth).
 - **Exit:** `cargo doc --workspace` warning-free; OpenAPI spec committed and served.
+- **Status:** implemented with a committed static OpenAPI artifact served by
+  `GET /openapi.json`, `docs/api/README.md`, per-crate READMEs for existing workspace
+  crates, ADR-0003, and ADR-0004. Generated `utoipa` output is deferred until
+  `loom-contracts` owns all DTOs/routes.
 
 ## Phase 5 — SwiftUI app refactor  · L
 - Split `CodexLogObserver`, `TraceStore`, `TraceModels`, `AgentTracePalette`, `InspectorPane`

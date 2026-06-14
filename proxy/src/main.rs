@@ -9,40 +9,22 @@
 //!
 //! The macOS UI reads live captured calls through `/api/traces/current`.
 
+mod api_docs;
 mod auth;
 mod error;
+mod gateway;
+mod logging;
 mod settings;
 mod trace;
 
 use std::io::Write;
 use std::sync::{Arc, Mutex};
-use std::time::Instant;
 
-use axum::{
-    Router,
-    body::{Body, to_bytes},
-    extract::{Request, State},
-    http::{HeaderMap, HeaderName, HeaderValue, Method, StatusCode, header::CONTENT_TYPE},
-    response::{IntoResponse, Response},
-};
-use bytes::Bytes;
-use futures_util::StreamExt;
-use loom_cache::CachedResponse;
+use axum::Router;
 use rusqlite::Connection;
-use tokio_stream::wrappers::ReceiverStream;
 
 use auth::AuthContext;
-
-const RESET: &str = "\x1b[0m";
-const BOLD: &str = "\x1b[1m";
-const DIM: &str = "\x1b[2m";
-const RED: &str = "\x1b[31m";
-const GREEN: &str = "\x1b[32m";
-const YELLOW: &str = "\x1b[33m";
-const CYAN: &str = "\x1b[36m";
-
-/// Max request body we buffer for forwarding + logging (prompts are small).
-const MAX_BODY: usize = 100 * 1024 * 1024;
+use logging::{BOLD, CYAN, DIM, RESET};
 
 #[derive(Clone)]
 pub(crate) struct AppState {
@@ -50,10 +32,12 @@ pub(crate) struct AppState {
     openai_upstream: Arc<str>,
     anthropic_upstream: Arc<str>,
     db: Arc<Mutex<Connection>>,
+    trace_sink: trace::TraceSink,
     cache_enabled: bool,
     auth: Option<Arc<AuthContext>>,
 }
 
+/// Boots storage, trace ingestion, routes, and the proxy HTTP listener.
 #[tokio::main]
 async fn main() {
     let openai =
@@ -79,20 +63,25 @@ async fn main() {
         .unwrap_or_else(|error| panic!("loom: cannot init auth context: {}", error.message))
         .map(Arc::new);
 
+    let (trace_sink, trace_events) =
+        trace::TraceSink::bounded(trace::DEFAULT_TRACE_CHANNEL_CAPACITY);
     let state = AppState {
         client,
         openai_upstream: Arc::from(openai.as_str()),
         anthropic_upstream: Arc::from(anthropic.as_str()),
         db: Arc::new(Mutex::new(conn)),
+        trace_sink,
         cache_enabled,
         auth,
     };
+    trace::spawn_ingest_worker(state.db.clone(), trace_events);
 
     let app = Router::new()
+        .merge(api_docs::router())
         .merge(auth::router())
         .merge(settings::router())
         .merge(trace::router())
-        .fallback(proxy)
+        .fallback(gateway::proxy)
         .with_state(state);
 
     let listener = tokio::net::TcpListener::bind(&addr)
@@ -110,272 +99,4 @@ async fn main() {
     axum::serve(listener, app)
         .await
         .expect("loom: server crashed");
-}
-
-/// Catch-all handler: cache → forward+tee → store.
-async fn proxy(State(state): State<AppState>, req: Request) -> Response {
-    let started = Instant::now();
-    let (parts, body) = req.into_parts();
-    let method = parts.method;
-    let uri = parts.uri;
-    let path = uri.path().to_string();
-    let path_and_query = uri
-        .path_and_query()
-        .map(|pq| pq.as_str().to_string())
-        .unwrap_or_else(|| path.clone());
-
-    let (base, label) = if path.starts_with("/v1/messages") {
-        (state.anthropic_upstream.clone(), "anthropic")
-    } else {
-        (state.openai_upstream.clone(), "openai")
-    };
-    let url = format!("{base}{path_and_query}");
-
-    let body_bytes = match to_bytes(body, MAX_BODY).await {
-        Ok(b) => b,
-        Err(e) => {
-            eprintln!("{RED}✖ failed reading request body: {e}{RESET}\n");
-            return (StatusCode::BAD_REQUEST, "loom: cannot read request body").into_response();
-        }
-    };
-
-    let trace_capture =
-        trace::TraceCapture::from_request(method.as_str(), &path, label, &body_bytes);
-    let model = trace_capture.model.clone();
-    let preview = trace_capture.preview.clone();
-    log_request(&method, &path, label, base.as_ref(), &model, &preview);
-
-    // Only cache idempotent-ish POSTs (the actual LLM calls) when enabled.
-    let cacheable = state.cache_enabled && method == Method::POST;
-    let key = if cacheable {
-        loom_cache::cache_key(method.as_str(), &path_and_query, &body_bytes)
-    } else {
-        String::new()
-    };
-
-    // ---- cache lookup ----
-    if cacheable {
-        let db = state.db.clone();
-        let k = key.clone();
-        if let Ok(Some(c)) = tokio::task::spawn_blocking(move || loom_cache::get(&db, &k)).await {
-            let latency_ms = started.elapsed().as_millis() as i64;
-            let trace_db = state.db.clone();
-            let cached_capture = trace_capture.clone();
-            let cached_body = c.body.clone();
-            let cached_content_type = c.content_type.clone();
-            let cached_status = c.status;
-            let _ = tokio::task::spawn_blocking(move || {
-                trace::record_response(
-                    &trace_db,
-                    &cached_capture,
-                    cached_status,
-                    &cached_content_type,
-                    None,
-                    &cached_body,
-                    "hit",
-                    latency_ms,
-                );
-            })
-            .await;
-            log_cached(
-                StatusCode::from_u16(c.status).unwrap_or(StatusCode::OK),
-                c.body.len(),
-            );
-            return cached_response(c);
-        }
-    }
-
-    // ---- forward request headers (verbatim minus hop-by-hop + framing) ----
-    let mut headers = HeaderMap::new();
-    for (name, value) in parts.headers.iter() {
-        if is_hop_by_hop(name) || name == "host" || name == "content-length" {
-            continue;
-        }
-        headers.insert(name.clone(), value.clone());
-    }
-
-    let upstream = state
-        .client
-        .request(method, url.as_str())
-        .headers(headers)
-        .body(body_bytes)
-        .send()
-        .await;
-
-    let resp = match upstream {
-        Ok(r) => r,
-        Err(e) => {
-            let latency_ms = started.elapsed().as_millis() as i64;
-            let trace_db = state.db.clone();
-            let failed_capture = trace_capture.clone();
-            let message = e.to_string();
-            let _ = tokio::task::spawn_blocking(move || {
-                trace::record_upstream_error(&trace_db, &failed_capture, &message, latency_ms);
-            })
-            .await;
-            eprintln!("{RED}◀ upstream error: {e}{RESET}\n");
-            return (StatusCode::BAD_GATEWAY, format!("loom upstream error: {e}")).into_response();
-        }
-    };
-
-    let status = resp.status();
-    let upstream_request_id = trace::response_request_id(resp.headers());
-    let ctype = resp
-        .headers()
-        .get(CONTENT_TYPE)
-        .and_then(|v| v.to_str().ok())
-        .unwrap_or("")
-        .to_string();
-    log_response(status, &ctype);
-
-    let mut out_headers = HeaderMap::new();
-    for (name, value) in resp.headers().iter() {
-        if is_hop_by_hop(name) || name == "content-length" {
-            continue;
-        }
-        out_headers.insert(name.clone(), value.clone());
-    }
-    out_headers.insert(
-        HeaderName::from_static("x-loom-cache"),
-        HeaderValue::from_static("miss"),
-    );
-
-    let store = cacheable && status.is_success();
-
-    // ---- tee: stream to client while (optionally) accumulating for the cache ----
-    let (tx, rx) = tokio::sync::mpsc::channel::<Result<Bytes, reqwest::Error>>(16);
-    let db = state.db.clone();
-    let provider = label.to_string();
-    let status_code = status.as_u16();
-    let ct_store = ctype.clone();
-    let trace_capture_for_stream = trace_capture.clone();
-    let cache_status = "miss".to_string();
-    tokio::spawn(async move {
-        let mut acc: Vec<u8> = Vec::new();
-        let mut completed = true;
-        let mut stream_error: Option<String> = None;
-        let mut stream = resp.bytes_stream();
-        while let Some(item) = stream.next().await {
-            match item {
-                Ok(chunk) => {
-                    if store {
-                        acc.extend_from_slice(&chunk);
-                    } else if acc.len() < trace::MAX_CAPTURE_BYTES {
-                        let remaining = trace::MAX_CAPTURE_BYTES - acc.len();
-                        let take = chunk.len().min(remaining);
-                        acc.extend_from_slice(&chunk[..take]);
-                    }
-                    if tx.send(Ok(chunk)).await.is_err() {
-                        completed = false; // client disconnected
-                        break;
-                    }
-                }
-                Err(e) => {
-                    stream_error = Some(e.to_string());
-                    let _ = tx.send(Err(e)).await;
-                    completed = false; // don't cache a partial/errored stream
-                    break;
-                }
-            }
-        }
-        if completed {
-            let latency_ms = started.elapsed().as_millis() as i64;
-            let _ = tokio::task::spawn_blocking(move || {
-                trace::record_response(
-                    &db,
-                    &trace_capture_for_stream,
-                    status_code,
-                    &ct_store,
-                    upstream_request_id.as_deref(),
-                    &acc,
-                    &cache_status,
-                    latency_ms,
-                );
-
-                if store {
-                    loom_cache::put(
-                        &db,
-                        &key,
-                        &provider,
-                        &model,
-                        &preview,
-                        status_code,
-                        &ct_store,
-                        &acc,
-                    );
-                }
-            })
-            .await;
-        } else if let Some(message) = stream_error {
-            let latency_ms = started.elapsed().as_millis() as i64;
-            let _ = tokio::task::spawn_blocking(move || {
-                trace::record_upstream_error(&db, &trace_capture_for_stream, &message, latency_ms);
-            })
-            .await;
-        }
-    });
-
-    let mut response = Response::new(Body::from_stream(ReceiverStream::new(rx)));
-    *response.status_mut() = status;
-    *response.headers_mut() = out_headers;
-    response
-}
-
-/// Build an HTTP response that replays a cached payload.
-fn cached_response(c: CachedResponse) -> Response {
-    let mut response = Response::new(Body::from(Bytes::from(c.body)));
-    *response.status_mut() = StatusCode::from_u16(c.status).unwrap_or(StatusCode::OK);
-    let h = response.headers_mut();
-    if !c.content_type.is_empty() {
-        if let Ok(v) = HeaderValue::from_str(&c.content_type) {
-            h.insert(CONTENT_TYPE, v);
-        }
-    }
-    h.insert(
-        HeaderName::from_static("x-loom-cache"),
-        HeaderValue::from_static("hit"),
-    );
-    response
-}
-
-/// Headers that must not be forwarded across a proxy hop (RFC 9110 §7.6.1).
-fn is_hop_by_hop(name: &HeaderName) -> bool {
-    matches!(
-        name.as_str(),
-        "connection"
-            | "keep-alive"
-            | "proxy-authenticate"
-            | "proxy-authorization"
-            | "proxy-connection"
-            | "te"
-            | "trailer"
-            | "transfer-encoding"
-            | "upgrade"
-    )
-}
-
-// ---------- logging ----------
-
-fn log_request(method: &Method, path: &str, label: &str, base: &str, model: &str, preview: &str) {
-    println!("{BOLD}{CYAN}▶ {method} {path}{RESET}  {DIM}→ {label} ({base}){RESET}");
-    println!("  {DIM}model:{RESET} {YELLOW}{model}{RESET}");
-    println!("  {DIM}last :{RESET} {preview}");
-    let _ = std::io::stdout().flush();
-}
-
-fn log_response(status: StatusCode, ctype: &str) {
-    let color = if status.is_success() { GREEN } else { RED };
-    let kind = if ctype.contains("event-stream") {
-        "streaming"
-    } else {
-        "buffered"
-    };
-    let ctype = if ctype.is_empty() { "?" } else { ctype };
-    println!("{color}◀ {status}{RESET}  {DIM}{ctype} · {kind}{RESET}\n");
-    let _ = std::io::stdout().flush();
-}
-
-fn log_cached(status: StatusCode, bytes: usize) {
-    println!("{YELLOW}◀ {status}{RESET}  {DIM}🟡 cache hit · {bytes} bytes · 0 ms · $0{RESET}\n");
-    let _ = std::io::stdout().flush();
 }

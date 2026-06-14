@@ -36,7 +36,10 @@ pub(super) fn latest_session(conn: &Connection) -> rusqlite::Result<Option<Trace
 }
 
 /// Looks up a session by id.
-pub(super) fn find_session(conn: &Connection, id: &str) -> rusqlite::Result<Option<TraceSessionDto>> {
+pub(super) fn find_session(
+    conn: &Connection,
+    id: &str,
+) -> rusqlite::Result<Option<TraceSessionDto>> {
     conn.query_row(
         "SELECT id, created_at, name
          FROM sessions
@@ -54,7 +57,10 @@ pub(super) fn find_session(conn: &Connection, id: &str) -> rusqlite::Result<Opti
 }
 
 /// Creates a new session, defaulting its name to the current `HH:MM` time.
-pub(super) fn create_session(conn: &Connection, name: Option<&str>) -> rusqlite::Result<TraceSessionDto> {
+pub(super) fn create_session(
+    conn: &Connection,
+    name: Option<&str>,
+) -> rusqlite::Result<TraceSessionDto> {
     let created_at = now_millis();
     let id = Uuid::new_v4().to_string();
     let name = name

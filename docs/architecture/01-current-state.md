@@ -1,6 +1,8 @@
-# 1. Current State
+# 1. Pre-migration Baseline
 
-A snapshot of the system as it exists today, so the refactor target is grounded in reality.
+A snapshot of the system before the modular-monolith migration, kept so the refactor target is
+grounded in the problems it was designed to fix. For current phase status, see
+[06-migration-plan](./06-migration-plan.md).
 
 ## 1.1 System overview
 

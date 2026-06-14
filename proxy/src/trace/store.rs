@@ -5,6 +5,7 @@ use std::sync::{Arc, Mutex};
 use rusqlite::{Connection, params};
 
 use super::capture::TraceCapture;
+use super::cost::estimate_cost;
 use super::sessions::ensure_current_session;
 use super::summarize::summarize_response;
 use super::text::utf8_preview;
@@ -60,6 +61,13 @@ pub(crate) fn record_response(
         .filter(|value| !value.is_empty())
         .unwrap_or_else(|| capture.request_id.clone());
 
+    let cost = estimate_cost(
+        &capture.provider,
+        &capture.model,
+        summary.tokens_in,
+        summary.tokens_out,
+    );
+
     let row = TraceRow {
         id: capture.id.clone(),
         created_at: capture.created_at,
@@ -80,7 +88,7 @@ pub(crate) fn record_response(
         error_detail: is_error.then(|| utf8_preview(body)),
         tokens_in: summary.tokens_in,
         tokens_out: summary.tokens_out,
-        cost: "$0.0000".to_string(),
+        cost,
         temperature: capture.temperature,
     };
 

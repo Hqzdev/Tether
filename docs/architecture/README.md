@@ -1,6 +1,7 @@
 # Loom / Tether — Architecture & Refactor Plan
 
-> Status: **Proposal (plan only — no code yet)**
+> Status: **In progress** — backend Phase 2, Phase 3, and Phase 4 code/docs are implemented;
+> SwiftUI refactor and CI guardrail phases remain.
 > Scope: Rust proxy backend + SwiftUI macOS app. The Next.js web site is out of scope.
 > Goal: a **modular monolith** — clean, independently-reasoned internal services with hard
 > boundaries, all composed into a **single local process**. No network hops between services.

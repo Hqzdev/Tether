@@ -38,17 +38,22 @@ loom-gateway/src/tee.rs           response tee (stream + buffer)       (~130)
 loom-cache/src/key.rs             sha256 cache-key derivation          (~50)
 loom-cache/src/store.rs           get / put / clear + hit counter      (~150)
 ```
+Current implementation keeps the gateway in-process under `proxy/src/gateway/`
+(`mod.rs`, `http.rs`, `stream.rs`) while the crate promotion work continues.
 
 ### `src/auth/mod.rs` (380) → `crates/loom-auth/src/`
 ```
 lib.rs (re-exports) · context.rs · jwt.rs · extractor.rs · routes.rs   (each ≤150)
 oauth.rs            (from existing auth/oauth.rs, +doc comments)        (~180)
 ```
+Current implementation uses `proxy/src/auth/{context,jwt,password,routes,types,google,oauth}.rs`
+with the same boundaries.
 
 ### `src/settings.rs` (279) → `crates/loom-settings/src/`
 ```
 lib.rs · profile.rs · app.rs · keys.rs · routes.rs                     (each ≤120)
 ```
+Current implementation uses `proxy/src/settings/{profile,app,keys,types,mod}.rs`.
 
 ## 4.3 Swift file-split plan
 
