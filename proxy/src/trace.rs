@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use uuid::Uuid;
 
-use crate::AppState;
+use crate::{AppState, context, pricing};
 
 pub(crate) const MAX_CAPTURE_BYTES: usize = 256 * 1024;
 
@@ -29,6 +29,11 @@ pub(crate) struct TraceCapture {
     prompt_user: String,
     request_id: String,
     temperature: Option<f64>,
+    /// `tool_use_id`s this request answers (Anthropic `tool_result`, OpenAI
+    /// `role:"tool"`). Each links this call to the parent span that emitted it.
+    tool_result_ids: Vec<String>,
+    /// Serialized `ContextInputs` describing what went into the prompt.
+    context_inputs: String,
 }
 
 #[derive(Serialize)]
@@ -59,6 +64,10 @@ struct TraceQuery {
 #[derive(Serialize)]
 struct AgentNodeDto {
     id: String,
+    trace_id: String,
+    parent_span_id: Option<String>,
+    tool_use_ids: Value,
+    context_inputs: Value,
     depth: i64,
     step_name: String,
     timestamp: String,
@@ -119,6 +128,17 @@ struct TraceRow {
     tokens_out: i64,
     cost: String,
     temperature: Option<f64>,
+    /// Root id shared by every span in one agent run.
+    trace_id: String,
+    /// Span id of the parent call (resolved from `tool_use`/`tool_result`).
+    parent_span_id: Option<String>,
+    /// JSON array of `tool_use_id`s this response emitted.
+    tool_use_ids: String,
+    /// Serialized `ContextInputs` for this call.
+    context_inputs: String,
+    /// Transient (not a column): `tool_result_id`s carried by the request, used
+    /// to resolve lineage at insert time.
+    tool_result_ids: Vec<String>,
 }
 
 struct ResponseSummary {
@@ -127,6 +147,7 @@ struct ResponseSummary {
     language: String,
     tokens_in: i64,
     tokens_out: i64,
+    tool_use_ids: Vec<String>,
 }
 
 impl TraceCapture {
@@ -162,6 +183,17 @@ impl TraceCapture {
             .as_ref()
             .and_then(|value| value.get("temperature"))
             .and_then(Value::as_f64);
+        let tool_result_ids = parsed
+            .as_ref()
+            .map(extract_tool_result_ids)
+            .unwrap_or_default();
+        let context_inputs = serde_json::to_string(&context::from_request(
+            parsed.as_ref(),
+            &prompt_system,
+            &prompt_user,
+            &model,
+        ))
+        .unwrap_or_else(|_| "{}".to_string());
 
         Self {
             id: Uuid::new_v4().to_string(),
@@ -175,6 +207,8 @@ impl TraceCapture {
             prompt_user,
             request_id,
             temperature,
+            tool_result_ids,
+            context_inputs,
         }
     }
 }
@@ -199,8 +233,31 @@ pub(crate) fn init_schema(conn: &Connection) -> rusqlite::Result<()> {
     if !table_has_column(conn, "trace_calls", "session_id")? {
         conn.execute("ALTER TABLE trace_calls ADD COLUMN session_id TEXT", [])?;
     }
+    add_column_if_missing(conn, "trace_calls", "trace_id", "TEXT")?;
+    add_column_if_missing(conn, "trace_calls", "parent_span_id", "TEXT")?;
+    add_column_if_missing(conn, "trace_calls", "tool_use_ids", "TEXT")?;
+    add_column_if_missing(conn, "trace_calls", "context_inputs", "TEXT")?;
+    conn.execute_batch(
+        "CREATE INDEX IF NOT EXISTS idx_trace_calls_trace_id
+             ON trace_calls(trace_id);",
+    )?;
     ensure_current_session(conn)?;
     backfill_missing_session_ids(conn)
+}
+
+fn add_column_if_missing(
+    conn: &Connection,
+    table: &str,
+    column: &str,
+    decl_type: &str,
+) -> rusqlite::Result<()> {
+    if !table_has_column(conn, table, column)? {
+        conn.execute(
+            &format!("ALTER TABLE {table} ADD COLUMN {column} {decl_type}"),
+            [],
+        )?;
+    }
+    Ok(())
 }
 
 pub(crate) fn response_request_id(headers: &HeaderMap) -> Option<String> {
@@ -244,6 +301,9 @@ pub(crate) fn record_response(
         .filter(|value| !value.is_empty())
         .unwrap_or_else(|| capture.request_id.clone());
 
+    let cost = pricing::estimate_cost(&capture.model, summary.tokens_in, summary.tokens_out);
+    let tool_use_ids = serde_json::to_string(&summary.tool_use_ids).unwrap_or_else(|_| "[]".to_string());
+
     let row = TraceRow {
         id: capture.id.clone(),
         created_at: capture.created_at,
@@ -264,8 +324,13 @@ pub(crate) fn record_response(
         error_detail: is_error.then(|| utf8_preview(body)),
         tokens_in: summary.tokens_in,
         tokens_out: summary.tokens_out,
-        cost: "$0.0000".to_string(),
+        cost,
         temperature: capture.temperature,
+        trace_id: String::new(),
+        parent_span_id: None,
+        tool_use_ids,
+        context_inputs: capture.context_inputs.clone(),
+        tool_result_ids: capture.tool_result_ids.clone(),
     };
 
     insert_trace_row(db, row, status);
@@ -299,6 +364,11 @@ pub(crate) fn record_upstream_error(
         tokens_out: 0,
         cost: "$0.0000".to_string(),
         temperature: capture.temperature,
+        trace_id: String::new(),
+        parent_span_id: None,
+        tool_use_ids: "[]".to_string(),
+        context_inputs: capture.context_inputs.clone(),
+        tool_result_ids: capture.tool_result_ids.clone(),
     };
 
     insert_trace_row(db, row, "error");
@@ -433,7 +503,8 @@ fn fetch_snapshot(
         "SELECT id, created_at, provider, method, path, model, status_code, cache_status,
                 latency_ms, request_id, prompt_system, prompt_user, response_text,
                 response_language, error_code, error_message, error_detail, tokens_in,
-                tokens_out, cost, temperature
+                tokens_out, cost, temperature, trace_id, parent_span_id,
+                tool_use_ids, context_inputs
          FROM trace_calls
          WHERE session_id = ?1
          ORDER BY created_at ASC
@@ -463,6 +534,11 @@ fn fetch_snapshot(
                 tokens_out: row.get(18)?,
                 cost: row.get(19)?,
                 temperature: row.get(20)?,
+                trace_id: row.get::<_, Option<String>>(21)?.unwrap_or_default(),
+                parent_span_id: row.get(22)?,
+                tool_use_ids: row.get::<_, Option<String>>(23)?.unwrap_or_else(|| "[]".to_string()),
+                context_inputs: row.get::<_, Option<String>>(24)?.unwrap_or_else(|| "{}".to_string()),
+                tool_result_ids: Vec::new(),
             })
         })?
         .collect::<rusqlite::Result<Vec<_>>>()?;
@@ -473,10 +549,13 @@ fn fetch_snapshot(
         .max()
         .unwrap_or(1)
         .max(1);
+    let depths = compute_depths(&rows);
     let nodes = rows
         .into_iter()
-        .enumerate()
-        .map(|(index, row)| row_to_node(index, row, max_latency))
+        .map(|row| {
+            let depth = depths.get(&row.id).copied().unwrap_or(0);
+            row_to_node(depth, row, max_latency)
+        })
         .collect();
 
     Ok(TraceSnapshot {
@@ -602,7 +681,7 @@ fn table_has_column(conn: &Connection, table: &str, column: &str) -> rusqlite::R
     Ok(false)
 }
 
-fn row_to_node(index: usize, row: TraceRow, max_latency: i64) -> AgentNodeDto {
+fn row_to_node(depth: i64, row: TraceRow, max_latency: i64) -> AgentNodeDto {
     let status = if row.cache_status == "hit" {
         "cached"
     } else if (200..=299).contains(&row.status_code) {
@@ -615,10 +694,18 @@ fn row_to_node(index: usize, row: TraceRow, max_latency: i64) -> AgentNodeDto {
         row.provider.to_ascii_uppercase(),
         compact_path(&row.path)
     );
+    let tool_use_ids =
+        serde_json::from_str(&row.tool_use_ids).unwrap_or_else(|_| Value::Array(Vec::new()));
+    let context_inputs =
+        serde_json::from_str(&row.context_inputs).unwrap_or_else(|_| Value::Object(Default::default()));
 
     AgentNodeDto {
         id: row.id,
-        depth: index as i64,
+        trace_id: row.trace_id,
+        parent_span_id: row.parent_span_id,
+        tool_use_ids,
+        context_inputs,
+        depth,
         step_name,
         timestamp: format_timestamp(row.created_at),
         model: row.model,
@@ -658,14 +745,20 @@ fn insert_trace_row(db: &Arc<Mutex<Connection>>, row: TraceRow, status: &str) {
             }
         };
 
+        // Resolve lineage: if this request answered a prior `tool_use`, the span
+        // that emitted it is our parent and we inherit its trace root. Otherwise
+        // this call starts a new trace rooted at its own id.
+        let (trace_id, parent_span_id) = resolve_lineage(&conn, &row.id, &row.tool_result_ids);
+
         let _ = conn.execute(
             "INSERT OR REPLACE INTO trace_calls
                 (id, session_id, created_at, provider, method, path, model, status_code, cache_status,
                  latency_ms, request_id, prompt_system, prompt_user, response_text,
                  response_language, error_code, error_message, error_detail, tokens_in,
-                 tokens_out, cost, temperature)
+                 tokens_out, cost, temperature, trace_id, parent_span_id, tool_use_ids,
+                 context_inputs)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14,
-                     ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22)",
+                     ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26)",
             params![
                 row.id,
                 session.id,
@@ -689,10 +782,76 @@ fn insert_trace_row(db: &Arc<Mutex<Connection>>, row: TraceRow, status: &str) {
                 row.tokens_out,
                 row.cost,
                 row.temperature,
+                trace_id,
+                parent_span_id,
+                row.tool_use_ids,
+                row.context_inputs,
             ],
         );
         println!("  captured trace node: {status}");
     }
+}
+
+/// Find the parent span for a request by matching the `tool_use_id`s it answers
+/// against prior spans' emitted `tool_use_ids`. Returns `(trace_id, parent)`.
+/// A call with no matching parent roots a new trace at its own id.
+fn resolve_lineage(
+    conn: &Connection,
+    own_id: &str,
+    tool_result_ids: &[String],
+) -> (String, Option<String>) {
+    for tool_use_id in tool_result_ids {
+        if let Some((parent_id, parent_trace_id)) = find_parent_span(conn, tool_use_id) {
+            let trace_id = if parent_trace_id.is_empty() {
+                parent_id.clone()
+            } else {
+                parent_trace_id
+            };
+            return (trace_id, Some(parent_id));
+        }
+    }
+    (own_id.to_string(), None)
+}
+
+fn find_parent_span(conn: &Connection, tool_use_id: &str) -> Option<(String, String)> {
+    conn.query_row(
+        "SELECT id, COALESCE(trace_id, '')
+         FROM trace_calls
+         WHERE tool_use_ids LIKE ?1
+         ORDER BY created_at DESC
+         LIMIT 1",
+        [format!("%\"{tool_use_id}\"%")],
+        |row| Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?)),
+    )
+    .optional()
+    .ok()
+    .flatten()
+}
+
+/// Walk parent links to assign each span a real tree depth (root = 0). Falls
+/// back to 0 if a parent is missing or a cycle is detected.
+fn compute_depths(rows: &[TraceRow]) -> std::collections::HashMap<String, i64> {
+    use std::collections::HashMap;
+    let parents: HashMap<&str, Option<&str>> = rows
+        .iter()
+        .map(|row| (row.id.as_str(), row.parent_span_id.as_deref()))
+        .collect();
+    let mut depths = HashMap::new();
+    for row in rows {
+        let mut depth = 0;
+        let mut current = row.parent_span_id.as_deref();
+        let mut guard = 0;
+        while let Some(parent) = current {
+            if guard > rows.len() {
+                break; // defensive: broken/cyclic chain
+            }
+            depth += 1;
+            guard += 1;
+            current = parents.get(parent).copied().flatten();
+        }
+        depths.insert(row.id.clone(), depth);
+    }
+    depths
 }
 
 fn summarize_response(content_type: &str, body: &[u8]) -> ResponseSummary {
@@ -725,6 +884,7 @@ fn summarize_response(content_type: &str, body: &[u8]) -> ResponseSummary {
             language: "json".to_string(),
             tokens_in,
             tokens_out,
+            tool_use_ids: extract_tool_use_ids(&value),
         };
     }
 
@@ -739,7 +899,74 @@ fn summarize_response(content_type: &str, body: &[u8]) -> ResponseSummary {
         text,
         tokens_in: 0,
         tokens_out: 0,
+        tool_use_ids: Vec::new(),
     }
+}
+
+/// `tool_use_id`s a response emits — Anthropic `content[].type=="tool_use"` and
+/// OpenAI `choices[].message.tool_calls[].id`. These are what a later request's
+/// `tool_result` points back at, giving us the parent→child edge.
+fn extract_tool_use_ids(value: &Value) -> Vec<String> {
+    let mut ids = Vec::new();
+
+    if let Some(content) = value.get("content").and_then(Value::as_array) {
+        for block in content {
+            if block.get("type").and_then(Value::as_str) == Some("tool_use")
+                && let Some(id) = block.get("id").and_then(Value::as_str)
+            {
+                ids.push(id.to_string());
+            }
+        }
+    }
+
+    if let Some(choices) = value.get("choices").and_then(Value::as_array) {
+        for choice in choices {
+            let tool_calls = choice
+                .get("message")
+                .and_then(|message| message.get("tool_calls"))
+                .and_then(Value::as_array);
+            for call in tool_calls.into_iter().flatten() {
+                if let Some(id) = call.get("id").and_then(Value::as_str) {
+                    ids.push(id.to_string());
+                }
+            }
+        }
+    }
+
+    ids
+}
+
+/// `tool_use_id`s a request answers — Anthropic `tool_result` blocks and OpenAI
+/// `role:"tool"` messages (`tool_call_id`). Each links this call to its parent.
+fn extract_tool_result_ids(value: &Value) -> Vec<String> {
+    let mut ids = Vec::new();
+    let Some(messages) = value.get("messages").and_then(Value::as_array) else {
+        return ids;
+    };
+
+    for message in messages {
+        let role = message.get("role").and_then(Value::as_str);
+
+        // OpenAI: a tool message carries the id it answers.
+        if role == Some("tool")
+            && let Some(id) = message.get("tool_call_id").and_then(Value::as_str)
+        {
+            ids.push(id.to_string());
+        }
+
+        // Anthropic: user-role messages embed tool_result content blocks.
+        if let Some(content) = message.get("content").and_then(Value::as_array) {
+            for block in content {
+                if block.get("type").and_then(Value::as_str) == Some("tool_result")
+                    && let Some(id) = block.get("tool_use_id").and_then(Value::as_str)
+                {
+                    ids.push(id.to_string());
+                }
+            }
+        }
+    }
+
+    ids
 }
 
 fn extract_prompt(value: &Value) -> (String, String) {
