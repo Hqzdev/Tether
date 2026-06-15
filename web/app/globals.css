@@ -710,7 +710,7 @@ h2.title {
 .inspect-layout { display: grid; grid-template-columns: 380px 1fr; gap: 28px; margin-top: 60px; align-items: stretch; }
 .feature-list { display: flex; flex-direction: column; gap: 10px; }
 .flcard {
-  text-align: left; cursor: pointer; padding: 18px 18px; border-radius: var(--r-pill);
+  text-align: left; cursor: pointer; padding: 18px 18px; border-radius: var(--r-md);
   border: 1px solid var(--border-soft); background: rgba(255,255,255,.76);
   transition: all .3s var(--ease-expo); display: flex; gap: 14px; align-items: flex-start;
   position: relative;
