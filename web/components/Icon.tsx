@@ -4,6 +4,7 @@ import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import {
   AlertCircleIcon,
   AntennaIcon,
+  AppleFinderIcon,
   AppleIcon,
   ArrowDown03Icon,
   ArrowRight02Icon,
@@ -95,6 +96,7 @@ const ICONS = {
   github: GithubIcon,
   star: StarIcon,
   apple: AppleIcon,
+  "apple-finder": AppleFinderIcon,
   python: PythonIcon,
 } as const satisfies Record<string, IconSvgElement>;
 

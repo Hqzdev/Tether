@@ -521,7 +521,7 @@ export default function TetherLanding() {
               })
             }
           >
-            <LandingIcon name="apple" />
+            <LandingIcon name="apple-finder" />
             Download for macOS
           </a>
           <a
@@ -1162,7 +1162,7 @@ export default function TetherLanding() {
                 rel="noreferrer"
                 target="_blank"
               >
-                <LandingIcon name="github" />
+                <LandingIcon name="apple-finder" />
                 Open GitHub code
               </a>
             </div>
