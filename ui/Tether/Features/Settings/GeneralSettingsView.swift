@@ -35,12 +35,14 @@ struct GeneralSettingsView: View {
         SettingsSection("Appearance", palette: palette) {
             SettingsPickerRow(
                 title: "Theme",
-                subtitle: "Controls window chrome and native controls. System follows macOS.",
+                subtitle: "Appearance controls are temporarily unavailable.",
                 selection: $preferences.appearance,
                 options: AgentTraceThemeMode.allCases,
                 label: { $0.title },
                 palette: palette
             )
+            .disabled(true)
+            .opacity(0.54)
         }
     }
 
