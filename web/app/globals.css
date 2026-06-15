@@ -157,10 +157,7 @@ h2.title {
 .urgency-link:focus-visible,
 .feedback-form input:focus-visible,
 .feedback-form textarea:focus-visible,
-.feedback-form button:focus-visible,
-.waitlist-form input:focus-visible,
-.waitlist-form select:focus-visible,
-.waitlist-form button:focus-visible {
+.feedback-form button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
@@ -817,12 +814,13 @@ h2.title {
 .step h4 { margin: 14px 0 8px; font-size: 18px; font-weight: 620; letter-spacing: 0; }
 .step p { margin: 0 0 16px; font-size: 14px; color: var(--text-3); line-height: 1.6; }
 .step .codebox {
-  font-family: var(--font-mono); font-size: 12px; color: #d4d4d8;
-  background: #09090b; border: 1px solid #18181b; border-radius: 9px; padding: 12px 13px;
+  font-family: var(--font-mono); font-size: 12px; color: var(--text-2);
+  background: var(--bg-window); border: 1px solid var(--border); border-radius: 9px; padding: 12px 13px;
   line-height: 1.7; overflow-x: auto;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.82), 0 10px 24px rgba(15,23,42,.04);
 }
-.step .codebox .cm { color: #71717a; }
-.step .codebox .fn { color: #60a5fa; } .step .codebox .st { color: #6ee7b7; } .step .codebox .kw { color: #c084fc; }
+.step .codebox .cm { color: var(--text-4); }
+.step .codebox .fn { color: var(--cyan); } .step .codebox .st { color: var(--green); } .step .codebox .kw { color: var(--violet); }
 
 /* ====== use cases ====== */
 .usecase-grid {
@@ -973,10 +971,10 @@ h2.title {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0;
+  gap: 12px;
   max-width: 460px;
   margin: 36px auto 0;
-  text-align: left;
+  text-align: center;
 }
 .download-direct {
   display: flex;
@@ -985,81 +983,17 @@ h2.title {
   gap: 12px;
   width: 100%;
 }
-.download-or {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  width: 100%;
-  margin: 24px 0;
-  color: var(--text-4);
-  font-size: 12px;
-  font-family: var(--font-mono);
-  letter-spacing: 0.5px;
-}
-.download-or::before,
-.download-or::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: var(--border-soft);
-}
-.download-note,
-.waitlist-message {
+.download-note {
   font-family: var(--font-mono);
   font-size: 11.5px;
   line-height: 1.55;
   color: var(--text-4);
+  margin: 0;
 }
 .download-note code {
   color: var(--text-2);
   font-family: var(--font-mono);
 }
-.waitlist-form {
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-  min-width: 0;
-  width: 100%;
-}
-.waitlist-form label {
-  font-size: 13px;
-  font-weight: 620;
-  color: var(--text-2);
-}
-.waitlist-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 10px;
-}
-.waitlist-row input {
-  min-width: 0;
-  min-height: 48px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--bg-window);
-  color: var(--text);
-  font: inherit;
-  font-size: 16px;
-  padding: 0 14px;
-}
-.waitlist-row input::placeholder { color: var(--text-4); }
-.waitlist-row input:user-invalid {
-  border-color: var(--pink-dim);
-  box-shadow: 0 0 0 1px rgba(255,138,164,.18);
-}
-.waitlist-row .btn {
-  min-height: 48px;
-  height: 48px;
-}
-.waitlist-row .btn:disabled {
-  cursor: wait;
-  opacity: .7;
-}
-.waitlist-message {
-  min-height: 18px;
-  margin: 0;
-}
-.waitlist-message.error { color: var(--pink); }
 .honeypot {
   position: absolute;
   clip-path: inset(50%);
@@ -1259,8 +1193,6 @@ h2.title {
   .feedback-card { padding: 30px 18px; }
   .feedback-actions .btn { width: 100%; }
   .finalcta .cta-card { padding: 54px 18px; }
-  .waitlist-row { grid-template-columns: 1fr; }
-  .waitlist-row .btn { width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }

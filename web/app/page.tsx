@@ -7,7 +7,7 @@ import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import { trackEvent } from "@/lib/analytics";
 import { NODES, type NodeStatus, type TraceNode } from "@/lib/data";
 
-const DOWNLOAD_HREF = "https://github.com/Hqzdev/Loom/releases/tag/v1.0";
+const GITHUB_CODE_HREF = "https://github.com/Hqzdev/Loom";
 
 type LandingIconName = IconName;
 
@@ -233,7 +233,6 @@ const REVIEW_ROWS: { control: string; evidence: string; proof: string }[] = [
 
 type InspectorView = "graph" | "cache" | "time" | "privacy";
 type ReplayState = "idle" | "running" | "done";
-type WaitlistState = "idle" | "submitting" | "done" | "error";
 type FeedbackState = "idle" | "submitting" | "done" | "error";
 
 // Tracks the user's reduced-motion preference for demo animation controls.
@@ -361,9 +360,6 @@ export default function TetherLanding() {
   const [treeStep, setTreeStep] = useState(0);
   const [activeView, setActiveView] = useState<InspectorView>("graph");
   const [replayState, setReplayState] = useState<ReplayState>("idle");
-  const [waitlistEmail, setWaitlistEmail] = useState("");
-  const [waitlistState, setWaitlistState] = useState<WaitlistState>("idle");
-  const [waitlistMessage, setWaitlistMessage] = useState("");
   const [feedbackEmail, setFeedbackEmail] = useState("");
   const [feedbackContext, setFeedbackContext] = useState("");
   const [feedbackText, setFeedbackText] = useState("");
@@ -434,40 +430,7 @@ export default function TetherLanding() {
     }, 1300);
   }
 
-  async function joinWaitlist(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = event.currentTarget;
-
-    if (!form.reportValidity()) return;
-
-    setWaitlistState("submitting");
-    setWaitlistMessage("");
-    trackEvent("waitlist_submitted", { form_type: "alpha_waitlist", location: "final_cta" });
-
-    try {
-      const formData = new FormData(form);
-      const response = await fetch(form.action, {
-        method: "POST",
-        body: formData,
-      });
-      const result = (await response.json()) as { ok?: boolean; error?: string };
-
-      if (!response.ok || !result.ok) {
-        throw new Error(result.error || "Could not join the waitlist.");
-      }
-
-      setWaitlistState("done");
-      trackEvent("waitlist_joined", { form_type: "alpha_waitlist", location: "final_cta" });
-      setWaitlistMessage("You're on the alpha list. I'll send the DMG link when the next build is ready.");
-      setWaitlistEmail("");
-      form.reset();
-    } catch (error) {
-      setWaitlistState("error");
-      trackEvent("waitlist_failed", { form_type: "alpha_waitlist", location: "final_cta" });
-      setWaitlistMessage(error instanceof Error ? error.message : "Could not join the waitlist.");
-    }
-  }
-
+  // Sends structured landing-page feedback through the API route without leaving the page.
   async function sendFeedback(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
@@ -1181,76 +1144,44 @@ export default function TetherLanding() {
             before the next demo.
           </h2>
           <p>
-            Free during alpha. Download the current DMG or join the list for the next signed build.
-            No account, no cloud workspace, no prompt uploads.
+            Free during alpha. Open the source on GitHub, run it locally, or send feedback about
+            the workflow that should ship next.
           </p>
-          <p className="alpha-note">Limited alpha. macOS only for now.</p>
+          <p className="alpha-note">No Releases dependency. Code first, feedback close by.</p>
           <div className="download-actions">
             <div className="download-direct">
               <a
                 className="btn btn-primary pulse"
-                href={DOWNLOAD_HREF}
+                href={GITHUB_CODE_HREF}
                 onClick={() =>
                   trackEvent("download_clicked", {
-                    asset: "Loom v1.0 release",
+                    asset: "GitHub source",
                     location: "final_cta",
                   })
                 }
                 rel="noreferrer"
                 target="_blank"
               >
-                <LandingIcon name="apple" />
-                Download DMG
+                <LandingIcon name="github" />
+                Open GitHub code
               </a>
             </div>
-            <div className="download-or">or join the waitlist</div>
-            <form
-              action="/api/waitlist"
-              className="waitlist-form"
-              method="post"
-              onSubmit={joinWaitlist}
-            >
-              <input
-                aria-hidden="true"
-                autoComplete="off"
-                className="honeypot"
-                name="company"
-                tabIndex={-1}
-                type="text"
-              />
-              <input name="source" type="hidden" value="download-cta" />
-              <label className="sr-only" htmlFor="waitlist-email">Email address</label>
-              <div className="waitlist-row">
-                <input
-                  autoComplete="email"
-                  enterKeyHint="done"
-                  id="waitlist-email"
-                  inputMode="email"
-                  name="email"
-                  onChange={(event) => setWaitlistEmail(event.target.value)}
-                  placeholder="you@example.com"
-                  required
-                  type="email"
-                  value={waitlistEmail}
-                />
-                <button
-                  className="btn btn-ghost"
-                  disabled={waitlistState === "submitting"}
-                  type="submit"
-                >
-                  <LandingIcon name={waitlistState === "done" ? "check" : "arrow-down-long"} />
-                  {waitlistState === "submitting" ? "Joining..." : waitlistState === "done" ? "Joined" : "Get early access"}
-                </button>
-              </div>
-              <p
-                aria-live="polite"
-                className={`waitlist-message ${waitlistState === "error" ? "error" : ""}`.trim()}
-              >
-                {waitlistMessage || "No spam. Just the alpha DMG and setup notes."}
-              </p>
-            </form>
+            <p className="download-note">Use the repository Code button to download a ZIP or clone the app.</p>
           </div>
           <div className="cta-row secondary-downloads">
+            <a
+              className="btn btn-ghost"
+              href="#feedback"
+              onClick={() =>
+                trackEvent("cta_clicked", {
+                  button_text: "Write feedback",
+                  location: "final_cta",
+                })
+              }
+            >
+              <LandingIcon name="arrow-right" />
+              Write feedback
+            </a>
             <a
               className="btn btn-ghost"
               href="#how"
