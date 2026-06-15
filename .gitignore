@@ -18,6 +18,9 @@ Icon?
 *.bak
 .cache/
 
+# Local content drafts
+/content-drafts/
+
 # Environment files
 .env
 .env.*
