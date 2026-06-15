@@ -15,6 +15,7 @@ import styles from "./DocsPage.module.css";
 const GITHUB_HREF = "https://github.com/Hqzdev/Tether";
 const RELEASE_HREF = "https://github.com/Hqzdev/Tether/releases/latest";
 
+
 function docsHref(slug: string) {
   return slug === "overview" ? "/docs" : `/docs/${slug}`;
 }

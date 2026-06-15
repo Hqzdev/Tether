@@ -9,6 +9,7 @@ import { NODES, type NodeStatus, type TraceNode } from "@/lib/data";
 
 const GITHUB_RELEASE_HREF = "https://github.com/Hqzdev/Tether/releases/latest";
 
+
 type LandingIconName = IconName;
 
 // Renders a landing-page icon using the shared icon map.
