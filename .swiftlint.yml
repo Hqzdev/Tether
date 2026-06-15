@@ -1,0 +1,25 @@
+included:
+  - ui/Loom
+  - ui/Sources
+
+excluded:
+  - ui/.build
+  - ui/Loom.xcodeproj
+
+only_rules:
+  - file_length
+  - function_body_length
+  - type_body_length
+  - trailing_whitespace
+
+file_length:
+  warning: 200
+  error: 220
+
+function_body_length:
+  warning: 80
+  error: 120
+
+type_body_length:
+  warning: 180
+  error: 220

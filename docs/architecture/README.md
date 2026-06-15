@@ -1,7 +1,7 @@
 # Loom / Tether — Architecture & Refactor Plan
 
-> Status: **In progress** — backend Phase 2, Phase 3, and Phase 4 code/docs are implemented;
-> SwiftUI refactor and CI guardrail phases remain.
+> Status: **Implemented through Phase 6** — backend service split, async ingestion,
+> OpenAPI/rustdoc docs, SwiftUI refactor, DocC catalogs, and CI guardrails are in place.
 > Scope: Rust proxy backend + SwiftUI macOS app. The Next.js web site is out of scope.
 > Goal: a **modular monolith** — clean, independently-reasoned internal services with hard
 > boundaries, all composed into a **single local process**. No network hops between services.
@@ -29,6 +29,9 @@ without rewriting its logic. See [02-target-architecture](./02-target-architectu
 | 4 | [Code organization](./04-code-organization.md) | The ≤200-line rule, file-split plan, naming & comment conventions |
 | 5 | [Documentation strategy](./05-documentation-strategy.md) | rustdoc, DocC, OpenAPI, ADRs, what gets documented and how |
 | 6 | [Migration plan](./06-migration-plan.md) | Phased rollout, each phase shippable & verifiable |
+
+Operational runbooks live under `docs/runbooks/`, including CI/CD and release
+publication.
 
 ## Core principles (apply to every change)
 

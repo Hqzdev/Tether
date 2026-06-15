@@ -7,7 +7,7 @@ use std::{
 
 use rusqlite::Connection;
 
-use crate::trace::{TraceCapture, TraceSink};
+use crate::trace::{TraceCapture, TraceResponse, TraceSink};
 
 /// Owned context needed after the upstream stream finishes.
 pub(super) struct StreamFinish {
@@ -40,12 +40,14 @@ impl StreamFinish {
         let trace_body = self.body.clone();
         self.trace_sink.record_response(
             self.capture,
-            self.status_code,
-            self.content_type.clone(),
-            self.request_id,
-            trace_body,
-            "miss",
-            latency_ms,
+            TraceResponse {
+                status_code: self.status_code,
+                content_type: self.content_type.clone(),
+                header_request_id: self.request_id,
+                body: trace_body,
+                cache_status: "miss",
+                latency_ms,
+            },
         );
 
         if self.store {

@@ -18,6 +18,16 @@ pub(crate) struct TraceSink {
     tx: mpsc::Sender<TraceEvent>,
 }
 
+/// Owned response outcome queued after an upstream or cache response completes.
+pub(crate) struct TraceResponse {
+    pub(crate) status_code: u16,
+    pub(crate) content_type: String,
+    pub(crate) header_request_id: Option<String>,
+    pub(crate) body: Vec<u8>,
+    pub(crate) cache_status: &'static str,
+    pub(crate) latency_ms: i64,
+}
+
 impl TraceSink {
     /// Creates a bounded sink plus the receiver consumed by the ingestion worker.
     pub(crate) fn bounded(capacity: usize) -> (Self, mpsc::Receiver<TraceEvent>) {
@@ -26,28 +36,8 @@ impl TraceSink {
     }
 
     /// Enqueues a completed upstream or cached response without awaiting SQLite.
-    pub(crate) fn record_response(
-        &self,
-        capture: TraceCapture,
-        status_code: u16,
-        content_type: String,
-        header_request_id: Option<String>,
-        body: Vec<u8>,
-        cache_status: &'static str,
-        latency_ms: i64,
-    ) {
-        self.enqueue(
-            TraceEvent::Response {
-                capture,
-                status_code,
-                content_type,
-                header_request_id,
-                body,
-                cache_status,
-                latency_ms,
-            },
-            "trace response",
-        );
+    pub(crate) fn record_response(&self, capture: TraceCapture, response: TraceResponse) {
+        self.enqueue(TraceEvent::Response { capture, response }, "trace response");
     }
 
     /// Enqueues a network or stream failure without blocking the caller.
@@ -94,12 +84,7 @@ pub(crate) fn spawn_ingest_worker(
 pub(crate) enum TraceEvent {
     Response {
         capture: TraceCapture,
-        status_code: u16,
-        content_type: String,
-        header_request_id: Option<String>,
-        body: Vec<u8>,
-        cache_status: &'static str,
-        latency_ms: i64,
+        response: TraceResponse,
     },
     UpstreamError {
         capture: TraceCapture,
@@ -112,24 +97,7 @@ impl TraceEvent {
     /// Persists one queued event using the existing blocking store functions.
     fn persist(self, db: &Arc<Mutex<Connection>>) {
         match self {
-            Self::Response {
-                capture,
-                status_code,
-                content_type,
-                header_request_id,
-                body,
-                cache_status,
-                latency_ms,
-            } => record_response(
-                db,
-                &capture,
-                status_code,
-                &content_type,
-                header_request_id.as_deref(),
-                &body,
-                cache_status,
-                latency_ms,
-            ),
+            Self::Response { capture, response } => record_response(db, &capture, &response),
             Self::UpstreamError {
                 capture,
                 message,

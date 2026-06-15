@@ -87,5 +87,5 @@ Each backend service crate, its single responsibility, the interface it exposes 
 | `Networking/ProxyAPI` | typed client for `/api/*` | `TraceAPIClient.swift` → grouped by endpoint |
 | `Networking/Codex` | local Codex log → `TraceSnapshot` ingestion adapter | `CodexLogObserver.swift` (495) → Database / Query / Mapper / SnapshotBuilder |
 | `Core/State/TraceStore` | observable UI state | `TraceStore.swift` (356) → Store / Status / RefreshCoordinator / SessionsController / SnapshotCombiner |
-| `Core/Models` | domain types (mirror of `loom-contracts` DTOs) | `TraceModels.swift` (297) → one type per file |
+| `Core/Models` | domain types (mirror of `loom-contracts` DTOs) | one type per file under `ui/Sources/Core/Models/` |
 | `UI/DesignSystem` | palette + glass + theme | `AgentTracePalette.swift` (187) → Palette / LiquidGlass / Color+Hex |

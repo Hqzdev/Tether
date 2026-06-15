@@ -21,6 +21,59 @@
 		C0D30000000000000000000F /* Loom/LoomApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D40000000000000000000F /* Loom/LoomApp.swift */; };
 		C0D300000000000000000015 /* Loom/Shared/WindowChromeHider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D400000000000000000015 /* Loom/Shared/WindowChromeHider.swift */; };
 		C0D300000000000000000016 /* Loom/Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C0D400000000000000000016 /* Loom/Assets.xcassets */; };
+		C0D900000000000000000001 /* Loom/Features/Graph/GraphPaneHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000001 /* Loom/Features/Graph/GraphPaneHeader.swift */; };
+		C0D900000000000000000002 /* Loom/Features/Graph/ZoomControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000002 /* Loom/Features/Graph/ZoomControls.swift */; };
+		C0D900000000000000000003 /* Loom/Features/Graph/GraphViewport.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000003 /* Loom/Features/Graph/GraphViewport.swift */; };
+		C0D900000000000000000004 /* Loom/Features/Graph/GraphViewport+Gestures.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000004 /* Loom/Features/Graph/GraphViewport+Gestures.swift */; };
+		C0D900000000000000000005 /* Loom/Features/Graph/GraphViewport+Geometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000005 /* Loom/Features/Graph/GraphViewport+Geometry.swift */; };
+		C0D900000000000000000006 /* Loom/Features/Graph/MacCanvasEventBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000006 /* Loom/Features/Graph/MacCanvasEventBridge.swift */; };
+		C0D900000000000000000007 /* Loom/Features/Graph/GraphCanvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000007 /* Loom/Features/Graph/GraphCanvas.swift */; };
+		C0D900000000000000000008 /* Loom/Features/Graph/GraphConnections.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000008 /* Loom/Features/Graph/GraphConnections.swift */; };
+		C0D900000000000000000009 /* Loom/Features/Graph/GraphGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000009 /* Loom/Features/Graph/GraphGeometry.swift */; };
+		C0D90000000000000000000A /* Loom/Features/Graph/NodeCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D80000000000000000000A /* Loom/Features/Graph/NodeCard.swift */; };
+		C0D90000000000000000000B /* Loom/Features/Graph/NodeCardParts.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D80000000000000000000B /* Loom/Features/Graph/NodeCardParts.swift */; };
+		C0D90000000000000000000C /* Loom/Features/Graph/NodeCardControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D80000000000000000000C /* Loom/Features/Graph/NodeCardControls.swift */; };
+		C0D90000000000000000000D /* Loom/Features/Inspector/InspectorTabPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D80000000000000000000D /* Loom/Features/Inspector/InspectorTabPicker.swift */; };
+		C0D90000000000000000000E /* Loom/Features/Inspector/InspectorBody.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D80000000000000000000E /* Loom/Features/Inspector/InspectorBody.swift */; };
+		C0D90000000000000000000F /* Loom/Features/Inspector/InspectorCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D80000000000000000000F /* Loom/Features/Inspector/InspectorCodeView.swift */; };
+		C0D900000000000000000010 /* Loom/Features/Inspector/InspectorCodeLineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000010 /* Loom/Features/Inspector/InspectorCodeLineView.swift */; };
+		C0D900000000000000000011 /* Loom/Features/Inspector/ErrorBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000011 /* Loom/Features/Inspector/ErrorBanner.swift */; };
+		C0D900000000000000000012 /* Loom/Features/Inspector/MetadataTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000012 /* Loom/Features/Inspector/MetadataTable.swift */; };
+		C0D900000000000000000013 /* Loom/Features/Inspector/InspectorEmptyState.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000013 /* Loom/Features/Inspector/InspectorEmptyState.swift */; };
+		C0D900000000000000000014 /* Loom/Features/Inspector/InspectorReplayFooter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000014 /* Loom/Features/Inspector/InspectorReplayFooter.swift */; };
+		C0D900000000000000000015 /* Loom/Features/Inspector/TimeTravelButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000015 /* Loom/Features/Inspector/TimeTravelButtonStyle.swift */; };
+		C0D900000000000000000016 /* Loom/Features/MainLayout/ProxyConnectionStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000016 /* Loom/Features/MainLayout/ProxyConnectionStatus.swift */; };
+		C0D900000000000000000017 /* Loom/Features/MainLayout/TraceStore+Sessions.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000017 /* Loom/Features/MainLayout/TraceStore+Sessions.swift */; };
+		C0D900000000000000000018 /* Loom/Features/MainLayout/SnapshotCombiner.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000018 /* Loom/Features/MainLayout/SnapshotCombiner.swift */; };
+		C0D900000000000000000019 /* Loom/Features/MainLayout/MainThreePaneWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000019 /* Loom/Features/MainLayout/MainThreePaneWorkspace.swift */; };
+		C0D90000000000000000001A /* Loom/Features/MainLayout/MainThreePaneActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D80000000000000000001A /* Loom/Features/MainLayout/MainThreePaneActions.swift */; };
+		C0D90000000000000000001B /* Loom/Features/MainLayout/MainThreePaneExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D80000000000000000001B /* Loom/Features/MainLayout/MainThreePaneExport.swift */; };
+		C0D90000000000000000001C /* Loom/Features/MainLayout/MainThreePaneSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D80000000000000000001C /* Loom/Features/MainLayout/MainThreePaneSupport.swift */; };
+		C0D90000000000000000001D /* Loom/Features/MainLayout/WorkspaceSurfaceModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D80000000000000000001D /* Loom/Features/MainLayout/WorkspaceSurfaceModifier.swift */; };
+		C0D90000000000000000001E /* Loom/Features/MainLayout/ConnectionHelpSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D80000000000000000001E /* Loom/Features/MainLayout/ConnectionHelpSheet.swift */; };
+		C0D90000000000000000001F /* Loom/Features/MainLayout/ConnectionHelpParts.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D80000000000000000001F /* Loom/Features/MainLayout/ConnectionHelpParts.swift */; };
+		C0D900000000000000000020 /* Loom/Features/Settings/SettingsPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000020 /* Loom/Features/Settings/SettingsPane.swift */; };
+		C0D900000000000000000021 /* Loom/Features/Settings/SettingsSidebar.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000021 /* Loom/Features/Settings/SettingsSidebar.swift */; };
+		C0D900000000000000000022 /* Loom/Features/Settings/SettingsPaneButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000022 /* Loom/Features/Settings/SettingsPaneButton.swift */; };
+		C0D900000000000000000023 /* Loom/Features/Settings/PlaceholderSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000023 /* Loom/Features/Settings/PlaceholderSettingsView.swift */; };
+		C0D900000000000000000024 /* Loom/Features/Settings/ProxySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000024 /* Loom/Features/Settings/ProxySettingsView.swift */; };
+		C0D900000000000000000025 /* Loom/Features/Settings/ProxySettingsActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000025 /* Loom/Features/Settings/ProxySettingsActions.swift */; };
+		C0D900000000000000000026 /* Loom/Features/Settings/ProxySettingsFields.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000026 /* Loom/Features/Settings/ProxySettingsFields.swift */; };
+		C0D900000000000000000027 /* Loom/Features/Settings/SettingsControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000027 /* Loom/Features/Settings/SettingsControls.swift */; };
+		C0D900000000000000000028 /* Loom/Features/Settings/SettingsStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000028 /* Loom/Features/Settings/SettingsStyles.swift */; };
+		C0D900000000000000000029 /* Loom/Features/Sidebar/SidebarStatusHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000029 /* Loom/Features/Sidebar/SidebarStatusHeader.swift */; };
+		C0D90000000000000000002A /* Loom/Features/Sidebar/SidebarSearchField.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D80000000000000000002A /* Loom/Features/Sidebar/SidebarSearchField.swift */; };
+		C0D90000000000000000002B /* Loom/Features/Sidebar/SidebarSectionHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D80000000000000000002B /* Loom/Features/Sidebar/SidebarSectionHeader.swift */; };
+		C0D90000000000000000002C /* Loom/Features/Sidebar/SidebarCallList.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D80000000000000000002C /* Loom/Features/Sidebar/SidebarCallList.swift */; };
+		C0D90000000000000000002D /* Loom/Features/Sidebar/SidebarEmptyState.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D80000000000000000002D /* Loom/Features/Sidebar/SidebarEmptyState.swift */; };
+		C0D90000000000000000002E /* Loom/Features/Sidebar/CallRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D80000000000000000002E /* Loom/Features/Sidebar/CallRow.swift */; };
+		C0D90000000000000000002F /* Loom/Features/Sidebar/CallRowParts.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D80000000000000000002F /* Loom/Features/Sidebar/CallRowParts.swift */; };
+		C0D900000000000000000030 /* Loom/Features/Sidebar/SidebarFooter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000030 /* Loom/Features/Sidebar/SidebarFooter.swift */; };
+		C0D900000000000000000031 /* Loom/Features/Sidebar/ProxyConnectionStatus+Sidebar.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000031 /* Loom/Features/Sidebar/ProxyConnectionStatus+Sidebar.swift */; };
+		C0D900000000000000000032 /* Loom/Features/Welcome/WelcomeBranding.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000032 /* Loom/Features/Welcome/WelcomeBranding.swift */; };
+		C0D900000000000000000033 /* Loom/Features/Welcome/WelcomeFeatureGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000033 /* Loom/Features/Welcome/WelcomeFeatureGrid.swift */; };
+		C0D900000000000000000034 /* Loom/Features/Welcome/WelcomeFooter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000034 /* Loom/Features/Welcome/WelcomeFooter.swift */; };
+		C0D900000000000000000035 /* Loom/Features/Welcome/WelcomeRevealModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000035 /* Loom/Features/Welcome/WelcomeRevealModifier.swift */; };
 		C0D500000000000000000001 /* Core in Frameworks */ = {isa = PBXBuildFile; productRef = C0D600000000000000000001 /* Core */; };
 		C0D500000000000000000002 /* UI in Frameworks */ = {isa = PBXBuildFile; productRef = C0D600000000000000000002 /* UI */; };
 		C0D500000000000000000003 /* Networking in Frameworks */ = {isa = PBXBuildFile; productRef = C0D600000000000000000003 /* Networking */; };
@@ -43,6 +96,59 @@
 		C0D40000000000000000000F /* Loom/LoomApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/LoomApp.swift; sourceTree = SOURCE_ROOT; };
 		C0D400000000000000000015 /* Loom/Shared/WindowChromeHider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Shared/WindowChromeHider.swift; sourceTree = SOURCE_ROOT; };
 		C0D400000000000000000016 /* Loom/Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Loom/Assets.xcassets; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000001 /* Loom/Features/Graph/GraphPaneHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Graph/GraphPaneHeader.swift; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000002 /* Loom/Features/Graph/ZoomControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Graph/ZoomControls.swift; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000003 /* Loom/Features/Graph/GraphViewport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Graph/GraphViewport.swift; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000004 /* Loom/Features/Graph/GraphViewport+Gestures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Loom/Features/Graph/GraphViewport+Gestures.swift"; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000005 /* Loom/Features/Graph/GraphViewport+Geometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Loom/Features/Graph/GraphViewport+Geometry.swift"; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000006 /* Loom/Features/Graph/MacCanvasEventBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Graph/MacCanvasEventBridge.swift; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000007 /* Loom/Features/Graph/GraphCanvas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Graph/GraphCanvas.swift; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000008 /* Loom/Features/Graph/GraphConnections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Graph/GraphConnections.swift; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000009 /* Loom/Features/Graph/GraphGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Graph/GraphGeometry.swift; sourceTree = SOURCE_ROOT; };
+		C0D80000000000000000000A /* Loom/Features/Graph/NodeCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Graph/NodeCard.swift; sourceTree = SOURCE_ROOT; };
+		C0D80000000000000000000B /* Loom/Features/Graph/NodeCardParts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Graph/NodeCardParts.swift; sourceTree = SOURCE_ROOT; };
+		C0D80000000000000000000C /* Loom/Features/Graph/NodeCardControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Graph/NodeCardControls.swift; sourceTree = SOURCE_ROOT; };
+		C0D80000000000000000000D /* Loom/Features/Inspector/InspectorTabPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Inspector/InspectorTabPicker.swift; sourceTree = SOURCE_ROOT; };
+		C0D80000000000000000000E /* Loom/Features/Inspector/InspectorBody.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Inspector/InspectorBody.swift; sourceTree = SOURCE_ROOT; };
+		C0D80000000000000000000F /* Loom/Features/Inspector/InspectorCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Inspector/InspectorCodeView.swift; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000010 /* Loom/Features/Inspector/InspectorCodeLineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Inspector/InspectorCodeLineView.swift; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000011 /* Loom/Features/Inspector/ErrorBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Inspector/ErrorBanner.swift; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000012 /* Loom/Features/Inspector/MetadataTable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Inspector/MetadataTable.swift; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000013 /* Loom/Features/Inspector/InspectorEmptyState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Inspector/InspectorEmptyState.swift; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000014 /* Loom/Features/Inspector/InspectorReplayFooter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Inspector/InspectorReplayFooter.swift; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000015 /* Loom/Features/Inspector/TimeTravelButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Inspector/TimeTravelButtonStyle.swift; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000016 /* Loom/Features/MainLayout/ProxyConnectionStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/MainLayout/ProxyConnectionStatus.swift; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000017 /* Loom/Features/MainLayout/TraceStore+Sessions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Loom/Features/MainLayout/TraceStore+Sessions.swift"; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000018 /* Loom/Features/MainLayout/SnapshotCombiner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/MainLayout/SnapshotCombiner.swift; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000019 /* Loom/Features/MainLayout/MainThreePaneWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/MainLayout/MainThreePaneWorkspace.swift; sourceTree = SOURCE_ROOT; };
+		C0D80000000000000000001A /* Loom/Features/MainLayout/MainThreePaneActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/MainLayout/MainThreePaneActions.swift; sourceTree = SOURCE_ROOT; };
+		C0D80000000000000000001B /* Loom/Features/MainLayout/MainThreePaneExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/MainLayout/MainThreePaneExport.swift; sourceTree = SOURCE_ROOT; };
+		C0D80000000000000000001C /* Loom/Features/MainLayout/MainThreePaneSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/MainLayout/MainThreePaneSupport.swift; sourceTree = SOURCE_ROOT; };
+		C0D80000000000000000001D /* Loom/Features/MainLayout/WorkspaceSurfaceModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/MainLayout/WorkspaceSurfaceModifier.swift; sourceTree = SOURCE_ROOT; };
+		C0D80000000000000000001E /* Loom/Features/MainLayout/ConnectionHelpSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/MainLayout/ConnectionHelpSheet.swift; sourceTree = SOURCE_ROOT; };
+		C0D80000000000000000001F /* Loom/Features/MainLayout/ConnectionHelpParts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/MainLayout/ConnectionHelpParts.swift; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000020 /* Loom/Features/Settings/SettingsPane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Settings/SettingsPane.swift; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000021 /* Loom/Features/Settings/SettingsSidebar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Settings/SettingsSidebar.swift; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000022 /* Loom/Features/Settings/SettingsPaneButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Settings/SettingsPaneButton.swift; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000023 /* Loom/Features/Settings/PlaceholderSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Settings/PlaceholderSettingsView.swift; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000024 /* Loom/Features/Settings/ProxySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Settings/ProxySettingsView.swift; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000025 /* Loom/Features/Settings/ProxySettingsActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Settings/ProxySettingsActions.swift; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000026 /* Loom/Features/Settings/ProxySettingsFields.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Settings/ProxySettingsFields.swift; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000027 /* Loom/Features/Settings/SettingsControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Settings/SettingsControls.swift; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000028 /* Loom/Features/Settings/SettingsStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Settings/SettingsStyles.swift; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000029 /* Loom/Features/Sidebar/SidebarStatusHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Sidebar/SidebarStatusHeader.swift; sourceTree = SOURCE_ROOT; };
+		C0D80000000000000000002A /* Loom/Features/Sidebar/SidebarSearchField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Sidebar/SidebarSearchField.swift; sourceTree = SOURCE_ROOT; };
+		C0D80000000000000000002B /* Loom/Features/Sidebar/SidebarSectionHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Sidebar/SidebarSectionHeader.swift; sourceTree = SOURCE_ROOT; };
+		C0D80000000000000000002C /* Loom/Features/Sidebar/SidebarCallList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Sidebar/SidebarCallList.swift; sourceTree = SOURCE_ROOT; };
+		C0D80000000000000000002D /* Loom/Features/Sidebar/SidebarEmptyState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Sidebar/SidebarEmptyState.swift; sourceTree = SOURCE_ROOT; };
+		C0D80000000000000000002E /* Loom/Features/Sidebar/CallRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Sidebar/CallRow.swift; sourceTree = SOURCE_ROOT; };
+		C0D80000000000000000002F /* Loom/Features/Sidebar/CallRowParts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Sidebar/CallRowParts.swift; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000030 /* Loom/Features/Sidebar/SidebarFooter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Sidebar/SidebarFooter.swift; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000031 /* Loom/Features/Sidebar/ProxyConnectionStatus+Sidebar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Loom/Features/Sidebar/ProxyConnectionStatus+Sidebar.swift"; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000032 /* Loom/Features/Welcome/WelcomeBranding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Welcome/WelcomeBranding.swift; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000033 /* Loom/Features/Welcome/WelcomeFeatureGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Welcome/WelcomeFeatureGrid.swift; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000034 /* Loom/Features/Welcome/WelcomeFooter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Welcome/WelcomeFooter.swift; sourceTree = SOURCE_ROOT; };
+		C0D800000000000000000035 /* Loom/Features/Welcome/WelcomeRevealModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loom/Features/Welcome/WelcomeRevealModifier.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -102,6 +208,59 @@
 				C0D40000000000000000000D /* Loom/Features/Welcome/WelcomeView.swift */,
 				C0D400000000000000000015 /* Loom/Shared/WindowChromeHider.swift */,
 				C0D400000000000000000016 /* Loom/Assets.xcassets */,
+				C0D800000000000000000001 /* Loom/Features/Graph/GraphPaneHeader.swift */,
+				C0D800000000000000000002 /* Loom/Features/Graph/ZoomControls.swift */,
+				C0D800000000000000000003 /* Loom/Features/Graph/GraphViewport.swift */,
+				C0D800000000000000000004 /* Loom/Features/Graph/GraphViewport+Gestures.swift */,
+				C0D800000000000000000005 /* Loom/Features/Graph/GraphViewport+Geometry.swift */,
+				C0D800000000000000000006 /* Loom/Features/Graph/MacCanvasEventBridge.swift */,
+				C0D800000000000000000007 /* Loom/Features/Graph/GraphCanvas.swift */,
+				C0D800000000000000000008 /* Loom/Features/Graph/GraphConnections.swift */,
+				C0D800000000000000000009 /* Loom/Features/Graph/GraphGeometry.swift */,
+				C0D80000000000000000000A /* Loom/Features/Graph/NodeCard.swift */,
+				C0D80000000000000000000B /* Loom/Features/Graph/NodeCardParts.swift */,
+				C0D80000000000000000000C /* Loom/Features/Graph/NodeCardControls.swift */,
+				C0D80000000000000000000D /* Loom/Features/Inspector/InspectorTabPicker.swift */,
+				C0D80000000000000000000E /* Loom/Features/Inspector/InspectorBody.swift */,
+				C0D80000000000000000000F /* Loom/Features/Inspector/InspectorCodeView.swift */,
+				C0D800000000000000000010 /* Loom/Features/Inspector/InspectorCodeLineView.swift */,
+				C0D800000000000000000011 /* Loom/Features/Inspector/ErrorBanner.swift */,
+				C0D800000000000000000012 /* Loom/Features/Inspector/MetadataTable.swift */,
+				C0D800000000000000000013 /* Loom/Features/Inspector/InspectorEmptyState.swift */,
+				C0D800000000000000000014 /* Loom/Features/Inspector/InspectorReplayFooter.swift */,
+				C0D800000000000000000015 /* Loom/Features/Inspector/TimeTravelButtonStyle.swift */,
+				C0D800000000000000000016 /* Loom/Features/MainLayout/ProxyConnectionStatus.swift */,
+				C0D800000000000000000017 /* Loom/Features/MainLayout/TraceStore+Sessions.swift */,
+				C0D800000000000000000018 /* Loom/Features/MainLayout/SnapshotCombiner.swift */,
+				C0D800000000000000000019 /* Loom/Features/MainLayout/MainThreePaneWorkspace.swift */,
+				C0D80000000000000000001A /* Loom/Features/MainLayout/MainThreePaneActions.swift */,
+				C0D80000000000000000001B /* Loom/Features/MainLayout/MainThreePaneExport.swift */,
+				C0D80000000000000000001C /* Loom/Features/MainLayout/MainThreePaneSupport.swift */,
+				C0D80000000000000000001D /* Loom/Features/MainLayout/WorkspaceSurfaceModifier.swift */,
+				C0D80000000000000000001E /* Loom/Features/MainLayout/ConnectionHelpSheet.swift */,
+				C0D80000000000000000001F /* Loom/Features/MainLayout/ConnectionHelpParts.swift */,
+				C0D800000000000000000020 /* Loom/Features/Settings/SettingsPane.swift */,
+				C0D800000000000000000021 /* Loom/Features/Settings/SettingsSidebar.swift */,
+				C0D800000000000000000022 /* Loom/Features/Settings/SettingsPaneButton.swift */,
+				C0D800000000000000000023 /* Loom/Features/Settings/PlaceholderSettingsView.swift */,
+				C0D800000000000000000024 /* Loom/Features/Settings/ProxySettingsView.swift */,
+				C0D800000000000000000025 /* Loom/Features/Settings/ProxySettingsActions.swift */,
+				C0D800000000000000000026 /* Loom/Features/Settings/ProxySettingsFields.swift */,
+				C0D800000000000000000027 /* Loom/Features/Settings/SettingsControls.swift */,
+				C0D800000000000000000028 /* Loom/Features/Settings/SettingsStyles.swift */,
+				C0D800000000000000000029 /* Loom/Features/Sidebar/SidebarStatusHeader.swift */,
+				C0D80000000000000000002A /* Loom/Features/Sidebar/SidebarSearchField.swift */,
+				C0D80000000000000000002B /* Loom/Features/Sidebar/SidebarSectionHeader.swift */,
+				C0D80000000000000000002C /* Loom/Features/Sidebar/SidebarCallList.swift */,
+				C0D80000000000000000002D /* Loom/Features/Sidebar/SidebarEmptyState.swift */,
+				C0D80000000000000000002E /* Loom/Features/Sidebar/CallRow.swift */,
+				C0D80000000000000000002F /* Loom/Features/Sidebar/CallRowParts.swift */,
+				C0D800000000000000000030 /* Loom/Features/Sidebar/SidebarFooter.swift */,
+				C0D800000000000000000031 /* Loom/Features/Sidebar/ProxyConnectionStatus+Sidebar.swift */,
+				C0D800000000000000000032 /* Loom/Features/Welcome/WelcomeBranding.swift */,
+				C0D800000000000000000033 /* Loom/Features/Welcome/WelcomeFeatureGrid.swift */,
+				C0D800000000000000000034 /* Loom/Features/Welcome/WelcomeFooter.swift */,
+				C0D800000000000000000035 /* Loom/Features/Welcome/WelcomeRevealModifier.swift */,
 			);
 			name = "Recovered References";
 			sourceTree = "<group>";
@@ -198,6 +357,59 @@
 				C0D300000000000000000008 /* Loom/Features/MainLayout/TraceStore.swift in Sources */,
 				C0D30000000000000000000D /* Loom/Features/Welcome/WelcomeView.swift in Sources */,
 				C0D300000000000000000015 /* Loom/Shared/WindowChromeHider.swift in Sources */,
+				C0D900000000000000000001 /* Loom/Features/Graph/GraphPaneHeader.swift in Sources */,
+				C0D900000000000000000002 /* Loom/Features/Graph/ZoomControls.swift in Sources */,
+				C0D900000000000000000003 /* Loom/Features/Graph/GraphViewport.swift in Sources */,
+				C0D900000000000000000004 /* Loom/Features/Graph/GraphViewport+Gestures.swift in Sources */,
+				C0D900000000000000000005 /* Loom/Features/Graph/GraphViewport+Geometry.swift in Sources */,
+				C0D900000000000000000006 /* Loom/Features/Graph/MacCanvasEventBridge.swift in Sources */,
+				C0D900000000000000000007 /* Loom/Features/Graph/GraphCanvas.swift in Sources */,
+				C0D900000000000000000008 /* Loom/Features/Graph/GraphConnections.swift in Sources */,
+				C0D900000000000000000009 /* Loom/Features/Graph/GraphGeometry.swift in Sources */,
+				C0D90000000000000000000A /* Loom/Features/Graph/NodeCard.swift in Sources */,
+				C0D90000000000000000000B /* Loom/Features/Graph/NodeCardParts.swift in Sources */,
+				C0D90000000000000000000C /* Loom/Features/Graph/NodeCardControls.swift in Sources */,
+				C0D90000000000000000000D /* Loom/Features/Inspector/InspectorTabPicker.swift in Sources */,
+				C0D90000000000000000000E /* Loom/Features/Inspector/InspectorBody.swift in Sources */,
+				C0D90000000000000000000F /* Loom/Features/Inspector/InspectorCodeView.swift in Sources */,
+				C0D900000000000000000010 /* Loom/Features/Inspector/InspectorCodeLineView.swift in Sources */,
+				C0D900000000000000000011 /* Loom/Features/Inspector/ErrorBanner.swift in Sources */,
+				C0D900000000000000000012 /* Loom/Features/Inspector/MetadataTable.swift in Sources */,
+				C0D900000000000000000013 /* Loom/Features/Inspector/InspectorEmptyState.swift in Sources */,
+				C0D900000000000000000014 /* Loom/Features/Inspector/InspectorReplayFooter.swift in Sources */,
+				C0D900000000000000000015 /* Loom/Features/Inspector/TimeTravelButtonStyle.swift in Sources */,
+				C0D900000000000000000016 /* Loom/Features/MainLayout/ProxyConnectionStatus.swift in Sources */,
+				C0D900000000000000000017 /* Loom/Features/MainLayout/TraceStore+Sessions.swift in Sources */,
+				C0D900000000000000000018 /* Loom/Features/MainLayout/SnapshotCombiner.swift in Sources */,
+				C0D900000000000000000019 /* Loom/Features/MainLayout/MainThreePaneWorkspace.swift in Sources */,
+				C0D90000000000000000001A /* Loom/Features/MainLayout/MainThreePaneActions.swift in Sources */,
+				C0D90000000000000000001B /* Loom/Features/MainLayout/MainThreePaneExport.swift in Sources */,
+				C0D90000000000000000001C /* Loom/Features/MainLayout/MainThreePaneSupport.swift in Sources */,
+				C0D90000000000000000001D /* Loom/Features/MainLayout/WorkspaceSurfaceModifier.swift in Sources */,
+				C0D90000000000000000001E /* Loom/Features/MainLayout/ConnectionHelpSheet.swift in Sources */,
+				C0D90000000000000000001F /* Loom/Features/MainLayout/ConnectionHelpParts.swift in Sources */,
+				C0D900000000000000000020 /* Loom/Features/Settings/SettingsPane.swift in Sources */,
+				C0D900000000000000000021 /* Loom/Features/Settings/SettingsSidebar.swift in Sources */,
+				C0D900000000000000000022 /* Loom/Features/Settings/SettingsPaneButton.swift in Sources */,
+				C0D900000000000000000023 /* Loom/Features/Settings/PlaceholderSettingsView.swift in Sources */,
+				C0D900000000000000000024 /* Loom/Features/Settings/ProxySettingsView.swift in Sources */,
+				C0D900000000000000000025 /* Loom/Features/Settings/ProxySettingsActions.swift in Sources */,
+				C0D900000000000000000026 /* Loom/Features/Settings/ProxySettingsFields.swift in Sources */,
+				C0D900000000000000000027 /* Loom/Features/Settings/SettingsControls.swift in Sources */,
+				C0D900000000000000000028 /* Loom/Features/Settings/SettingsStyles.swift in Sources */,
+				C0D900000000000000000029 /* Loom/Features/Sidebar/SidebarStatusHeader.swift in Sources */,
+				C0D90000000000000000002A /* Loom/Features/Sidebar/SidebarSearchField.swift in Sources */,
+				C0D90000000000000000002B /* Loom/Features/Sidebar/SidebarSectionHeader.swift in Sources */,
+				C0D90000000000000000002C /* Loom/Features/Sidebar/SidebarCallList.swift in Sources */,
+				C0D90000000000000000002D /* Loom/Features/Sidebar/SidebarEmptyState.swift in Sources */,
+				C0D90000000000000000002E /* Loom/Features/Sidebar/CallRow.swift in Sources */,
+				C0D90000000000000000002F /* Loom/Features/Sidebar/CallRowParts.swift in Sources */,
+				C0D900000000000000000030 /* Loom/Features/Sidebar/SidebarFooter.swift in Sources */,
+				C0D900000000000000000031 /* Loom/Features/Sidebar/ProxyConnectionStatus+Sidebar.swift in Sources */,
+				C0D900000000000000000032 /* Loom/Features/Welcome/WelcomeBranding.swift in Sources */,
+				C0D900000000000000000033 /* Loom/Features/Welcome/WelcomeFeatureGrid.swift in Sources */,
+				C0D900000000000000000034 /* Loom/Features/Welcome/WelcomeFooter.swift in Sources */,
+				C0D900000000000000000035 /* Loom/Features/Welcome/WelcomeRevealModifier.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

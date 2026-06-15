@@ -1,9 +1,12 @@
 import Core
 import SwiftUI
 
+/// Shared color and radius tokens for the Tether desktop trace interface.
 public struct AgentTracePalette {
+    /// Whether the palette should render in the light theme variant.
     public let light: Bool
 
+    /// Creates a palette for the current trace surface theme.
     public init(light: Bool) {
         self.light = light
     }
@@ -63,6 +66,7 @@ public struct AgentTracePalette {
     public var accentThree: Color { Color(hex: 0xec4899) }
     public var accentBackground: Color { accent.opacity(0.10) }
 
+    /// Returns the primary accent color for a node status.
     public func color(for status: NodeStatus) -> Color {
         switch status {
         case .success:
@@ -76,6 +80,7 @@ public struct AgentTracePalette {
         }
     }
 
+    /// Returns a softer status color used for fills and gradients.
     public func dimColor(for status: NodeStatus) -> Color {
         switch status {
         case .success:
@@ -89,6 +94,7 @@ public struct AgentTracePalette {
         }
     }
 
+    /// Returns the status background color used by compact badges.
     public func background(for status: NodeStatus) -> Color {
         switch status {
         case .success:
@@ -100,88 +106,5 @@ public struct AgentTracePalette {
         case .error:
             return pinkBackground
         }
-    }
-}
-
-public extension Color {
-    init(hex: UInt, alpha: Double = 1) {
-        self.init(
-            .sRGB,
-            red: Double((hex >> 16) & 0xff) / 255,
-            green: Double((hex >> 8) & 0xff) / 255,
-            blue: Double(hex & 0xff) / 255,
-            opacity: alpha
-        )
-    }
-}
-
-public struct LiquidGlassModifier<S: Shape>: ViewModifier {
-    let palette: AgentTracePalette
-    let shape: S
-    let tint: Color?
-    let interactive: Bool
-    let strokeOpacity: Double
-
-    public func body(content: Content) -> some View {
-        content
-            .background((tint ?? palette.glassTint), in: shape)
-            .overlay {
-                shape
-                    .stroke(
-                        LinearGradient(
-                            colors: [
-                                palette.glassHighlight.opacity(strokeOpacity),
-                                palette.glassStroke.opacity(strokeOpacity * 0.72),
-                                palette.glassStrokeSoft.opacity(strokeOpacity)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1
-                    )
-            }
-            .overlay(alignment: .topLeading) {
-                shape
-                    .stroke(palette.glassHighlight.opacity(strokeOpacity * 0.32), lineWidth: 0.6)
-                    .blur(radius: 0.2)
-                    .padding(1)
-            }
-            .shadow(color: palette.liquidShade.opacity(0.42), radius: 10, x: 0, y: 5)
-    }
-}
-
-public extension View {
-    func liquidGlass<S: Shape>(
-        palette: AgentTracePalette,
-        in shape: S,
-        tint: Color? = nil,
-        interactive: Bool = false,
-        strokeOpacity: Double = 1
-    ) -> some View {
-        modifier(
-            LiquidGlassModifier(
-                palette: palette,
-                shape: shape,
-                tint: tint,
-                interactive: interactive,
-                strokeOpacity: strokeOpacity
-            )
-        )
-    }
-
-    func liquidGlass(
-        palette: AgentTracePalette,
-        cornerRadius: CGFloat,
-        tint: Color? = nil,
-        interactive: Bool = false,
-        strokeOpacity: Double = 1
-    ) -> some View {
-        liquidGlass(
-            palette: palette,
-            in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous),
-            tint: tint,
-            interactive: interactive,
-            strokeOpacity: strokeOpacity
-        )
     }
 }

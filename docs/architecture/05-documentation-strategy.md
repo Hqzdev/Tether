@@ -56,10 +56,10 @@ docs/
 │   └── assets/        exported diagrams (SVG)
 ├── adr/               numbered decision records
 ├── api/               openapi.json + endpoint guide
-└── runbooks/          (later) operate/build/release notes
+└── runbooks/          CI/CD, build, and release notes
 
 proxy/crates/<crate>/README.md     per-service doc
-ui/.../*.docc                      per-module DocC catalogs
+ui/Sources/<Target>/<Target>.docc   per-target DocC catalogs
 ```
 
 ## 5.6 Documentation Definition of Done (per PR)

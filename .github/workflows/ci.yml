@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Enforce ≤200-line files
+      - name: Enforce <=200-line files
         run: scripts/check-file-size.sh
 
   # End-to-end proof that agent -> proxy -> SQLite -> UI API still works.
@@ -38,3 +38,62 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y sqlite3
       - name: Run end-to-end smoke test
         run: scripts/smoke-e2e.sh
+
+  rust-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - name: Cache cargo build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: proxy
+      - name: Check Rust formatting
+        working-directory: proxy
+        run: cargo fmt --check
+      - name: Run clippy
+        working-directory: proxy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+      - name: Run Rust tests
+        working-directory: proxy
+        run: cargo test --workspace
+      - name: Build rustdoc
+        working-directory: proxy
+        env:
+          RUSTDOCFLAGS: -D warnings
+        run: cargo doc --workspace --no-deps
+
+  macos-app:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app
+      - name: Build Swift package
+        run: swift build --package-path ui
+      - name: Build macOS app
+        run: >
+          xcodebuild
+          -project ui/Loom.xcodeproj
+          -scheme Tether
+          -configuration Debug
+          -destination 'generic/platform=macOS'
+          -derivedDataPath /tmp/LoomDerivedData
+          CODE_SIGNING_ALLOWED=NO
+          build
+      - name: Build DocC documentation
+        run: >
+          xcodebuild
+          -project ui/Loom.xcodeproj
+          -scheme Tether
+          -destination 'generic/platform=macOS'
+          -derivedDataPath /tmp/LoomDocBuild
+          CODE_SIGNING_ALLOWED=NO
+          docbuild
+      - name: Install SwiftLint
+        run: brew install swiftlint
+      - name: Run SwiftLint
+        run: swiftlint lint --strict --config .swiftlint.yml

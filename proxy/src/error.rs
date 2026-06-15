@@ -66,10 +66,10 @@ impl From<loom_crypto::CryptoError> for ApiError {
 
 impl From<sqlx::Error> for ApiError {
     fn from(error: sqlx::Error) -> Self {
-        if let sqlx::Error::Database(db_error) = &error {
-            if db_error.code().as_deref() == Some("23505") {
-                return ApiError::conflict("record already exists");
-            }
+        if let sqlx::Error::Database(db_error) = &error
+            && db_error.code().as_deref() == Some("23505")
+        {
+            return ApiError::conflict("record already exists");
         }
 
         eprintln!("database error: {error}");

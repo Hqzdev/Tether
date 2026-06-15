@@ -4,7 +4,8 @@
 use serde_json::Value;
 use uuid::Uuid;
 
-use super::text::{cap_text, content_to_string, now_millis, truncate_one_line};
+use super::capture_extract::{extract_last_text, extract_prompt, extract_tool_result_ids};
+use super::text::{now_millis, truncate_one_line};
 use crate::context;
 
 /// Max response bytes the proxy buffers for trace previews on cache misses.
@@ -109,102 +110,4 @@ impl TraceCapture {
             request_target: target.to_string(),
         }
     }
-}
-
-/// Splits a request into (system, user) prompt text across OpenAI/Anthropic shapes.
-fn extract_prompt(value: &Value) -> (String, String) {
-    let system = value
-        .get("system")
-        .map(content_to_string)
-        .or_else(|| {
-            value
-                .get("messages")
-                .and_then(Value::as_array)
-                .map(|messages| {
-                    messages
-                        .iter()
-                        .filter(|message| {
-                            matches!(
-                                message.get("role").and_then(Value::as_str),
-                                Some("system" | "developer")
-                            )
-                        })
-                        .filter_map(|message| message.get("content"))
-                        .map(content_to_string)
-                        .collect::<Vec<_>>()
-                        .join("\n\n")
-                })
-        })
-        .unwrap_or_default();
-
-    let user = value
-        .get("messages")
-        .and_then(Value::as_array)
-        .and_then(|messages| {
-            messages
-                .iter()
-                .rev()
-                .find(|message| message.get("role").and_then(Value::as_str) == Some("user"))
-                .and_then(|message| message.get("content"))
-                .map(content_to_string)
-        })
-        .or_else(|| value.get("input").map(content_to_string))
-        .or_else(|| {
-            value
-                .get("prompt")
-                .and_then(Value::as_str)
-                .map(ToOwned::to_owned)
-        })
-        .unwrap_or_default();
-
-    (cap_text(&system, 16_000), cap_text(&user, 32_000))
-}
-
-/// Best-effort "most recent user text" used for the one-line request preview.
-fn extract_last_text(value: &Value) -> Option<String> {
-    let arr = value
-        .get("messages")
-        .and_then(Value::as_array)
-        .or_else(|| value.get("input").and_then(Value::as_array));
-    if let Some(arr) = arr {
-        return arr
-            .last()
-            .map(|last| content_to_string(last.get("content").unwrap_or(last)));
-    }
-    value.get("input").map(content_to_string).or_else(|| {
-        value
-            .get("prompt")
-            .and_then(Value::as_str)
-            .map(ToOwned::to_owned)
-    })
-}
-
-/// `tool_use_id`s a request answers — Anthropic `tool_result` blocks and OpenAI
-/// `role:"tool"` messages (`tool_call_id`). Each links this call to its parent.
-fn extract_tool_result_ids(value: &Value) -> Vec<String> {
-    let mut ids = Vec::new();
-    let Some(messages) = value.get("messages").and_then(Value::as_array) else {
-        return ids;
-    };
-
-    for message in messages {
-        let role = message.get("role").and_then(Value::as_str);
-        if role == Some("tool")
-            && let Some(id) = message.get("tool_call_id").and_then(Value::as_str)
-        {
-            ids.push(id.to_string());
-        }
-
-        if let Some(content) = message.get("content").and_then(Value::as_array) {
-            for block in content {
-                if block.get("type").and_then(Value::as_str) == Some("tool_result")
-                    && let Some(id) = block.get("tool_use_id").and_then(Value::as_str)
-                {
-                    ids.push(id.to_string());
-                }
-            }
-        }
-    }
-
-    ids
 }

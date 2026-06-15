@@ -13,13 +13,6 @@
 #   routes,types,google,oauth}.rs.
 # proxy/src/settings.rs — DONE: split into src/settings/{profile,app,keys,types}.rs.
 
-# Phase 5 target — SwiftUI app god files
-ui/Loom/Features/Graph/GraphPane.swift
-ui/Loom/Features/Inspector/InspectorPane.swift
-ui/Loom/Features/MainLayout/MainThreePaneLayoutView.swift
-ui/Loom/Features/MainLayout/TraceStore.swift
-ui/Loom/Features/Settings/AppSettingsView.swift
-ui/Loom/Features/Sidebar/Sidebar.swift
-ui/Loom/Features/Welcome/WelcomeView.swift
-ui/Sources/Core/Models/TraceModels.swift
-ui/Sources/Networking/CodexLogObserver.swift
+# Phase 5 target — SwiftUI app god files (DONE)
+# SwiftUI app and package files have been split into feature folders and
+# per-type model files. No current Swift exceptions.

@@ -96,10 +96,10 @@ fn normalize_name(name: &str) -> Result<String, ApiError> {
 
 /// Maps unique-email database failures to a stable auth API error.
 fn map_unique_user_error(error: sqlx::Error) -> ApiError {
-    if let sqlx::Error::Database(db_error) = &error {
-        if db_error.code().as_deref() == Some("23505") {
-            return ApiError::conflict("email already exists");
-        }
+    if let sqlx::Error::Database(db_error) = &error
+        && db_error.code().as_deref() == Some("23505")
+    {
+        return ApiError::conflict("email already exists");
     }
     error.into()
 }

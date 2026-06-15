@@ -3,7 +3,7 @@
 use loom_domain::{AgentErrorDto, AgentNodeDto, AgentPromptDto, AgentResponseDto};
 use serde_json::Value;
 
-use super::store::TraceRow;
+use super::store_row::TraceRow;
 use super::text::{compact_path, format_latency, format_timestamp};
 
 /// Converts a row into a graph node, deriving status, label, agent, and the

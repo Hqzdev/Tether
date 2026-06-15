@@ -1,6 +1,8 @@
 //! Transparent reverse proxy gateway for OpenAI/Anthropic-compatible traffic.
 
+mod credentials;
 mod http;
+mod relay;
 mod stream;
 
 use std::time::Instant;
@@ -8,7 +10,7 @@ use std::time::Instant;
 use axum::{
     body::{Body, to_bytes},
     extract::{Request, State},
-    http::{HeaderMap, HeaderName, HeaderValue, Method, StatusCode, header::CONTENT_TYPE},
+    http::{Method, StatusCode, header::CONTENT_TYPE},
     response::{IntoResponse, Response},
 };
 use bytes::Bytes;
@@ -77,12 +79,14 @@ pub(crate) async fn proxy(State(state): State<AppState>, req: Request) -> Respon
             let latency_ms = started.elapsed().as_millis() as i64;
             state.trace_sink.record_response(
                 capture.clone(),
-                cached.status,
-                cached.content_type.clone(),
-                None,
-                cached.body.clone(),
-                "hit",
-                latency_ms,
+                trace::TraceResponse {
+                    status_code: cached.status,
+                    content_type: cached.content_type.clone(),
+                    header_request_id: None,
+                    body: cached.body.clone(),
+                    cache_status: "hit",
+                    latency_ms,
+                },
             );
             log_cached(
                 StatusCode::from_u16(cached.status).unwrap_or(StatusCode::OK),
@@ -93,7 +97,7 @@ pub(crate) async fn proxy(State(state): State<AppState>, req: Request) -> Respon
     }
 
     let mut headers = http::upstream_headers(&parts.headers);
-    inject_credentials(&mut headers, label, &state);
+    credentials::inject(&mut headers, label, &state);
 
     let upstream = state
         .client
@@ -143,7 +147,7 @@ pub(crate) async fn proxy(State(state): State<AppState>, req: Request) -> Respon
         let mut stream_error = None;
         let mut stream = resp.bytes_stream();
         while let Some(item) = stream.next().await {
-            if let Err(message) = relay_chunk(item, &tx, store, &mut acc).await {
+            if let Err(message) = relay::chunk(item, &tx, store, &mut acc).await {
                 stream_error = message;
                 break;
             }
@@ -173,64 +177,4 @@ pub(crate) async fn proxy(State(state): State<AppState>, req: Request) -> Respon
     *response.status_mut() = status;
     *response.headers_mut() = out_headers;
     response
-}
-
-/// Relays one upstream chunk to the client and appends trace/cache bytes.
-async fn relay_chunk(
-    item: Result<Bytes, reqwest::Error>,
-    tx: &tokio::sync::mpsc::Sender<Result<Bytes, reqwest::Error>>,
-    store: bool,
-    acc: &mut Vec<u8>,
-) -> Result<(), Option<String>> {
-    match item {
-        Ok(chunk) => {
-            append_capture_bytes(store, acc, &chunk);
-            tx.send(Ok(chunk)).await.map_err(|_| None)
-        }
-        Err(error) => {
-            let message = error.to_string();
-            let _ = tx.send(Err(error)).await;
-            Err(Some(message))
-        }
-    }
-}
-
-/// Appends either full cache bytes or capped trace-preview bytes.
-fn append_capture_bytes(store: bool, acc: &mut Vec<u8>, chunk: &[u8]) {
-    if store {
-        acc.extend_from_slice(chunk);
-    } else if acc.len() < trace::MAX_CAPTURE_BYTES {
-        let remaining = trace::MAX_CAPTURE_BYTES - acc.len();
-        acc.extend_from_slice(&chunk[..chunk.len().min(remaining)]);
-    }
-}
-
-/// Injects local provider credentials only when the incoming request omitted
-/// them. Explicit client credentials always win.
-fn inject_credentials(headers: &mut HeaderMap, label: &str, state: &AppState) {
-    match label {
-        "anthropic" if !headers.contains_key("x-api-key") => {
-            let Some(key) = state.anthropic_api_key.as_deref() else {
-                return;
-            };
-            match HeaderValue::from_str(key) {
-                Ok(value) => {
-                    headers.insert(HeaderName::from_static("x-api-key"), value);
-                }
-                Err(error) => eprintln!("{RED}x invalid ANTHROPIC_API_KEY: {error}{RESET}\n"),
-            }
-        }
-        "openai" if !headers.contains_key("authorization") => {
-            let Some(key) = state.openai_api_key.as_deref() else {
-                return;
-            };
-            match HeaderValue::from_str(&format!("Bearer {key}")) {
-                Ok(value) => {
-                    headers.insert(HeaderName::from_static("authorization"), value);
-                }
-                Err(error) => eprintln!("{RED}x invalid OPENAI_API_KEY: {error}{RESET}\n"),
-            }
-        }
-        _ => {}
-    }
 }

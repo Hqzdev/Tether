@@ -56,11 +56,20 @@ Incremental and **always-shippable**. Every phase ends with the app building and
   per [04](./04-code-organization.md). Reorganize into feature folders.
 - Add per-product DocC catalogs (`Core.docc`, `Networking.docc`, `UI.docc`) + doc comments.
 - **Exit:** every Swift file ≤200 lines; DocC builds; app builds & runs; smoke green.
+- **Status:** implemented. Swift package models now live one type per file,
+  `CodexLogObserver` is split into Codex database/query/event-mapping helpers, the design
+  system separates palette, hex colors, and liquid glass, and SwiftUI app feature files are
+  split into graph, inspector, main-layout, settings, sidebar, and welcome subviews. DocC
+  catalogs are committed for `Core`, `Networking`, and `UI`.
 
 ## Phase 6 — Hardening & guardrails  · S
 - CI enforces: build, smoke, file-size, `cargo doc`, DocC, `cargo clippy`/SwiftLint.
 - Optional: model-drift check (generated DTOs vs Swift `Core/Models`).
 - **Exit:** the conventions in this plan are mechanically enforced, not just documented.
+- **Status:** implemented. CI now enforces Rust format, clippy, tests, rustdoc warnings,
+  Swift package build, Xcode app build, DocC build, SwiftLint, proxy smoke, and the
+  200-line file-size gate. Tag pushes matching `v*` publish `dist/Tether.dmg` through the
+  release workflow. CI/CD and release operations are documented in `docs/runbooks/`.
 
 ## Sequencing diagram
 
@@ -81,4 +90,3 @@ P0 safety net ─► P1 workspace+shared ─► P2 split into services ─► P3
 | Hot-path latency creep | Phase 3 measures forward latency before/after; channel is bounded |
 | DTO drift between Rust & Swift | OpenAPI as source of truth (Phase 4) + optional drift check (Phase 6) |
 | Over-fragmentation (too many tiny files) | the seam must be a real concern boundary, not a line count hack |
-```

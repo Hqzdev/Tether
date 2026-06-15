@@ -65,6 +65,7 @@ CodexQuery.swift           the SQL strings + parameter building          (~120)
 CodexEventMapper.swift     raw row → AgentNode                            (~120)
 CodexSnapshotBuilder.swift assemble TraceSnapshot, layout/limit          (~80)
 ```
+Status: implemented as `CodexLogObserver.swift` plus `Networking/Codex/*`.
 
 ### `Loom/Features/MainLayout/TraceStore.swift` (356) → split
 ```
@@ -74,6 +75,8 @@ TraceRefreshCoordinator.swift  polling loop + refresh orchestration       (~120)
 SessionsController.swift    create / select / clear session ops           (~90)
 SnapshotCombiner.swift      pure combine of proxy + codex snapshots       (~90)
 ```
+Status: implemented with `TraceStore.swift`, `ProxyConnectionStatus.swift`,
+`TraceStore+Sessions.swift`, and `SnapshotCombiner.swift`.
 
 ### `Core/Models/TraceModels.swift` (297) → `Core/Models/`
 ```
@@ -81,6 +84,7 @@ one file per type: AgentNode.swift · TraceSession.swift · TraceSnapshot.swift
 NodeStatus.swift · AgentPrompt.swift · AgentResponse.swift · AgentError.swift
 InspectorTab.swift · ResponseLanguage.swift            (each ≤80)
 ```
+Status: implemented as one file per model plus `AgentNode+Codable.swift`.
 
 ### `UI/DesignSystem/AgentTracePalette.swift` (187) → split
 ```
@@ -88,6 +92,7 @@ AgentTracePalette.swift   color tokens + status helpers                  (~110)
 LiquidGlass.swift         LiquidGlassModifier + View.liquidGlass(...)     (~70)
 Color+Hex.swift           Color(hex:) initializer                         (~15)
 ```
+Status: implemented.
 
 ### `Inspector/InspectorPane.swift` (~430) → `Inspector/`
 ```
@@ -95,6 +100,8 @@ InspectorPane.swift · InspectorTabPicker.swift · InspectorBody.swift
 MetadataTable.swift · InspectorEmptyState.swift · TimeTravelButtonStyle.swift
 ```
 (`InspectorTabPicker` already exists inline — promote it to its own file.)
+Status: implemented, with the code renderer and replay footer also split into
+dedicated files.
 
 ## 4.4 Naming conventions
 

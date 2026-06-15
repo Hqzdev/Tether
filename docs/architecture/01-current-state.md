@@ -52,30 +52,32 @@ POST   /api/settings/keys
 
 **Storage:** SQLite — `cache` (sha256 → response blob), `sessions`, `trace_calls`.
 
-## 1.3 App — `ui/` (SwiftUI + Composable Architecture)
+## 1.3 App baseline — `ui/` (SwiftUI + Composable Architecture)
 
 Local Swift package `LoomModules` with products **Core**, **UI**, **Networking**, **App**,
-plus the Xcode `Loom` target.
+plus the Xcode `Loom` target. The table below records the pre-Phase-5 baseline that drove
+the SwiftUI split; those files have since been reorganized into smaller feature and model
+files.
 
 | File | Lines | Notes |
 |------|------:|-------|
-| `Networking/CodexLogObserver.swift` | 495 | largest file — DB open, SQL, event mapping, snapshot build all in one |
-| `Loom/Features/MainLayout/TraceStore.swift` | 356 | `ObservableObject`; status enum + polling + refresh + session ops + snapshot combine |
-| `Core/Models/TraceModels.swift` | 297 | every domain model in one file |
-| `UI/DesignSystem/AgentTracePalette.swift` | 187 | palette + `LiquidGlassModifier` + `Color(hex:)` |
+| `Networking/CodexLogObserver.swift` | 495 | split into observer facade + `Networking/Codex/*` helpers |
+| `Loom/Features/MainLayout/TraceStore.swift` | 356 | split into store, status, session operations, and snapshot combiner |
+| `Core/Models/TraceModels.swift` | 297 | replaced by one file per domain model |
+| `UI/DesignSystem/AgentTracePalette.swift` | 187 | split into palette, `LiquidGlass`, and `Color+Hex` |
 | `UI/Shared/TraceSharedViews.swift` | 183 | multiple reusable views |
 | `UI/SessionList/SessionListView.swift` | 171 | list + row + empty state |
 | `Networking/TraceAPIClient.swift` | 139 | HTTP client for all `/api` calls |
-| `Inspector/InspectorPane.swift` | ~430 | header, picker, body, metadata table, empty state, button styles |
+| `Inspector/InspectorPane.swift` | ~430 | split into header, picker, body, code view, metadata, empty state, and styles |
 
 ## 1.4 Pain points the refactor must fix
 
-- **God files.** `trace.rs`, `CodexLogObserver.swift`, `TraceStore.swift` mix 4–6 concerns,
-  making them hard to read, test, and change safely.
+- **God files.** The original `trace.rs`, `CodexLogObserver.swift`, and `TraceStore.swift`
+  mixed 4–6 concerns, making them hard to read, test, and change safely.
 - **No interface seams.** Handlers talk to SQLite directly; nothing is mockable. Logic and
   persistence are entangled.
-- **Duplicated DTO shapes.** Trace DTOs are defined in Rust (`trace.rs`) and again, by hand,
-  as `Codable` types in Swift (`TraceModels.swift`) with no single source of truth.
+- **Duplicated DTO shapes.** Trace DTOs are defined in Rust and again, by hand, as
+  `Codable` types in Swift model files with OpenAPI as the reviewed source of truth.
 - **Sparse documentation.** Few doc comments; no generated API reference; no OpenAPI spec;
   no architecture decision records.
 - **Hot path coupling.** The proxy forward path writes traces inline, coupling latency-

@@ -17,19 +17,31 @@
 //! routes via [`router`] and starts the ingestion worker at boot.
 
 mod capture;
+mod capture_extract;
 mod cost;
 mod ingest;
 mod node;
 mod query;
+#[cfg(test)]
+mod query_tests;
 mod replay;
+mod replay_headers;
+mod replay_store;
+mod replay_types;
 mod routes;
 mod schema;
 mod sessions;
 mod store;
+mod store_insert;
+mod store_row;
 mod summarize;
+#[cfg(test)]
+mod summarize_tests;
 mod text;
 
 pub(crate) use capture::{MAX_CAPTURE_BYTES, TraceCapture};
-pub(crate) use ingest::{DEFAULT_TRACE_CHANNEL_CAPACITY, TraceSink, spawn_ingest_worker};
+pub(crate) use ingest::{
+    DEFAULT_TRACE_CHANNEL_CAPACITY, TraceResponse, TraceSink, spawn_ingest_worker,
+};
 pub(crate) use routes::{response_request_id, router};
 pub(crate) use schema::init_schema;

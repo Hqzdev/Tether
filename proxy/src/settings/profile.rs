@@ -87,10 +87,10 @@ fn normalize_name(name: &str) -> Result<String, ApiError> {
 
 /// Maps duplicate email updates to the settings API conflict response.
 fn map_unique_email_error(error: sqlx::Error) -> ApiError {
-    if let sqlx::Error::Database(db_error) = &error {
-        if db_error.code().as_deref() == Some("23505") {
-            return ApiError::conflict("email already exists");
-        }
+    if let sqlx::Error::Database(db_error) = &error
+        && db_error.code().as_deref() == Some("23505")
+    {
+        return ApiError::conflict("email already exists");
     }
     error.into()
 }

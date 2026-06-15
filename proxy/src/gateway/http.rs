@@ -41,10 +41,10 @@ pub(super) fn cached_response(cached: CachedResponse) -> Response {
     let mut response = Response::new(Body::from(Bytes::from(cached.body)));
     *response.status_mut() = StatusCode::from_u16(cached.status).unwrap_or(StatusCode::OK);
     let headers = response.headers_mut();
-    if !cached.content_type.is_empty() {
-        if let Ok(value) = HeaderValue::from_str(&cached.content_type) {
-            headers.insert(CONTENT_TYPE, value);
-        }
+    if !cached.content_type.is_empty()
+        && let Ok(value) = HeaderValue::from_str(&cached.content_type)
+    {
+        headers.insert(CONTENT_TYPE, value);
     }
     headers.insert(
         HeaderName::from_static("x-loom-cache"),
