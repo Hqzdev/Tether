@@ -41,10 +41,86 @@ public struct TraceAPIClient: Sendable {
             throw ClientError.invalidURL
         }
 
+        return try await decode(TraceSnapshot.self, from: url)
+    }
+
+    /// Fetches the current trace summary without large prompt and response payloads.
+    public func currentTraceSummary(sessionId: TraceSession.ID? = nil) async throws -> TraceSnapshot {
+        guard let url = traceSummaryURL(sessionId: sessionId) else {
+            throw ClientError.invalidURL
+        }
+
+        return try await decode(TraceSnapshot.self, from: url)
+    }
+
+    /// Fetches the full inspector payload for one trace node.
+    public func traceNodeDetail(nodeId: AgentNode.ID) async throws -> AgentNode {
+        guard let encodedId = nodeId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
+              let url = URL(string: "/api/traces/\(encodedId)", relativeTo: baseURL)?.absoluteURL
+        else {
+            throw ClientError.invalidURL
+        }
+
+        return try await decode(AgentNode.self, from: url)
+    }
+
+    /// Persists a mocked node output and returns downstream invalidation evidence.
+    public func editNodeOutput(
+        nodeId: AgentNode.ID,
+        output: String
+    ) async throws -> TraceInvalidationResult {
+        guard let encodedId = nodeId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
+              let url = URL(string: "/api/traces/\(encodedId)/output", relativeTo: baseURL)?.absoluteURL
+        else {
+            throw ClientError.invalidURL
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "PATCH"
+        request.timeoutInterval = 5
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(EditOutputBody(output: output))
+
+        return try await decode(TraceInvalidationResult.self, from: request)
+    }
+
+    /// Previews descendants that would become stale if a node output changes.
+    public func downstreamNodes(nodeId: AgentNode.ID) async throws -> TraceDownstreamResult {
+        guard let encodedId = nodeId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
+              let url = URL(string: "/api/traces/\(encodedId)/downstream", relativeTo: baseURL)?.absoluteURL
+        else {
+            throw ClientError.invalidURL
+        }
+
+        return try await decode(TraceDownstreamResult.self, from: url)
+    }
+
+    /// Replays a retained node request against its provider and returns output-hash diff evidence.
+    public func replayNode(nodeId: AgentNode.ID) async throws -> TraceReplayResult {
+        guard let encodedId = nodeId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
+              let url = URL(string: "/api/traces/\(encodedId)/replay", relativeTo: baseURL)?.absoluteURL
+        else {
+            throw ClientError.invalidURL
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.timeoutInterval = 30
+
+        return try await decode(TraceReplayResult.self, from: request)
+    }
+
+    /// Decodes one JSON resource from the proxy API.
+    private func decode<Value: Decodable>(_ type: Value.Type, from url: URL) async throws -> Value {
         var request = URLRequest(url: url)
         request.timeoutInterval = 2
         request.cachePolicy = .reloadIgnoringLocalCacheData
 
+        return try await decode(type, from: request)
+    }
+
+    /// Decodes one JSON resource from a prepared proxy API request.
+    private func decode<Value: Decodable>(_ type: Value.Type, from request: URLRequest) async throws -> Value {
         let (data, response) = try await session.data(for: request)
         let status = (response as? HTTPURLResponse)?.statusCode ?? 0
         guard (200..<300).contains(status) else {
@@ -53,7 +129,7 @@ public struct TraceAPIClient: Sendable {
 
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
-        return try decoder.decode(TraceSnapshot.self, from: data)
+        return try decoder.decode(type, from: data)
     }
 
     /// Fetches the known proxy sessions and the id of the currently live session.
@@ -138,6 +214,20 @@ public struct TraceAPIClient: Sendable {
             return nil
         }
 
+        return traceURL(baseTraceURL: baseTraceURL, sessionId: sessionId)
+    }
+
+    /// Builds the lightweight trace endpoint URL for graph polling.
+    private func traceSummaryURL(sessionId: TraceSession.ID?) -> URL? {
+        guard let baseTraceURL = URL(string: "/api/traces/current/summary", relativeTo: baseURL)?.absoluteURL else {
+            return nil
+        }
+
+        return traceURL(baseTraceURL: baseTraceURL, sessionId: sessionId)
+    }
+
+    /// Adds `session_id` to a trace URL when reading a historical session.
+    private func traceURL(baseTraceURL: URL, sessionId: TraceSession.ID?) -> URL? {
         guard let sessionId, !sessionId.isEmpty else {
             return baseTraceURL
         }
@@ -146,4 +236,8 @@ public struct TraceAPIClient: Sendable {
         components?.queryItems = [URLQueryItem(name: "session_id", value: sessionId)]
         return components?.url
     }
+}
+
+private struct EditOutputBody: Encodable {
+    let output: String
 }

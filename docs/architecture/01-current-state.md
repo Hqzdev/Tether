@@ -25,7 +25,7 @@ grounded in the problems it was designed to fix. For current phase status, see
 
 ## 1.2 Backend — `proxy/` (Rust, Axum, SQLite)
 
-Single binary `loom-proxy`. All concerns live in a flat `src/` with a few large files.
+Single binary `tether-proxy`. All concerns live in a flat `src/` with a few large files.
 
 | File | Lines | Concerns crammed together |
 |------|------:|---------------------------|
@@ -54,15 +54,15 @@ POST   /api/settings/keys
 
 ## 1.3 App baseline — `ui/` (SwiftUI + Composable Architecture)
 
-Local Swift package `LoomModules` with products **Core**, **UI**, **Networking**, **App**,
-plus the Xcode `Loom` target. The table below records the pre-Phase-5 baseline that drove
+Local Swift package `TetherModules` with products **Core**, **UI**, **Networking**, **App**,
+plus the Xcode `Tether` target. The table below records the pre-Phase-5 baseline that drove
 the SwiftUI split; those files have since been reorganized into smaller feature and model
 files.
 
 | File | Lines | Notes |
 |------|------:|-------|
 | `Networking/CodexLogObserver.swift` | 495 | split into observer facade + `Networking/Codex/*` helpers |
-| `Loom/Features/MainLayout/TraceStore.swift` | 356 | split into store, status, session operations, and snapshot combiner |
+| `Tether/Features/MainLayout/TraceStore.swift` | 356 | split into store, status, session operations, and snapshot combiner |
 | `Core/Models/TraceModels.swift` | 297 | replaced by one file per domain model |
 | `UI/DesignSystem/AgentTracePalette.swift` | 187 | split into palette, `LiquidGlass`, and `Color+Hex` |
 | `UI/Shared/TraceSharedViews.swift` | 183 | multiple reusable views |

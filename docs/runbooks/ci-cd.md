@@ -62,7 +62,7 @@ Before pushing a release tag, run:
 scripts/check-file-size.sh
 cd proxy && cargo fmt --check && cargo clippy --workspace --all-targets -- -D warnings
 cd ..
-xcodebuild -project ui/Loom.xcodeproj -scheme Tether -configuration Debug -destination 'generic/platform=macOS' -derivedDataPath /tmp/LoomDerivedData build CODE_SIGNING_ALLOWED=NO
+xcodebuild -project ui/Tether.xcodeproj -scheme Tether -configuration Debug -destination 'generic/platform=macOS' -derivedDataPath /tmp/TetherDerivedData build CODE_SIGNING_ALLOWED=NO
 ./scripts/package-dmg.sh
 ```
 

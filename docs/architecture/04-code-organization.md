@@ -17,7 +17,7 @@ and the naming/comment conventions.
 
 ## 4.2 Rust file-split plan
 
-### `src/trace.rs` (964) → `crates/loom-trace/src/`
+### `src/trace.rs` (964) → `crates/tether-trace/src/`
 ```
 lib.rs            //! crate doc + re-exports                         (~30)
 routes.rs         Axum handlers for /api/traces/* (thin)             (~120)
@@ -25,23 +25,23 @@ ingest.rs         channel consumer worker; orchestrates the rest     (~120)
 summarize.rs      extract model/tokens/prompt/response/language      (~180)
 cost.rs           token → cost calculation tables + logic            (~120)
 query.rs          build TraceSnapshot from stored rows               (~150)
-dto.rs            (moves to loom-contracts) request/response shapes   (~80)
+dto.rs            (moves to tether-contracts) request/response shapes   (~80)
 ```
 
 ### `src/main.rs` (483) → split across crates
 ```
 src/main.rs                       composition root (build + serve)    (~80)
-loom-http/src/router.rs           mount all routes                    (~90)
-loom-gateway/src/routing.rs       provider/path routing               (~90)
-loom-gateway/src/forward.rs       upstream request via reqwest        (~120)
-loom-gateway/src/tee.rs           response tee (stream + buffer)       (~130)
-loom-cache/src/key.rs             sha256 cache-key derivation          (~50)
-loom-cache/src/store.rs           get / put / clear + hit counter      (~150)
+tether-http/src/router.rs           mount all routes                    (~90)
+tether-gateway/src/routing.rs       provider/path routing               (~90)
+tether-gateway/src/forward.rs       upstream request via reqwest        (~120)
+tether-gateway/src/tee.rs           response tee (stream + buffer)       (~130)
+tether-cache/src/key.rs             sha256 cache-key derivation          (~50)
+tether-cache/src/store.rs           get / put / clear + hit counter      (~150)
 ```
 Current implementation keeps the gateway in-process under `proxy/src/gateway/`
 (`mod.rs`, `http.rs`, `stream.rs`) while the crate promotion work continues.
 
-### `src/auth/mod.rs` (380) → `crates/loom-auth/src/`
+### `src/auth/mod.rs` (380) → `crates/tether-auth/src/`
 ```
 lib.rs (re-exports) · context.rs · jwt.rs · extractor.rs · routes.rs   (each ≤150)
 oauth.rs            (from existing auth/oauth.rs, +doc comments)        (~180)
@@ -49,7 +49,7 @@ oauth.rs            (from existing auth/oauth.rs, +doc comments)        (~180)
 Current implementation uses `proxy/src/auth/{context,jwt,password,routes,types,google,oauth}.rs`
 with the same boundaries.
 
-### `src/settings.rs` (279) → `crates/loom-settings/src/`
+### `src/settings.rs` (279) → `crates/tether-settings/src/`
 ```
 lib.rs · profile.rs · app.rs · keys.rs · routes.rs                     (each ≤120)
 ```
@@ -67,7 +67,7 @@ CodexSnapshotBuilder.swift assemble TraceSnapshot, layout/limit          (~80)
 ```
 Status: implemented as `CodexLogObserver.swift` plus `Networking/Codex/*`.
 
-### `Loom/Features/MainLayout/TraceStore.swift` (356) → split
+### `Tether/Features/MainLayout/TraceStore.swift` (356) → split
 ```
 TraceStore.swift            @MainActor ObservableObject, published state  (~110)
 ProxyConnectionStatus.swift the enum + title/detail/color                 (~70)
@@ -105,7 +105,7 @@ dedicated files.
 
 ## 4.4 Naming conventions
 
-- **Rust:** crates `loom-<area>`; modules `snake_case`; one primary type per file, file named
+- **Rust:** crates `tether-<area>`; modules `snake_case`; one primary type per file, file named
   after it (`summarizer.rs` → `Summarizer`). Route handler fns end in `_handler` or live in
   `routes.rs`.
 - **Swift:** PascalCase types, camelCase members; file name == primary type name. Feature

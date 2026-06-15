@@ -77,20 +77,20 @@ jobs:
       - name: Build macOS app
         run: >
           xcodebuild
-          -project ui/Loom.xcodeproj
+          -project ui/Tether.xcodeproj
           -scheme Tether
           -configuration Debug
           -destination 'generic/platform=macOS'
-          -derivedDataPath /tmp/LoomDerivedData
+          -derivedDataPath /tmp/TetherDerivedData
           CODE_SIGNING_ALLOWED=NO
           build
       - name: Build DocC documentation
         run: >
           xcodebuild
-          -project ui/Loom.xcodeproj
+          -project ui/Tether.xcodeproj
           -scheme Tether
           -destination 'generic/platform=macOS'
-          -derivedDataPath /tmp/LoomDocBuild
+          -derivedDataPath /tmp/TetherDocBuild
           CODE_SIGNING_ALLOWED=NO
           docbuild
       - name: Install SwiftLint

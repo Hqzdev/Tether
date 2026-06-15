@@ -25,7 +25,7 @@ This work closes that gap for the local desktop flow: the macOS app stores provi
 - No new third-party dependencies (Apple `Security` framework is a system framework; Rust side uses only `std` + already-present `http`/`axum` types).
 
 **Non-goals (this PR)**
-- Encrypting the local SQLite cache (`loom-cache.sqlite`). Designed in §8, deferred.
+- Encrypting the local SQLite cache (`tether-cache.sqlite`). Designed in §8, deferred.
 - Touching the Postgres web-auth key storage. Left as-is.
 - Fabricating the Anthropic `anthropic-version` header (stays the client's responsibility; see §7).
 
@@ -50,7 +50,7 @@ Why env vars (not IPC): `LocalProxyLauncher` already builds the proxy's environm
 | `proxy/.env.example` | document `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` | docs |
 | `ui/Sources/Networking/KeychainStore.swift` | **new** — `Security`-framework generic-password wrapper | `Networking` |
 | `ui/Sources/Networking/LocalProxyLauncher.swift` | read keys from `KeychainStore`, set env | `Networking` |
-| `ui/Loom/Features/Settings/AppSettingsView.swift` | "Provider Keys" section + save on Save&Restart | app target |
+| `ui/Tether/Features/Settings/AppSettingsView.swift` | "Provider Keys" section + save on Save&Restart | app target |
 
 **No `.pbxproj` edit needed.** `Networking` is a SwiftPM target whose sources are the `ui/Sources/Networking/` directory; SwiftPM compiles every `.swift` in it, and the Xcode app consumes the package as a product. A new file in that directory is picked up automatically.
 
@@ -183,7 +183,7 @@ import Security
 /// Thin wrapper over the macOS Keychain (generic-password items) for provider
 /// API keys. Uses only Apple's Security framework — no third-party dependency.
 public enum KeychainStore {
-    public static let service = "dev.tether.loom.providerKeys"
+    public static let service = "dev.tether.tether.providerKeys"
 
     public enum Account: String, CaseIterable {
         case openAIAPIKey = "openai-api-key"
@@ -268,7 +268,7 @@ In `proxyEnvironment(runtimeDirectory:)`, before `return environment`:
 
 `KeychainStore` is in the same `Networking` module — no import needed. Because the keys are read at launch, `LocalProxyLauncher.restart()` (already called by Settings) is what propagates a newly saved key to the running proxy.
 
-### 6c. `ui/Loom/Features/Settings/AppSettingsView.swift` — UI
+### 6c. `ui/Tether/Features/Settings/AppSettingsView.swift` — UI
 
 Add state to `ProxySettingsView`:
 
@@ -353,11 +353,11 @@ ANTHROPIC_API_KEY=
 
 ## 8. Follow-up design: encrypting the local SQLite cache
 
-`loom-cache.sqlite` stores prompts + responses in plaintext. Deferred from this PR; two viable approaches when picked up:
+`tether-cache.sqlite` stores prompts + responses in plaintext. Deferred from this PR; two viable approaches when picked up:
 
 **Option A — SQLCipher (whole-file, recommended for strength).**
 - Switch `rusqlite` to its SQLCipher-backed build (verify the exact feature flag against current `rusqlite` docs — it exposes a bundled-SQLCipher feature) and run `PRAGMA key = '<key>';` immediately after `Connection::open`.
-- Key source: generate a random 32-byte key on first run, store it in the Keychain (new `Account` case, e.g. `cacheEncryptionKey`), pass to the proxy as `LOOM_DB_KEY` via the same launcher env channel.
+- Key source: generate a random 32-byte key on first run, store it in the Keychain (new `Account` case, e.g. `cacheEncryptionKey`), pass to the proxy as `TETHER_DB_KEY` via the same launcher env channel.
 - **Breaks `scripts/smoke-e2e.sh`**, which reads the cache with the stock `sqlite3` CLI (`sqlite3 "$DB_PATH" "select count(*)…"`). Fix: query through a SQLCipher-aware path or have the test open with the key. `CodexLogObserver` is unaffected (it reads Codex's own `~/.codex` DBs, not our cache).
 
 **Option B — field-level AES-GCM (no new dependency).**
@@ -380,9 +380,9 @@ Rust:
 
 Swift / app:
 - [ ] `swift build` in `ui/` compiles the `Networking` target with the new file.
-- [ ] App builds in Xcode (`xcodebuild -project ui/Loom.xcodeproj -scheme Tether build`).
+- [ ] App builds in Xcode (`xcodebuild -project ui/Tether.xcodeproj -scheme Tether build`).
 - [ ] Enter keys in Settings → Save & Restart → confirm Keychain items exist:
-      `security find-generic-password -s dev.tether.loom.providerKeys -a openai-api-key`
+      `security find-generic-password -s dev.tether.tether.providerKeys -a openai-api-key`
 - [ ] Restarted proxy log shows `openai key: injected from env`.
 - [ ] End-to-end: configure an agent with **no** key pointed at `http://127.0.0.1:8080`; confirm the call succeeds using the Keychain key.
 

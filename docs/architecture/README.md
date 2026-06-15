@@ -1,4 +1,4 @@
-# Loom / Tether — Architecture & Refactor Plan
+# Tether / Tether — Architecture & Refactor Plan
 
 > Status: **Implemented through Phase 6** — backend service split, async ingestion,
 > OpenAPI/rustdoc docs, SwiftUI refactor, DocC catalogs, and CI guardrails are in place.
@@ -9,7 +9,7 @@
 
 ## Why "modular monolith" and not networked microservices
 
-Loom/Tether is a **local-first desktop debugger**. The proxy and the app run on the user's
+Tether/Tether is a **local-first desktop debugger**. The proxy and the app run on the user's
 machine. Splitting the backend into separately-deployed network services would add latency,
 serialization cost, and operational complexity for zero local benefit.
 

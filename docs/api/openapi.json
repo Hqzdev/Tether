@@ -3,7 +3,7 @@
   "info": {
     "title": "Tether Local Proxy API",
     "version": "0.1.0",
-    "description": "Local REST API exposed by the Tether/Loom desktop proxy process."
+    "description": "Local REST API exposed by the Tether/Tether desktop proxy process."
   },
   "servers": [
     {
@@ -534,9 +534,18 @@
       },
       "InvalidationResult": {
         "type": "object",
-        "required": ["node_id", "invalidated"],
+        "required": ["node_id", "reason", "previous_output_hash", "output_hash", "invalidated"],
         "properties": {
           "node_id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "previous_output_hash": {
+            "type": "string"
+          },
+          "output_hash": {
             "type": "string"
           },
           "invalidated": {
@@ -564,9 +573,28 @@
       },
       "ReplayResult": {
         "type": "object",
-        "required": ["node_id", "status_code", "cost", "tokens_in", "tokens_out", "invalidated"],
+        "required": [
+          "node_id",
+          "reason",
+          "previous_output_hash",
+          "output_hash",
+          "status_code",
+          "cost",
+          "tokens_in",
+          "tokens_out",
+          "invalidated"
+        ],
         "properties": {
           "node_id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "previous_output_hash": {
+            "type": "string"
+          },
+          "output_hash": {
             "type": "string"
           },
           "status_code": {
@@ -605,6 +633,7 @@
           "depth",
           "step_name",
           "timestamp",
+          "provider",
           "model",
           "cost",
           "latency",
@@ -616,7 +645,8 @@
           "cache_status",
           "status",
           "prompt",
-          "response"
+          "response",
+          "output_hash"
         ],
         "properties": {
           "id": {
@@ -636,8 +666,7 @@
             }
           },
           "context_inputs": {
-            "type": "object",
-            "additionalProperties": true
+            "$ref": "#/components/schemas/ContextInputs"
           },
           "input_hash": {
             "type": "string"
@@ -656,6 +685,9 @@
             "type": "string"
           },
           "timestamp": {
+            "type": "string"
+          },
+          "provider": {
             "type": "string"
           },
           "model": {
@@ -688,7 +720,7 @@
           },
           "cache_status": {
             "type": "string",
-            "enum": ["hit", "miss"]
+            "enum": ["hit", "miss", "codex-log"]
           },
           "temperature": {
             "type": "number",
@@ -697,7 +729,7 @@
           },
           "status": {
             "type": "string",
-            "enum": ["success", "cached", "error"]
+            "enum": ["success", "cached", "running", "error"]
           },
           "prompt": {
             "$ref": "#/components/schemas/AgentPrompt"
@@ -705,9 +737,55 @@
           "response": {
             "$ref": "#/components/schemas/AgentResponse"
           },
+          "output_hash": {
+            "type": "string"
+          },
           "error": {
             "$ref": "#/components/schemas/AgentError",
             "nullable": true
+          }
+        }
+      },
+      "ContextInputs": {
+        "type": "object",
+        "required": ["sources", "withheld", "input_hash"],
+        "properties": {
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContextSource"
+            }
+          },
+          "withheld": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "input_hash": {
+            "type": "string"
+          }
+        }
+      },
+      "ContextSource": {
+        "type": "object",
+        "required": ["kind", "path_or_id", "hash", "size_bytes"],
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "path_or_id": {
+            "type": "string"
+          },
+          "hash": {
+            "type": "string"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "body": {
+            "type": "string"
           }
         }
       },

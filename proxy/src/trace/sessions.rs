@@ -3,7 +3,7 @@
 use rusqlite::{Connection, OptionalExtension, params};
 use uuid::Uuid;
 
-use loom_domain::TraceSessionDto;
+use tether_domain::TraceSessionDto;
 
 use super::text::{format_time_for_name, format_timestamp, now_millis};
 

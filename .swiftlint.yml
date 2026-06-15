@@ -1,10 +1,10 @@
 included:
-  - ui/Loom
+  - ui/Tether
   - ui/Sources
 
 excluded:
   - ui/.build
-  - ui/Loom.xcodeproj
+  - ui/Tether.xcodeproj
 
 only_rules:
   - file_length

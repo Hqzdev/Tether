@@ -66,8 +66,8 @@ impl IntoResponse for ApiError {
     }
 }
 
-impl From<loom_crypto::CryptoError> for ApiError {
-    fn from(error: loom_crypto::CryptoError) -> Self {
+impl From<tether_crypto::CryptoError> for ApiError {
+    fn from(error: tether_crypto::CryptoError) -> Self {
         ApiError::internal(error.message())
     }
 }

@@ -7,7 +7,7 @@ import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import { trackEvent } from "@/lib/analytics";
 import { NODES, type NodeStatus, type TraceNode } from "@/lib/data";
 
-const GITHUB_CODE_HREF = "https://github.com/Hqzdev/Loom";
+const GITHUB_RELEASE_HREF = "https://github.com/Hqzdev/Tether/releases/tag/v1.2";
 
 type LandingIconName = IconName;
 
@@ -1131,15 +1131,15 @@ export default function TetherLanding() {
               Free during alpha. Open the source on GitHub, run it locally, or send feedback about
               the workflow that should ship next.
             </p>
-            <p className="alpha-note">No Releases dependency. Code first, feedback close by.</p>
+            <p className="alpha-note">Release v1.2 is ready for local macOS testing.</p>
             <div className="download-actions">
               <div className="download-direct">
                 <a
                   className="btn btn-primary pulse"
-                  href={GITHUB_CODE_HREF}
+                  href={GITHUB_RELEASE_HREF}
                   onClick={() =>
                     trackEvent("download_clicked", {
-                      asset: "GitHub source",
+                      asset: "GitHub release v1.2",
                       location: "final_cta",
                     })
                   }
@@ -1147,10 +1147,10 @@ export default function TetherLanding() {
                   target="_blank"
                 >
                   <LandingIcon name="apple-finder" />
-                  Open GitHub code
+                  Install Tether
                 </a>
               </div>
-              <p className="download-note">Use the repository Code button to download a ZIP or clone the app.</p>
+              <p className="download-note">Opens the GitHub release page with the latest alpha build.</p>
             </div>
             <div className="cta-row secondary-downloads">
               <a

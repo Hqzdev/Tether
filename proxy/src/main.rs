@@ -1,4 +1,4 @@
-//! Loom proxy — a transparent, path-preserving reverse proxy for LLM agents,
+//! Tether proxy — a transparent, path-preserving reverse proxy for LLM agents,
 //! now with a local SQLite response cache keyed on the prompt hash.
 //!
 //! Flow per request:
@@ -51,25 +51,25 @@ async fn main() {
         std::env::var("OPENAI_UPSTREAM").unwrap_or_else(|_| "https://api.openai.com".to_string());
     let anthropic = std::env::var("ANTHROPIC_UPSTREAM")
         .unwrap_or_else(|_| "https://api.anthropic.com".to_string());
-    let addr = std::env::var("LOOM_ADDR").unwrap_or_else(|_| "127.0.0.1:8080".to_string());
-    let db_path = std::env::var("LOOM_DB").unwrap_or_else(|_| "loom-cache.sqlite".to_string());
-    let cache_enabled = std::env::var("LOOM_CACHE")
+    let addr = std::env::var("TETHER_ADDR").unwrap_or_else(|_| "127.0.0.1:8080".to_string());
+    let db_path = std::env::var("TETHER_DB").unwrap_or_else(|_| "tether-cache.sqlite".to_string());
+    let cache_enabled = std::env::var("TETHER_CACHE")
         .map(|v| v != "off" && v != "0" && v != "false")
         .unwrap_or(true);
     let openai_api_key = read_api_key("OPENAI_API_KEY");
     let anthropic_api_key = read_api_key("ANTHROPIC_API_KEY");
 
     let conn =
-        Connection::open(&db_path).unwrap_or_else(|e| panic!("loom: cannot open {db_path}: {e}"));
+        Connection::open(&db_path).unwrap_or_else(|e| panic!("tether: cannot open {db_path}: {e}"));
     conn.execute_batch("PRAGMA journal_mode=WAL;")
-        .expect("loom: cannot enable WAL mode");
-    loom_cache::init_schema(&conn).expect("loom: cannot init cache schema");
-    trace::init_schema(&conn).expect("loom: cannot init trace schema");
+        .expect("tether: cannot enable WAL mode");
+    tether_cache::init_schema(&conn).expect("tether: cannot init cache schema");
+    trace::init_schema(&conn).expect("tether: cannot init trace schema");
 
     let client = reqwest::Client::new();
     let auth = AuthContext::from_env(client.clone())
         .await
-        .unwrap_or_else(|error| panic!("loom: cannot init auth context: {}", error.message))
+        .unwrap_or_else(|error| panic!("tether: cannot init auth context: {}", error.message))
         .map(Arc::new);
 
     let openai_key_present = openai_api_key.is_some();
@@ -99,10 +99,10 @@ async fn main() {
 
     let listener = tokio::net::TcpListener::bind(&addr)
         .await
-        .unwrap_or_else(|e| panic!("loom: cannot bind {addr}: {e}"));
+        .unwrap_or_else(|e| panic!("tether: cannot bind {addr}: {e}"));
 
     let cache_label = if cache_enabled { "on" } else { "off" };
-    println!("{BOLD}{CYAN}◆ Loom proxy{RESET} listening on {BOLD}http://{addr}{RESET}");
+    println!("{BOLD}{CYAN}◆ Tether proxy{RESET} listening on {BOLD}http://{addr}{RESET}");
     println!("  {DIM}/v1/messages*   -> {anthropic}   (Anthropic / Claude Code){RESET}");
     println!("  {DIM}everything else -> {openai}   (OpenAI / Codex){RESET}");
     println!("  {DIM}cache: {BOLD}{cache_label}{RESET}{DIM}  ·  db: {db_path}{RESET}");
@@ -123,7 +123,7 @@ async fn main() {
 
     axum::serve(listener, app)
         .await
-        .expect("loom: server crashed");
+        .expect("tether: server crashed");
 }
 
 /// Reads an API key from the environment, trimming empty values to `None`.

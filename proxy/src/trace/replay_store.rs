@@ -8,6 +8,7 @@ use rusqlite::{Connection, OptionalExtension, params};
 use super::replay_types::{
     DownstreamResult, InvalidationResult, ReplayResult, ReplaySpec, ReplayUpdate,
 };
+use crate::context::short_hash;
 
 /// Maps a node lookup or storage error to an HTTP response pair.
 pub(super) fn map_node_error(message: String) -> (StatusCode, String) {
@@ -25,6 +26,9 @@ pub(super) fn edit_output_result(
     output: String,
 ) -> Result<InvalidationResult, String> {
     let session_id = node_session_id(conn, &id)?;
+    let previous_output = node_response_text(conn, &id)?;
+    let previous_output_hash = short_hash(previous_output.as_bytes());
+    let output_hash = short_hash(output.as_bytes());
     conn.execute(
         "UPDATE trace_calls SET response_text = ?1 WHERE id = ?2",
         params![output, id],
@@ -34,6 +38,9 @@ pub(super) fn edit_output_result(
     mark_stale(conn, &invalidated).map_err(|e| e.to_string())?;
     Ok(InvalidationResult {
         node_id: id,
+        reason: "mocked-output-edited".to_string(),
+        previous_output_hash,
+        output_hash,
         invalidated,
     })
 }
@@ -75,6 +82,9 @@ pub(super) fn persist_replay_result(
     conn: &Connection,
     update: ReplayUpdate,
 ) -> Result<ReplayResult, String> {
+    let previous_output = node_response_text(conn, &update.node_id)?;
+    let previous_output_hash = short_hash(previous_output.as_bytes());
+    let output_hash = short_hash(update.response_text.as_bytes());
     conn.execute(
         "UPDATE trace_calls
          SET response_text = ?1, response_language = ?2, tokens_in = ?3, tokens_out = ?4,
@@ -100,12 +110,28 @@ pub(super) fn persist_replay_result(
     mark_stale(conn, &invalidated).map_err(|e| e.to_string())?;
     Ok(ReplayResult {
         node_id: update.node_id,
+        reason: "upstream-replay-refreshed-output".to_string(),
+        previous_output_hash,
+        output_hash,
         status_code: update.status_code,
         cost: update.cost,
         tokens_in: update.tokens_in,
         tokens_out: update.tokens_out,
         invalidated,
     })
+}
+
+/// Reads the current stored response text for output-hash diffs.
+fn node_response_text(conn: &Connection, id: &str) -> Result<String, String> {
+    conn.query_row(
+        "SELECT response_text FROM trace_calls WHERE id = ?1",
+        [id],
+        |row| row.get::<_, Option<String>>(0),
+    )
+    .optional()
+    .map_err(|error| error.to_string())?
+    .map(|text| text.unwrap_or_default())
+    .ok_or_else(|| "trace node not found".to_string())
 }
 
 /// Finds a node's owning session id.

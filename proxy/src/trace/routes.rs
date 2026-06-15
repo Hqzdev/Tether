@@ -10,9 +10,9 @@ use axum::{
 };
 use serde::Deserialize;
 
-use loom_domain::{SessionListDto, TraceSessionDto, TraceSnapshot};
+use tether_domain::{AgentNodeDto, SessionListDto, TraceSessionDto, TraceSnapshot};
 
-use super::query::{fetch_sessions, fetch_snapshot};
+use super::query::{fetch_node_detail, fetch_sessions, fetch_snapshot, fetch_snapshot_summary};
 use super::replay::{edit_output, list_downstream, replay_node};
 use super::sessions::create_session;
 use crate::AppState;
@@ -33,6 +33,8 @@ pub(crate) fn router() -> Router<AppState> {
             "/api/traces/current",
             get(current_trace).delete(clear_trace),
         )
+        .route("/api/traces/current/summary", get(current_trace_summary))
+        .route("/api/traces/{id}", get(trace_node_detail))
         .route("/api/traces/{id}/output", patch(edit_output))
         .route("/api/traces/{id}/downstream", get(list_downstream))
         .route("/api/traces/{id}/replay", post(replay_node))
@@ -78,6 +80,54 @@ async fn current_trace(
         })?;
 
     Ok(Json(snapshot))
+}
+
+async fn current_trace_summary(
+    State(state): State<AppState>,
+    Query(query): Query<TraceQuery>,
+) -> Result<Json<TraceSnapshot>, (StatusCode, String)> {
+    let db = state.db.clone();
+    let session_id = query.session_id;
+    let snapshot = tokio::task::spawn_blocking(move || fetch_snapshot_summary(&db, session_id))
+        .await
+        .map_err(|error| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("trace summary worker failed: {error}"),
+            )
+        })?
+        .map_err(|error| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("cannot load trace summary: {error}"),
+            )
+        })?;
+
+    Ok(Json(snapshot))
+}
+
+async fn trace_node_detail(
+    State(state): State<AppState>,
+    axum::extract::Path(node_id): axum::extract::Path<String>,
+) -> Result<Json<AgentNodeDto>, (StatusCode, String)> {
+    let db = state.db.clone();
+    let node = tokio::task::spawn_blocking(move || fetch_node_detail(&db, node_id))
+        .await
+        .map_err(|error| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("trace detail worker failed: {error}"),
+            )
+        })?
+        .map_err(|error| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("cannot load trace node detail: {error}"),
+            )
+        })?
+        .ok_or_else(|| (StatusCode::NOT_FOUND, "trace node not found".to_string()))?;
+
+    Ok(Json(node))
 }
 
 async fn list_sessions(

@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 
 /// A single request, response, tool call, or replay step shown in the trace graph.
@@ -16,6 +17,9 @@ public struct AgentNode: Identifiable, Hashable, Codable, Sendable {
 
     /// Display timestamp for this node.
     public let timestamp: String
+
+    /// Provider name reported by the proxy or local observer.
+    public let provider: String
 
     /// Model identifier reported by the provider or local observer.
     public let model: String
@@ -47,6 +51,27 @@ public struct AgentNode: Identifiable, Hashable, Codable, Sendable {
     /// Optional sampling temperature when known.
     public let temperature: Double?
 
+    /// Upstream trace/span identifier when the provider emits one.
+    public let traceId: String
+
+    /// Parent span id used to derive downstream invalidation boundaries.
+    public let parentSpanId: String?
+
+    /// Tool-use ids emitted by the provider for this call.
+    public let toolUseIds: [String]
+
+    /// Structured, redacted-by-default context assembly descriptor.
+    public let contextInputs: AgentContextInputs
+
+    /// Stable hash of the call input boundary.
+    public let inputHash: String
+
+    /// Stable hash of the current stored output.
+    public let outputHash: String
+
+    /// Whether this node was invalidated by an upstream output edit or replay.
+    public let stale: Bool
+
     /// Node execution status.
     public let status: NodeStatus
 
@@ -66,6 +91,7 @@ public struct AgentNode: Identifiable, Hashable, Codable, Sendable {
         depth: Int,
         stepName: String,
         timestamp: String,
+        provider: String? = nil,
         model: String,
         cost: String,
         latency: String,
@@ -76,6 +102,13 @@ public struct AgentNode: Identifiable, Hashable, Codable, Sendable {
         requestId: String,
         cacheStatus: String,
         temperature: Double?,
+        traceId: String = "",
+        parentSpanId: String? = nil,
+        toolUseIds: [String] = [],
+        contextInputs: AgentContextInputs? = nil,
+        inputHash: String = "",
+        outputHash: String = "",
+        stale: Bool = false,
         status: NodeStatus,
         prompt: AgentPrompt,
         response: AgentResponse,
@@ -90,6 +123,7 @@ public struct AgentNode: Identifiable, Hashable, Codable, Sendable {
         self.depth = depth
         self.stepName = stepName
         self.timestamp = timestamp
+        self.provider = provider ?? Self.defaultProvider(model: model, stepName: stepName, cacheStatus: cacheStatus)
         self.model = model
         self.cost = cost
         self.latency = latency
@@ -100,6 +134,17 @@ public struct AgentNode: Identifiable, Hashable, Codable, Sendable {
         self.requestId = requestId
         self.cacheStatus = cacheStatus
         self.temperature = temperature
+        self.traceId = traceId
+        self.parentSpanId = parentSpanId
+        self.toolUseIds = toolUseIds
+        self.contextInputs = contextInputs ?? Self.legacyContextInputs(
+            model: model,
+            prompt: prompt,
+            inputHash: inputHash
+        )
+        self.inputHash = inputHash.isEmpty ? self.contextInputs.inputHash : inputHash
+        self.outputHash = outputHash.isEmpty ? Self.shortHash(response.text) : outputHash
+        self.stale = stale
         self.status = status
         self.prompt = prompt
         self.response = response
@@ -129,5 +174,70 @@ public struct AgentNode: Identifiable, Hashable, Codable, Sendable {
         }
 
         return "Agent"
+    }
+
+    /// Preserves provider labels for trace payloads produced before `provider` existed.
+    static func defaultProvider(
+        model: String,
+        stepName: String,
+        cacheStatus: String
+    ) -> String {
+        let model = model.lowercased()
+        let stepName = stepName.lowercased()
+        let cacheStatus = cacheStatus.lowercased()
+
+        if cacheStatus == "codex-log" || stepName.contains("codex") {
+            return "codex-log"
+        }
+
+        if model.contains("claude") || stepName.contains("anthropic") {
+            return "anthropic"
+        }
+
+        if stepName.contains("openai") || model.hasPrefix("gpt-") || model.hasPrefix("o") {
+            return "openai"
+        }
+
+        return "unknown"
+    }
+
+    /// Builds a best-effort context descriptor for old payloads that only had raw prompt fields.
+    static func legacyContextInputs(
+        model: String,
+        prompt: AgentPrompt,
+        inputHash: String
+    ) -> AgentContextInputs {
+        var sources: [AgentContextSource] = []
+        if !prompt.system.isEmpty {
+            sources.append(
+                AgentContextSource(
+                    kind: "inline",
+                    pathOrId: "system_prompt",
+                    hash: shortHash(prompt.system),
+                    sizeBytes: prompt.system.utf8.count,
+                    body: prompt.system
+                )
+            )
+        }
+        if !prompt.user.isEmpty {
+            sources.append(
+                AgentContextSource(
+                    kind: "inline",
+                    pathOrId: "user_prompt",
+                    hash: shortHash(prompt.user),
+                    sizeBytes: prompt.user.utf8.count,
+                    body: prompt.user
+                )
+            )
+        }
+
+        let hash = inputHash.isEmpty ? shortHash("\(model)\u{0}\(prompt.system)\u{0}\(prompt.user)") : inputHash
+        return AgentContextInputs(sources: sources, withheld: [], inputHash: hash)
+    }
+
+    /// UI-friendly SHA-256 prefix used for local-only nodes and replay diffs.
+    public static func shortHash(_ value: String) -> String {
+        let digest = SHA256.hash(data: Data(value.utf8))
+        return digest.prefix(8).map { String(format: "%02x", $0) }.joined()
     }
 }

@@ -48,7 +48,7 @@ pub(crate) async fn proxy(State(state): State<AppState>, req: Request) -> Respon
         Ok(bytes) => bytes,
         Err(error) => {
             eprintln!("{RED}x failed reading request body: {error}{RESET}\n");
-            return (StatusCode::BAD_REQUEST, "loom: cannot read request body").into_response();
+            return (StatusCode::BAD_REQUEST, "tether: cannot read request body").into_response();
         }
     };
 
@@ -65,7 +65,7 @@ pub(crate) async fn proxy(State(state): State<AppState>, req: Request) -> Respon
 
     let cacheable = state.cache_enabled && method == Method::POST;
     let key = if cacheable {
-        loom_cache::cache_key(method.as_str(), &path_and_query, &body_bytes)
+        tether_cache::cache_key(method.as_str(), &path_and_query, &body_bytes)
     } else {
         String::new()
     };
@@ -74,7 +74,7 @@ pub(crate) async fn proxy(State(state): State<AppState>, req: Request) -> Respon
         let db = state.db.clone();
         let cache_key = key.clone();
         if let Ok(Some(cached)) =
-            tokio::task::spawn_blocking(move || loom_cache::get(&db, &cache_key)).await
+            tokio::task::spawn_blocking(move || tether_cache::get(&db, &cache_key)).await
         {
             let latency_ms = started.elapsed().as_millis() as i64;
             state.trace_sink.record_response(
@@ -117,7 +117,7 @@ pub(crate) async fn proxy(State(state): State<AppState>, req: Request) -> Respon
             eprintln!("{RED}< upstream error: {error}{RESET}\n");
             return (
                 StatusCode::BAD_GATEWAY,
-                format!("loom upstream error: {error}"),
+                format!("tether upstream error: {error}"),
             )
                 .into_response();
         }

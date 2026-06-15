@@ -15,25 +15,25 @@ Incremental and **always-shippable**. Every phase ends with the app building and
 
 ## Phase 1 — Cargo workspace + shared crates (no behavior change)  · M
 - Convert `proxy/` to a Cargo workspace.
-- Extract `loom-domain` (move structs out of `trace.rs`), `loom-contracts` (DTOs + empty
-  traits), `loom-storage` (the SQLite pool + repos), `loom-crypto` (move `crypto.rs`).
+- Extract `tether-domain` (move structs out of `trace.rs`), `tether-contracts` (DTOs + empty
+  traits), `tether-storage` (the SQLite pool + repos), `tether-crypto` (move `crypto.rs`).
 - Existing `main.rs`/`trace.rs` keep working by calling the new crates. Behavior identical.
 - **Exit:** `cargo build` + smoke pass; models/storage/crypto now live in their own crates.
 
 ## Phase 2 — Split god files into services (logic preserved)  · L
-- Carve `loom-cache`, `loom-trace`, `loom-sessions`, `loom-auth`, `loom-settings`,
-  `loom-gateway`, `loom-http` per [03](./03-service-catalog.md), applying the file-split
-  plan in [04](./04-code-organization.md). Each service implements its `loom-contracts` trait.
-- Handlers stop touching SQL; they call traits backed by `loom-storage` repos.
+- Carve `tether-cache`, `tether-trace`, `tether-sessions`, `tether-auth`, `tether-settings`,
+  `tether-gateway`, `tether-http` per [03](./03-service-catalog.md), applying the file-split
+  plan in [04](./04-code-organization.md). Each service implements its `tether-contracts` trait.
+- Handlers stop touching SQL; they call traits backed by `tether-storage` repos.
 - `main.rs` becomes the thin composition root.
 - **Exit:** every Rust file ≤200 lines; all endpoints behave as before; smoke green.
 - **Status:** implemented in the current module/workspace layout. `main.rs` is now the
   composition root; gateway, auth, settings, trace, cache, crypto, and domain concerns are
-  split into ≤200-line modules/crates. `loom-contracts`/`loom-storage` promotion remains a
+  split into ≤200-line modules/crates. `tether-contracts`/`tether-storage` promotion remains a
   later boundary-hardening step.
 
 ## Phase 3 — Decouple the hot path  · M
-- Introduce the `TraceSink` channel: gateway emits `CapturedCall`; `loom-trace` consumes it
+- Introduce the `TraceSink` channel: gateway emits `CapturedCall`; `tether-trace` consumes it
   in a background worker. Forward path no longer blocks on trace writes.
 - Add focused tests for summarizer, cost calc, cache-key derivation, snapshot query.
 - **Exit:** measured forward latency ≤ today; trace logic unit-tested in isolation.
@@ -49,7 +49,7 @@ Incremental and **always-shippable**. Every phase ends with the app building and
 - **Status:** implemented with a committed static OpenAPI artifact served by
   `GET /openapi.json`, `docs/api/README.md`, per-crate READMEs for existing workspace
   crates, ADR-0003, and ADR-0004. Generated `utoipa` output is deferred until
-  `loom-contracts` owns all DTOs/routes.
+  `tether-contracts` owns all DTOs/routes.
 
 ## Phase 5 — SwiftUI app refactor  · L
 - Split `CodexLogObserver`, `TraceStore`, `TraceModels`, `AgentTracePalette`, `InspectorPane`
@@ -86,7 +86,7 @@ P0 safety net ─► P1 workspace+shared ─► P2 split into services ─► P3
 | Risk | Mitigation |
 |------|------------|
 | Behavior regressions while splitting | smoke-e2e gate every phase; move code before changing it |
-| Crate dependency cycles | enforce direction in [02](./02-target-architecture.md); `loom-contracts` breaks cycles |
+| Crate dependency cycles | enforce direction in [02](./02-target-architecture.md); `tether-contracts` breaks cycles |
 | Hot-path latency creep | Phase 3 measures forward latency before/after; channel is bounded |
 | DTO drift between Rust & Swift | OpenAPI as source of truth (Phase 4) + optional drift check (Phase 6) |
 | Over-fragmentation (too many tiny files) | the seam must be a real concern boundary, not a line count hack |

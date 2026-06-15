@@ -8,7 +8,7 @@ The Rust proxy and SwiftUI app exchange trace, session, auth, and settings DTOs 
 local HTTP API. Before Phase 4, those shapes were documented mostly by implementation code,
 which made API drift hard to spot in review.
 
-The target architecture calls for generated OpenAPI from `loom-contracts`, but the current
+The target architecture calls for generated OpenAPI from `tether-contracts`, but the current
 codebase has not fully promoted every DTO and route into that crate yet.
 
 ## Decision
@@ -16,7 +16,7 @@ codebase has not fully promoted every DTO and route into that crate yet.
 Commit a reviewable OpenAPI 3 document at `docs/api/openapi.json` and serve the exact same
 document at `GET /openapi.json` from the local proxy.
 
-For this phase the spec is a static artifact. Later `loom-contracts`/`utoipa` generation can
+For this phase the spec is a static artifact. Later `tether-contracts`/`utoipa` generation can
 replace the static file while preserving the same committed path and runtime route.
 
 ## Consequences

@@ -1,7 +1,9 @@
 //! Read-path mapping: turn a stored `TraceRow` into a UI `AgentNodeDto`.
 
-use loom_domain::{AgentErrorDto, AgentNodeDto, AgentPromptDto, AgentResponseDto};
 use serde_json::Value;
+use tether_domain::{AgentErrorDto, AgentNodeDto, AgentPromptDto, AgentResponseDto};
+
+use crate::context::short_hash;
 
 use super::store_row::TraceRow;
 use super::text::{compact_path, format_latency, format_timestamp};
@@ -39,6 +41,7 @@ pub(super) fn row_to_node(depth: i64, row: TraceRow, max_latency: i64) -> AgentN
         depth,
         step_name,
         timestamp: format_timestamp(row.created_at),
+        provider: row.provider,
         model: row.model,
         cost: row.cost,
         latency: format_latency(row.latency_ms),
@@ -56,8 +59,9 @@ pub(super) fn row_to_node(depth: i64, row: TraceRow, max_latency: i64) -> AgentN
         },
         response: AgentResponseDto {
             language: row.response_language,
-            text: row.response_text,
+            text: row.response_text.clone(),
         },
+        output_hash: short_hash(row.response_text.as_bytes()),
         error: row.error_code.map(|code| AgentErrorDto {
             code,
             message: row.error_message.unwrap_or_default(),

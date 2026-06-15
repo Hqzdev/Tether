@@ -28,7 +28,7 @@ The release job runs:
 That script:
 - Builds the Rust proxy helper with `cargo build --release`.
 - Builds the macOS app with `xcodebuild` using the `Tether` scheme.
-- Copies `loom-proxy` into `Tether.app/Contents/Helpers`.
+- Copies `tether-proxy` into `Tether.app/Contents/Helpers`.
 - Performs ad-hoc signing.
 - Creates `dist/Tether.dmg`.
 - Copies the DMG to `web/public/downloads/Tether.dmg` for the website download

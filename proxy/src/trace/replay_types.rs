@@ -14,6 +14,9 @@ pub(super) struct EditOutputRequest {
 #[derive(Serialize)]
 pub(super) struct InvalidationResult {
     pub(super) node_id: String,
+    pub(super) reason: String,
+    pub(super) previous_output_hash: String,
+    pub(super) output_hash: String,
     pub(super) invalidated: Vec<String>,
 }
 
@@ -28,6 +31,9 @@ pub(super) struct DownstreamResult {
 #[derive(Serialize)]
 pub(super) struct ReplayResult {
     pub(super) node_id: String,
+    pub(super) reason: String,
+    pub(super) previous_output_hash: String,
+    pub(super) output_hash: String,
     pub(super) status_code: u16,
     pub(super) cost: String,
     pub(super) tokens_in: i64,

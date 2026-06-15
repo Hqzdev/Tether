@@ -52,7 +52,7 @@ impl StreamFinish {
 
         if self.store {
             let _ = tokio::task::spawn_blocking(move || {
-                loom_cache::put(
+                tether_cache::put(
                     &self.cache_db,
                     &self.cache_key,
                     &self.provider,

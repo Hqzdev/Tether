@@ -2,7 +2,8 @@ import Foundation
 
 /// Inspector section selected by the user.
 public enum InspectorTab: String, CaseIterable, Identifiable, Sendable {
-    case prompt
+    case context
+    case llmCall
     case response
     case metadata
 
@@ -12,8 +13,10 @@ public enum InspectorTab: String, CaseIterable, Identifiable, Sendable {
     /// User-facing tab title.
     public var title: String {
         switch self {
-        case .prompt:
-            return "Prompt"
+        case .context:
+            return "Context"
+        case .llmCall:
+            return "LLM Call"
         case .response:
             return "Response"
         case .metadata:

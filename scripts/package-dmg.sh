@@ -2,9 +2,9 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SCHEME_NAME="${LOOM_SCHEME_NAME:-Tether}"
-APP_NAME="${LOOM_APP_NAME:-Tether}"
-DMG_NAME="${LOOM_DMG_NAME:-Tether.dmg}"
+SCHEME_NAME="${TETHER_SCHEME_NAME:-Tether}"
+APP_NAME="${TETHER_APP_NAME:-Tether}"
+DMG_NAME="${TETHER_DMG_NAME:-Tether.dmg}"
 DIST_DIR="$ROOT/dist"
 BUILD_DIR="$DIST_DIR/build"
 STAGE_DIR="$BUILD_DIR/dmg-stage"
@@ -32,7 +32,7 @@ cargo build --manifest-path "$ROOT/proxy/Cargo.toml" --release
 
 echo "==> Building macOS app"
 xcodebuild \
-  -project "$ROOT/ui/Loom.xcodeproj" \
+  -project "$ROOT/ui/Tether.xcodeproj" \
   -scheme "$SCHEME_NAME" \
   -configuration Release \
   -destination "generic/platform=macOS" \
@@ -50,8 +50,8 @@ fi
 echo "==> Staging app bundle"
 cp -R "$BUILT_APP" "$APP_STAGE"
 mkdir -p "$APP_STAGE/Contents/Helpers"
-cp "$ROOT/proxy/target/release/loom-proxy" "$APP_STAGE/Contents/Helpers/loom-proxy"
-chmod +x "$APP_STAGE/Contents/Helpers/loom-proxy"
+cp "$ROOT/proxy/target/release/tether-proxy" "$APP_STAGE/Contents/Helpers/tether-proxy"
+chmod +x "$APP_STAGE/Contents/Helpers/tether-proxy"
 
 echo "==> Normalizing app bundle metadata"
 if command -v dot_clean >/dev/null 2>&1; then

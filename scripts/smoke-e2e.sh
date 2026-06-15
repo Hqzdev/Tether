@@ -3,8 +3,8 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/Tether-e2e.XXXXXX")"
-PROXY_PORT="${LOOM_E2E_PROXY_PORT:-18080}"
-UPSTREAM_PORT="${LOOM_E2E_UPSTREAM_PORT:-18081}"
+PROXY_PORT="${TETHER_E2E_PROXY_PORT:-18080}"
+UPSTREAM_PORT="${TETHER_E2E_UPSTREAM_PORT:-18081}"
 DB_PATH="$TMP_DIR/Tether-e2e.sqlite"
 MOCK_LOG="$TMP_DIR/mock-upstream.log"
 PROXY_LOG="$TMP_DIR/proxy.log"
@@ -112,7 +112,7 @@ server.listen(port, "127.0.0.1", () => {
 });
 JS
 
-if [[ "${LOOM_E2E_SKIP_BUILD:-0}" == "1" ]]; then
+if [[ "${TETHER_E2E_SKIP_BUILD:-0}" == "1" ]]; then
   echo "==> Skipping proxy build"
 else
   echo "==> Building proxy"
@@ -125,12 +125,12 @@ MOCK_PID="$!"
 wait_for "http://127.0.0.1:$UPSTREAM_PORT/health" "mock upstream"
 
 echo "==> Starting Tether proxy on :$PROXY_PORT"
-LOOM_ADDR="127.0.0.1:$PROXY_PORT" \
-LOOM_DB="$DB_PATH" \
-LOOM_CACHE=on \
+TETHER_ADDR="127.0.0.1:$PROXY_PORT" \
+TETHER_DB="$DB_PATH" \
+TETHER_CACHE=on \
 OPENAI_UPSTREAM="http://127.0.0.1:$UPSTREAM_PORT" \
 ANTHROPIC_UPSTREAM="http://127.0.0.1:$UPSTREAM_PORT" \
-"$ROOT/proxy/target/debug/loom-proxy" >"$PROXY_LOG" 2>&1 &
+"$ROOT/proxy/target/debug/tether-proxy" >"$PROXY_LOG" 2>&1 &
 PROXY_PID="$!"
 wait_for "http://127.0.0.1:$PROXY_PORT/api/traces/current" "Tether proxy"
 
@@ -166,8 +166,15 @@ if (
   node &&
   node.status === "success" &&
   node.step_name === "OPENAI completions" &&
+  node.provider === "openai" &&
   node.model === "gpt-4o-mini" &&
   node.request_id === "req_Tether_smoke" &&
+  typeof node.input_hash === "string" &&
+  node.input_hash.length > 0 &&
+  typeof node.output_hash === "string" &&
+  node.output_hash.length > 0 &&
+  Array.isArray(node.context_inputs?.sources) &&
+  node.context_inputs.sources.length > 0 &&
   node.prompt.user.includes("Trace this request") &&
   node.response.text.includes("Smoke trace captured")
 ) {
@@ -196,7 +203,7 @@ if (!snapshot.session || !node) {
   process.exit(1);
 }
 const stepName = node.step_name || node.stepName;
-console.log(`    UI API node: ${stepName} / ${node.status} / ${node.model}`);
+console.log(`    UI API node: ${stepName} / ${node.status} / ${node.provider}/${node.model} / #${node.output_hash}`);
 JS
 
 TRACE_COUNT="$(sqlite3 "$DB_PATH" "select count(*) from trace_calls where path = '/v1/chat/completions' and status_code = 200;")"

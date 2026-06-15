@@ -159,7 +159,7 @@ export const DOCS_PAGES: DocsPage[] = [
             items: [
               "Builds the Rust proxy helper in release mode.",
               "Builds the Tether Xcode scheme.",
-              "Copies loom-proxy into Tether.app/Contents/Helpers.",
+              "Copies tether-proxy into Tether.app/Contents/Helpers.",
               "Creates dist/Tether.dmg and mirrors it into web/public/downloads/.",
             ],
           },
@@ -353,7 +353,7 @@ export const DOCS_PAGES: DocsPage[] = [
               ["proxy/src/trace", "Capture, summarize, persist, query, replay, and session lifecycle."],
               ["ui/Sources/Core", "Shared trace models and reducer state."],
               ["ui/Sources/Networking", "Proxy API, local launcher, Keychain, and Codex log ingestion."],
-              ["ui/Loom/Features", "App shell, graph, sidebar, inspector, settings, and welcome UI."],
+              ["ui/Tether/Features", "App shell, graph, sidebar, inspector, settings, and welcome UI."],
               ["web", "Marketing site and public documentation pages."],
             ],
           },
@@ -537,7 +537,7 @@ export const DOCS_PAGES: DocsPage[] = [
             kind: "code",
             language: "bash",
             code:
-              "xcodebuild -project ui/Loom.xcodeproj -scheme Tether -configuration Debug -destination 'generic/platform=macOS' -derivedDataPath /tmp/LoomDerivedData build CODE_SIGNING_ALLOWED=NO",
+              "xcodebuild -project ui/Tether.xcodeproj -scheme Tether -configuration Debug -destination 'generic/platform=macOS' -derivedDataPath /tmp/TetherDerivedData build CODE_SIGNING_ALLOWED=NO",
           },
         ],
       },

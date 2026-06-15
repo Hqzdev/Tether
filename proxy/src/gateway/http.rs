@@ -6,7 +6,7 @@ use axum::{
     response::Response,
 };
 use bytes::Bytes;
-use loom_cache::CachedResponse;
+use tether_cache::CachedResponse;
 
 /// Builds the upstream request headers, dropping hop-by-hop/framing headers.
 pub(super) fn upstream_headers(source: &HeaderMap) -> HeaderMap {
@@ -30,7 +30,7 @@ pub(super) fn miss_response_headers(source: &HeaderMap) -> HeaderMap {
         headers.insert(name.clone(), value.clone());
     }
     headers.insert(
-        HeaderName::from_static("x-loom-cache"),
+        HeaderName::from_static("x-tether-cache"),
         HeaderValue::from_static("miss"),
     );
     headers
@@ -47,7 +47,7 @@ pub(super) fn cached_response(cached: CachedResponse) -> Response {
         headers.insert(CONTENT_TYPE, value);
     }
     headers.insert(
-        HeaderName::from_static("x-loom-cache"),
+        HeaderName::from_static("x-tether-cache"),
         HeaderValue::from_static("hit"),
     );
     response

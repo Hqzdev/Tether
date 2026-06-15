@@ -3,7 +3,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "LoomModules",
+    name: "TetherModules",
     platforms: [
         .macOS(.v14)
     ],

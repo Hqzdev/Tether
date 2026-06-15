@@ -8,7 +8,7 @@ use std::{
 
 use sqlx::{PgPool, postgres::PgPoolOptions};
 
-use loom_crypto::KeyCipher;
+use tether_crypto::KeyCipher;
 
 use crate::{AppState, error::ApiError};
 

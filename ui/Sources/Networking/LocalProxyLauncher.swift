@@ -72,8 +72,8 @@ public final class LocalProxyLauncher {
             .deletingLastPathComponent()
 
         let candidates = [
-            repoRoot.appendingPathComponent("proxy/target/debug/loom-proxy"),
-            Bundle.main.bundleURL.appendingPathComponent("Contents/Helpers/loom-proxy")
+            repoRoot.appendingPathComponent("proxy/target/debug/tether-proxy"),
+            Bundle.main.bundleURL.appendingPathComponent("Contents/Helpers/tether-proxy")
         ]
 
         return candidates.first { FileManager.default.isExecutableFile(atPath: $0.path) }
@@ -83,12 +83,12 @@ public final class LocalProxyLauncher {
     private func proxyEnvironment(runtimeDirectory: URL) -> [String: String] {
         var environment = ProcessInfo.processInfo.environment
         let settings = ProxySettingsStore.current
-        environment["LOOM_ADDR"] = settings.listenAddress
-        environment["LOOM_CACHE"] = settings.localCacheEnabled ? "on" : "off"
+        environment["TETHER_ADDR"] = settings.listenAddress
+        environment["TETHER_CACHE"] = settings.localCacheEnabled ? "on" : "off"
         environment["OPENAI_UPSTREAM"] = settings.openAIUpstreamURL
         environment["ANTHROPIC_UPSTREAM"] = settings.anthropicUpstreamURL
-        environment["LOOM_DB"] = runtimeDirectory
-            .appendingPathComponent("loom-cache.sqlite")
+        environment["TETHER_DB"] = runtimeDirectory
+            .appendingPathComponent("tether-cache.sqlite")
             .path
         if let openAIKey = KeychainStore.read(.openAIAPIKey) {
             environment["OPENAI_API_KEY"] = openAIKey
@@ -113,7 +113,7 @@ public final class LocalProxyLauncher {
     /// Creates the cache-backed runtime directory used for the proxy database and logs.
     private static func runtimeDirectory() throws -> URL {
         let root = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
-        let directory = root.appendingPathComponent("Loom", isDirectory: true)
+        let directory = root.appendingPathComponent("Tether", isDirectory: true)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         return directory
     }

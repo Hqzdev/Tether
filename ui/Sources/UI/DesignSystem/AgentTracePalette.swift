@@ -2,7 +2,7 @@ import Core
 import SwiftUI
 
 /// Shared color and radius tokens for the Tether desktop trace interface.
-public struct AgentTracePalette {
+public struct AgentTracePalette: Equatable {
     /// Whether the palette should render in the light theme variant.
     public let light: Bool
 

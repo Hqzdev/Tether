@@ -4,7 +4,7 @@
 
 ## Context
 
-Loom/Tether is a **local-first desktop debugger**. The Rust proxy and the SwiftUI app run on
+Tether/Tether is a **local-first desktop debugger**. The Rust proxy and the SwiftUI app run on
 the user's own machine. The backend has grown into a few god files (`trace.rs` 964 lines,
 `main.rs` 483, `auth/mod.rs` 380) that mix routing, persistence, summarization, auth, and
 settings, making the code hard to read, test, and evolve.
@@ -18,7 +18,7 @@ value proposition is running locally and privately.
 ## Decision
 
 Adopt a **modular monolith**: a Cargo workspace of small, single-responsibility crates
-("services") that are composed into **one process** (`loom-proxy`) at startup. Each crate is
+("services") that are composed into **one process** (`tether-proxy`) at startup. Each crate is
 independently compilable and testable. The SwiftUI app receives the same treatment — feature-
 scoped modules with hard boundaries, but one app.
 

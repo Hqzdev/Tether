@@ -32,7 +32,7 @@ client's response.
 - **Positive:** forwarding no longer awaits trace SQLite writes on cache hits, upstream
   errors, or completed response streams.
 - **Positive:** trace ingestion is isolated behind a testable sink/worker boundary that can
-  later become the `loom-contracts::TraceSink` trait without changing gateway behavior.
+  later become the `tether-contracts::TraceSink` trait without changing gateway behavior.
 - **Positive:** bounded buffering prevents unbounded memory growth if trace persistence falls
   behind a burst of proxy traffic.
 - **Negative:** trace capture becomes best-effort under overload; a saturated channel can

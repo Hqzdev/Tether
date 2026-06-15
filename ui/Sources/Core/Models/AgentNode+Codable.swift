@@ -7,6 +7,7 @@ extension AgentNode {
         case depth
         case stepName
         case timestamp
+        case provider
         case model
         case cost
         case latency
@@ -17,6 +18,13 @@ extension AgentNode {
         case requestId
         case cacheStatus
         case temperature
+        case traceId
+        case parentSpanId
+        case toolUseIds
+        case contextInputs
+        case inputHash
+        case outputHash
+        case stale
         case status
         case prompt
         case response
@@ -30,6 +38,7 @@ extension AgentNode {
         let depth = try container.decode(Int.self, forKey: .depth)
         let stepName = try container.decode(String.self, forKey: .stepName)
         let timestamp = try container.decode(String.self, forKey: .timestamp)
+        let provider = try container.decodeIfPresent(String.self, forKey: .provider)
         let model = try container.decode(String.self, forKey: .model)
         let cost = try container.decode(String.self, forKey: .cost)
         let latency = try container.decode(String.self, forKey: .latency)
@@ -40,6 +49,13 @@ extension AgentNode {
         let requestId = try container.decode(String.self, forKey: .requestId)
         let cacheStatus = try container.decode(String.self, forKey: .cacheStatus)
         let temperature = try container.decodeIfPresent(Double.self, forKey: .temperature)
+        let traceId = try container.decodeIfPresent(String.self, forKey: .traceId) ?? ""
+        let parentSpanId = try container.decodeIfPresent(String.self, forKey: .parentSpanId)
+        let toolUseIds = (try? container.decodeIfPresent([String].self, forKey: .toolUseIds)) ?? []
+        let contextInputs = try container.decodeIfPresent(AgentContextInputs.self, forKey: .contextInputs)
+        let inputHash = try container.decodeIfPresent(String.self, forKey: .inputHash) ?? ""
+        let outputHash = try container.decodeIfPresent(String.self, forKey: .outputHash) ?? ""
+        let stale = try container.decodeIfPresent(Bool.self, forKey: .stale) ?? false
         let status = try container.decode(NodeStatus.self, forKey: .status)
         let prompt = try container.decode(AgentPrompt.self, forKey: .prompt)
         let response = try container.decode(AgentResponse.self, forKey: .response)
@@ -52,6 +68,7 @@ extension AgentNode {
             depth: depth,
             stepName: stepName,
             timestamp: timestamp,
+            provider: provider,
             model: model,
             cost: cost,
             latency: latency,
@@ -62,6 +79,13 @@ extension AgentNode {
             requestId: requestId,
             cacheStatus: cacheStatus,
             temperature: temperature,
+            traceId: traceId,
+            parentSpanId: parentSpanId,
+            toolUseIds: toolUseIds,
+            contextInputs: contextInputs,
+            inputHash: inputHash,
+            outputHash: outputHash,
+            stale: stale,
             status: status,
             prompt: prompt,
             response: response,
@@ -77,6 +101,7 @@ extension AgentNode {
         try container.encode(depth, forKey: .depth)
         try container.encode(stepName, forKey: .stepName)
         try container.encode(timestamp, forKey: .timestamp)
+        try container.encode(provider, forKey: .provider)
         try container.encode(model, forKey: .model)
         try container.encode(cost, forKey: .cost)
         try container.encode(latency, forKey: .latency)
@@ -87,6 +112,13 @@ extension AgentNode {
         try container.encode(requestId, forKey: .requestId)
         try container.encode(cacheStatus, forKey: .cacheStatus)
         try container.encodeIfPresent(temperature, forKey: .temperature)
+        try container.encode(traceId, forKey: .traceId)
+        try container.encodeIfPresent(parentSpanId, forKey: .parentSpanId)
+        try container.encode(toolUseIds, forKey: .toolUseIds)
+        try container.encode(contextInputs, forKey: .contextInputs)
+        try container.encode(inputHash, forKey: .inputHash)
+        try container.encode(outputHash, forKey: .outputHash)
+        try container.encode(stale, forKey: .stale)
         try container.encode(status, forKey: .status)
         try container.encode(prompt, forKey: .prompt)
         try container.encode(response, forKey: .response)

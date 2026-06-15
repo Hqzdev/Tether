@@ -104,7 +104,7 @@ Documentation updates should be made in the same patch when:
 Formatting and verification:
 
 ```bash
-xcodebuild -project ui/Loom.xcodeproj -scheme Tether -configuration Debug -destination 'platform=macOS' -derivedDataPath /tmp/LoomDerivedData build CODE_SIGNING_ALLOWED=NO
+xcodebuild -project ui/Tether.xcodeproj -scheme Tether -configuration Debug -destination 'platform=macOS' -derivedDataPath /tmp/TetherDerivedData build CODE_SIGNING_ALLOWED=NO
 ```
 
 ## Rust Proxy

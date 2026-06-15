@@ -4,12 +4,9 @@ import Security
 /// Thin wrapper over the macOS Keychain (generic-password items) for provider
 /// API keys. Uses only Apple's Security framework — no third-party dependency.
 ///
-/// Service id keeps the Tether brand + `loom` codename (see CLAUDE.md naming
-/// rule); it does not collide with the existing `agenttrace.proxy.*`
-/// UserDefaults keys, which stay untouched.
 public enum KeychainStore {
     /// Keychain service namespace for all provider API-key accounts.
-    public static let service = "dev.tether.loom.providerKeys"
+    public static let service = "dev.tether.providerKeys"
 
     /// Provider API-key slots stored under the shared Tether Keychain service.
     public enum Account: String, CaseIterable {

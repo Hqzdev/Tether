@@ -1,5 +1,5 @@
 [package]
-name = "loom-proxy"
+name = "tether-proxy"
 version = "0.1.0"
 edition = "2024"
 license = "MIT"
@@ -10,9 +10,9 @@ license = "MIT"
 members = ["crates/*"]
 
 [dependencies]
-loom-cache = { path = "crates/loom-cache" }
-loom-crypto = { path = "crates/loom-crypto" }
-loom-domain = { path = "crates/loom-domain" }
+tether-cache = { path = "crates/tether-cache" }
+tether-crypto = { path = "crates/tether-crypto" }
+tether-domain = { path = "crates/tether-domain" }
 tokio = { version = "1", features = ["full"] }
 tokio-stream = "0.1"
 axum = "0.8"
