@@ -481,13 +481,6 @@ export default function TetherLanding() {
       <SiteHeader />
 
       <header className="hero wrap" id="top">
-        <div className="center-row">
-          <span className="eyebrow">
-            <span className="dot" />
-            Your agent failed at step 3. You have no idea why. <b>Tether</b> shows you the exact
-            call, the exact response, and lets you replay from there.
-          </span>
-        </div>
         <div className="center-row sp-row">
           <div className="social-proof">
             <div className="sp-avatars">
@@ -568,14 +561,6 @@ export default function TetherLanding() {
         <div className="product-shot reveal">
           <div className="product-shot-glow" />
           <div className="product-shot-frame">
-            <div className="browser-bar" aria-hidden="true">
-              <span className="traffic">
-                <i className="r" />
-                <i className="y" />
-                <i className="g" />
-              </span>
-              <span className="browser-url">localhost:8080/v1/traces/support-agent</span>
-            </div>
             <Image
               alt="Tether showing a live AI agent trace graph with response metadata"
               className="product-shot-image"
@@ -1052,176 +1037,176 @@ export default function TetherLanding() {
         </div>
       </section>
 
-      <section className="section-pad wrap feedback-section deferred-section" id="feedback">
-        <div className="feedback-card reveal">
-          <div className="section-head compact">
-            <div className="kicker">Feedback loop</div>
-            <h2 className="title">Tell me which trace would make this useful.</h2>
-            <p className="section-sub">
-              Alpha users shape the next build. Send the bug, missing workflow, or security objection that would
-              stop you from using Tether.
-            </p>
-          </div>
-          <form
-            action="/api/feedback"
-            className="feedback-form"
-            method="post"
-            onSubmit={sendFeedback}
-          >
-            <input
-              aria-hidden="true"
-              autoComplete="off"
-              className="honeypot"
-              name="company"
-              tabIndex={-1}
-              type="text"
-            />
-            <input name="source" type="hidden" value="landing-feedback" />
-            <div className="feedback-grid">
-              <label className="field">
-                <span>Email</span>
-                <input
-                  autoComplete="email"
-                  enterKeyHint="next"
-                  inputMode="email"
-                  name="email"
-                  onChange={(event) => setFeedbackEmail(event.target.value)}
-                  placeholder="you@example.com"
-                  required
-                  type="email"
-                  value={feedbackEmail}
-                />
-              </label>
-              <label className="field">
-                <span>What are you building?</span>
-                <input
-                  autoComplete="off"
-                  name="context"
-                  onChange={(event) => setFeedbackContext(event.target.value)}
-                  placeholder="support agent, internal copilot, eval harness..."
-                  type="text"
-                  value={feedbackContext}
-                />
-              </label>
-            </div>
-            <label className="field">
-              <span>Feedback</span>
-              <textarea
-                minLength={10}
-                name="feedback"
-                onChange={(event) => setFeedbackText(event.target.value)}
-                placeholder="What confused you, what would stop you from trying it, or what should be added first?"
-                required
-                rows={5}
-                value={feedbackText}
-              />
-            </label>
-            <div className="feedback-actions">
-              <button
-                className="btn btn-primary"
-                disabled={feedbackState === "submitting"}
-                type="submit"
-              >
-                <LandingIcon name={feedbackState === "done" ? "check" : "arrow-right"} />
-                {feedbackState === "submitting" ? "Sending..." : feedbackState === "done" ? "Sent" : "Send feedback"}
-              </button>
-              <p
-                aria-live="polite"
-                className={`feedback-message ${feedbackState === "error" ? "error" : ""}`.trim()}
-              >
-                {feedbackMessage || "Structured feedback beats scattered DMs."}
+      <section className="section-pad wrap feedback-section download-section deferred-section" id="download">
+        <div className="feedback-download-card reveal">
+          <div className="feedback-pane" id="feedback">
+            <div className="section-head compact">
+              <div className="kicker">Feedback loop</div>
+              <h2 className="title">Tell me which trace would make this useful.</h2>
+              <p className="section-sub">
+                Alpha users shape the next build. Send the bug, missing workflow, or security objection that would
+                stop you from using Tether.
               </p>
             </div>
-          </form>
-        </div>
-      </section>
-
-      <section className="section-pad wrap finalcta deferred-section" id="download">
-        <div className="cta-card reveal">
-          <h2>
-            Get a replayable trace
-            <br />
-            before the next demo.
-          </h2>
-          <p>
-            Free during alpha. Open the source on GitHub, run it locally, or send feedback about
-            the workflow that should ship next.
-          </p>
-          <p className="alpha-note">No Releases dependency. Code first, feedback close by.</p>
-          <div className="download-actions">
-            <div className="download-direct">
+            <form
+              action="/api/feedback"
+              className="feedback-form"
+              method="post"
+              onSubmit={sendFeedback}
+            >
+              <input
+                aria-hidden="true"
+                autoComplete="off"
+                className="honeypot"
+                name="company"
+                tabIndex={-1}
+                type="text"
+              />
+              <input name="source" type="hidden" value="landing-feedback" />
+              <div className="feedback-grid">
+                <label className="field">
+                  <span>Email</span>
+                  <input
+                    autoComplete="email"
+                    enterKeyHint="next"
+                    inputMode="email"
+                    name="email"
+                    onChange={(event) => setFeedbackEmail(event.target.value)}
+                    placeholder="you@example.com"
+                    required
+                    type="email"
+                    value={feedbackEmail}
+                  />
+                </label>
+                <label className="field">
+                  <span>What are you building?</span>
+                  <input
+                    autoComplete="off"
+                    name="context"
+                    onChange={(event) => setFeedbackContext(event.target.value)}
+                    placeholder="support agent, internal copilot, eval harness..."
+                    type="text"
+                    value={feedbackContext}
+                  />
+                </label>
+              </div>
+              <label className="field">
+                <span>Feedback</span>
+                <textarea
+                  minLength={10}
+                  name="feedback"
+                  onChange={(event) => setFeedbackText(event.target.value)}
+                  placeholder="What confused you, what would stop you from trying it, or what should be added first?"
+                  required
+                  rows={5}
+                  value={feedbackText}
+                />
+              </label>
+              <div className="feedback-actions">
+                <button
+                  className="btn btn-primary"
+                  disabled={feedbackState === "submitting"}
+                  type="submit"
+                >
+                  <LandingIcon name={feedbackState === "done" ? "check" : "arrow-right"} />
+                  {feedbackState === "submitting" ? "Sending..." : feedbackState === "done" ? "Sent" : "Send feedback"}
+                </button>
+                <p
+                  aria-live="polite"
+                  className={`feedback-message ${feedbackState === "error" ? "error" : ""}`.trim()}
+                >
+                  {feedbackMessage || "Structured feedback beats scattered DMs."}
+                </p>
+              </div>
+            </form>
+          </div>
+          <div className="download-pane">
+            <div className="kicker">Alpha access</div>
+            <h2>
+              Get a replayable trace
+              <br />
+              before the next demo.
+            </h2>
+            <p>
+              Free during alpha. Open the source on GitHub, run it locally, or send feedback about
+              the workflow that should ship next.
+            </p>
+            <p className="alpha-note">No Releases dependency. Code first, feedback close by.</p>
+            <div className="download-actions">
+              <div className="download-direct">
+                <a
+                  className="btn btn-primary pulse"
+                  href={GITHUB_CODE_HREF}
+                  onClick={() =>
+                    trackEvent("download_clicked", {
+                      asset: "GitHub source",
+                      location: "final_cta",
+                    })
+                  }
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  <LandingIcon name="apple-finder" />
+                  Open GitHub code
+                </a>
+              </div>
+              <p className="download-note">Use the repository Code button to download a ZIP or clone the app.</p>
+            </div>
+            <div className="cta-row secondary-downloads">
               <a
-                className="btn btn-primary pulse"
-                href={GITHUB_CODE_HREF}
+                className="btn btn-ghost"
+                href="#feedback"
                 onClick={() =>
-                  trackEvent("download_clicked", {
-                    asset: "GitHub source",
+                  trackEvent("cta_clicked", {
+                    button_text: "Write feedback",
                     location: "final_cta",
                   })
                 }
-                rel="noreferrer"
-                target="_blank"
               >
-                <LandingIcon name="apple-finder" />
-                Open GitHub code
+                <LandingIcon name="arrow-right" />
+                Write feedback
+              </a>
+              <a
+                className="btn btn-ghost"
+                href="#how"
+                onClick={() =>
+                  trackEvent("cta_clicked", {
+                    button_text: "Setup steps",
+                    location: "final_cta",
+                  })
+                }
+              >
+                <LandingIcon name="file-lines" />
+                Setup steps
+              </a>
+              <a
+                className="btn btn-ghost"
+                href="#features"
+                onClick={() =>
+                  trackEvent("cta_clicked", {
+                    button_text: "See product",
+                    location: "final_cta",
+                  })
+                }
+              >
+                <LandingIcon name="play" />
+                See product
               </a>
             </div>
-            <p className="download-note">Use the repository Code button to download a ZIP or clone the app.</p>
-          </div>
-          <div className="cta-row secondary-downloads">
-            <a
-              className="btn btn-ghost"
-              href="#feedback"
-              onClick={() =>
-                trackEvent("cta_clicked", {
-                  button_text: "Write feedback",
-                  location: "final_cta",
-                })
-              }
-            >
-              <LandingIcon name="arrow-right" />
-              Write feedback
-            </a>
-            <a
-              className="btn btn-ghost"
-              href="#how"
-              onClick={() =>
-                trackEvent("cta_clicked", {
-                  button_text: "Setup steps",
-                  location: "final_cta",
-                })
-              }
-            >
-              <LandingIcon name="file-lines" />
-              Setup steps
-            </a>
-            <a
-              className="btn btn-ghost"
-              href="#features"
-              onClick={() =>
-                trackEvent("cta_clicked", {
-                  button_text: "See product",
-                  location: "final_cta",
-                })
-              }
-            >
-              <LandingIcon name="play" />
-              See product
-            </a>
-          </div>
-          <div className="meta-row final-meta">
-            <span>
-              <LandingIcon name="check" />
-              macOS 13+
-            </span>
-            <span>
-              <LandingIcon name="check" />
-              No account required
-            </span>
-            <span>
-              <LandingIcon name="check" />
-              Open source core
-            </span>
+            <div className="meta-row final-meta">
+              <span>
+                <LandingIcon name="check" />
+                macOS 13+
+              </span>
+              <span>
+                <LandingIcon name="check" />
+                No account required
+              </span>
+              <span>
+                <LandingIcon name="check" />
+                Open source core
+              </span>
+            </div>
           </div>
         </div>
       </section>
