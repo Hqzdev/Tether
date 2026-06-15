@@ -81,33 +81,6 @@ The product is local-first by design. Prompts stay on the machine. API keys stay
 6. **AI-native architecture**  
    Built around LLM calls, tool chains, replay, mocks, provider adapters, and the messy shape of modern agent workflows.
 
----
-
-## UI Preview
-
-### Website / Homepage
-![Website Homepage](../images/1.png)
-
-### Website / Product Story
-![Website Product Story](../images/2.png)
-
-### Website / Features
-![Website Features](../images/3.png)
-
-### Website / Download & Waitlist
-![Website Download and Waitlist](../images/4.png)
-
-### App / Trace Dashboard
-![App Trace Dashboard](../images/5.png)
-
-### App / Agent Graph
-![App Agent Graph](../images/6.png)
-
-### App / Inspector
-![App Inspector](../images/7.png)
-
-### App / Replay & Settings
-![App Replay and Settings](../images/8.png)
 
 ---
 
@@ -127,14 +100,18 @@ The product is local-first by design. Prompts stay on the machine. API keys stay
 
 ## Pages Overview
 
-| Page | Description |
+| Page or Route | Description |
 | --- | --- |
-| `/` | Product landing page with hero, feature story, provider support, privacy narrative, and waitlist CTA. |
+| `/` | Product landing page with hero, product proof, sample trace inspector, setup steps, privacy review, feedback, and alpha access sections. |
+| `/#features` | On-page product proof section with the Visual Tree Canvas and feature cards. |
+| `/#demo` | On-page embedded sample trace inspector with graph, cache, replay, and privacy states. |
+| `/#security` | On-page privacy review section with storage, key handling, telemetry, and replay evidence. |
+| `/#download` | On-page feedback and alpha access section. |
+| `/product`, `/features`, `/inspector`, `/how-it-works`, `/download` | Data-driven product information pages generated from `web/lib/site-pages.ts`. |
+| `/developers`, `/documentation`, `/cli-reference`, `/changelog`, `/company`, `/privacy`, `/security`, `/contact` | Additional generated information pages. |
+| `/docs` and `/docs/[slug]` | Documentation hub and detail pages generated from `web/lib/docs-pages.ts`. |
 | `/api/waitlist` | Waitlist capture endpoint for early access requests. |
-| `/features` | Planned feature breakdown for proxy capture, caching, replay, privacy, and provider support. |
-| `/docs` | Planned setup guide for routing OpenAI-compatible clients through Tether. |
-| `/download` | Planned macOS download and release notes page. |
-| `/pricing` | Planned packaging page for future Pro and team workflows. |
+| `/api/feedback` | Landing-page feedback endpoint. |
 
 ---
 
