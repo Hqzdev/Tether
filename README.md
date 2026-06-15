@@ -3,7 +3,7 @@
 
 Tether intercepts, visualizes, caches, replays, and mocks LLM calls so builders can understand every agent decision before it reaches production.
 
-[Website](https://useTether.dev) • [Docs](#quick-start) • [Discord](#) • [GitHub](https://github.com/Hqzdev/Tether)
+[Website](https://tetherapp.vercel.app) • [Docs](https://tetherapp.vercel.app/docs) • [GitHub](https://github.com/Hqzdev/Tether)
 
 ---
 
