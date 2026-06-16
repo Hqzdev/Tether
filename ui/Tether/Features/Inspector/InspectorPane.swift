@@ -10,6 +10,14 @@ struct SaveMockResponseAction: Sendable {
     }
 }
 
+struct RunMultipleAction: Sendable {
+    let perform: @MainActor @Sendable (AgentNode, Int) async throws -> [TraceReplayResult]
+
+    init(_ perform: @escaping @MainActor @Sendable (AgentNode, Int) async throws -> [TraceReplayResult]) {
+        self.perform = perform
+    }
+}
+
 /// Right-hand inspector that shows prompt, response, and metadata for the selected node.
 struct InspectorPane: View {
     let node: AgentNode?
@@ -17,6 +25,7 @@ struct InspectorPane: View {
     @Binding var responseEdits: [AgentNode.ID: String]
     @Binding var replayImpacts: [AgentNode.ID: TraceInvalidationResult]
     let onSaveMockResponse: SaveMockResponseAction
+    let onRunMultiple: RunMultipleAction
     let palette: AgentTracePalette
 
     @State private var editing = false
@@ -56,6 +65,7 @@ struct InspectorPane: View {
                     responseEdits: $responseEdits,
                     replayImpacts: $replayImpacts,
                     onSaveMockResponse: onSaveMockResponse,
+                    onRunMultiple: onRunMultiple,
                     palette: palette
                 )
             }

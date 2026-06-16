@@ -333,9 +333,19 @@ h2.title {
   font-size: clamp(40px, 6.6vw, 80px); line-height: 0.98; letter-spacing: 0;
   font-weight: 700; margin: 26px auto 0; max-width: 16ch; text-wrap: balance;
 }
-.hero h1 .grad {
+.landing-page .grad {
   background: linear-gradient(120deg, var(--accent) 0%, var(--accent-2) 48%, var(--accent-3) 100%);
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  font-style: italic;
+  font-weight: 700;
+}
+.landing-page h1 .grad { font-weight: inherit; }
+@media (forced-colors: active) {
+  .landing-page .grad {
+    background: none;
+    color: LinkText;
+    -webkit-text-fill-color: currentColor;
+  }
 }
 .hero p.lead {
   font-size: clamp(17px, 2vw, 20.5px); color: var(--text-2); margin: 26px auto 0;

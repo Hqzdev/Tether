@@ -95,6 +95,7 @@ extension MainThreePaneLayoutView {
             responseEdits: $responseEdits,
             replayImpacts: $replayImpacts,
             onSaveMockResponse: SaveMockResponseAction(saveMockResponse),
+            onRunMultiple: RunMultipleAction(runMultiple),
             palette: palette
         )
     }

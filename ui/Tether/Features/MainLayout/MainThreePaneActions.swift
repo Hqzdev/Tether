@@ -66,6 +66,19 @@ extension MainThreePaneLayoutView {
         return result
     }
 
+    /// Replays a node `count` times sequentially to surface provider non-determinism.
+    @MainActor
+    func runMultiple(node: AgentNode, count: Int = 3) async throws -> [TraceReplayResult] {
+        var results: [TraceReplayResult] = []
+        results.reserveCapacity(count)
+        for _ in 0..<max(1, count) {
+            let result = try await traceStore.client.replayNode(nodeId: node.id)
+            results.append(result)
+        }
+        await traceStore.refresh()
+        return results
+    }
+
     /// Copies the currently selected inspector content to the pasteboard.
     func copySelection() {
         guard let text = clipboardTextForSelectedNode(), !text.isEmpty else {

@@ -84,23 +84,7 @@ export function SiteHeader() {
           Tether
         </Link>
         <div className="nav-links">
-          <details className="nav-solutions">
-            <summary>Solutions</summary>
-            <div className="nav-menu">
-              <Link href="/#features" onClick={() => trackEvent("navigation_clicked", { label: "Founders", location: "header_solutions" })}>
-                <span>Founders</span>
-                <small>Show proof before the buyer asks.</small>
-              </Link>
-              <Link href="/#demo" onClick={() => trackEvent("navigation_clicked", { label: "Engineers", location: "header_solutions" })}>
-                <span>Engineers</span>
-                <small>Replay the exact node that broke.</small>
-              </Link>
-              <Link href="/security" onClick={() => trackEvent("navigation_clicked", { label: "Security", location: "header_solutions" })}>
-                <span>Security</span>
-                <small>Keep traces local and inspectable.</small>
-              </Link>
-            </div>
-          </details>
+     
           <Link href="/#demo" onClick={() => trackEvent("navigation_clicked", { label: "Demo", location: "header" })}>
             Demo
           </Link>
