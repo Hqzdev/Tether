@@ -201,8 +201,15 @@ h2.title {
   max-width: none;
   padding: 0 10px 0 14px;
 }
-.nav-inner { height: 54px; display: flex; align-items: center; gap: 18px; }
+.nav-inner {
+  height: 54px;
+  display: grid;
+  grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr);
+  align-items: center;
+  gap: 18px;
+}
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 640; font-size: 16px; letter-spacing: 0; }
+.nav-inner > .brand { justify-self: start; }
 .brand .logo {
   width: 28px; height: 28px; border-radius: 8px; display: block; overflow: hidden;
   background: #fff; border: 1px solid rgba(24,24,27,.10);
@@ -211,7 +218,7 @@ h2.title {
 .brand .logo img {
   width: 100%; height: 100%; display: block; object-fit: cover;
 }
-.nav-links { display: flex; align-items: center; gap: 4px; margin-left: 14px; }
+.nav-links { display: flex; align-items: center; justify-self: center; gap: 4px; margin-left: 0; min-width: 0; }
 .nav-links a,
 .nav-solutions summary {
   font-family: var(--font-mono);
@@ -278,9 +285,10 @@ h2.title {
   line-height: 1.4;
 }
 .nav-actions {
-  margin-left: auto;
+  margin-left: 0;
   display: flex;
   align-items: center;
+  justify-self: end;
 }
 .nav-cta {
   height: 34px;
@@ -1080,7 +1088,7 @@ h2.title {
 @media (max-width: 640px) {
   .section-pad.wrap { padding: 82px 18px; }
   .nav-links { display: none; }
-  .nav-inner { gap: 14px; }
+  .nav-inner { grid-template-columns: 1fr auto; gap: 14px; }
   .nav-cta { height: 32px; padding: 0 12px; }
   .proof-strip { padding-bottom: 20px; }
   .proof-grid { grid-template-columns: 1fr; }
