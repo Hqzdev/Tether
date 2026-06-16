@@ -115,7 +115,7 @@ const TREE_LAYOUT: {
   sub: string;
 }[] = [
   { status: "success", icon: "check-circle", label: "Intent Classification", sub: "gpt-4o" },
-  { status: "cached", icon: "bolt", label: "Vector DB Retrieval", sub: "cached - 0ms" },
+  { status: "cached", icon: "database", label: "Vector DB Retrieval", sub: "cached - 0ms" },
   { status: "success", icon: "check-circle", label: "Context Synthesis", sub: "claude-3.5-sonnet" },
   { status: "error", icon: "circle-exclamation", label: "Response Generation", sub: "timeout - 4.10s" },
 ];
@@ -517,19 +517,7 @@ export default function TetherLanding() {
             <LandingIcon name="apple-finder" />
             Download for macOS
           </a>
-          <a
-            className="btn btn-ghost"
-            href="#demo"
-            onClick={() =>
-              trackEvent("cta_clicked", {
-                button_text: "Try the sample trace",
-                location: "hero",
-              })
-            }
-          >
-            <LandingIcon name="play" />
-            Try the sample trace
-          </a>
+
         </div>
         <a
           className="urgency-link"
@@ -630,6 +618,8 @@ export default function TetherLanding() {
                   const statusClass =
                     sourceStatus === "success"
                       ? "tline-success"
+                      : sourceStatus === "cached"
+                        ? "tline-cached"
                       : sourceStatus === "error"
                         ? "tline-error"
                         : "tline-default";
