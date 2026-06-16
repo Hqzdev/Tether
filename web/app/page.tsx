@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { type FormEvent, type ReactNode, useEffect, useRef, useState } from "react";
 import { Icon, type IconName } from "@/components/Icon";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
@@ -562,16 +561,19 @@ export default function TetherLanding() {
         <div className="product-shot reveal">
           <div className="product-shot-glow" />
           <div className="product-shot-frame">
-            <Image
-              alt="Tether showing a live AI agent trace graph with response metadata"
+            <video
+              aria-label="Tether showing a live AI agent trace graph with response metadata"
+              autoPlay
               className="product-shot-image"
-              fetchPriority="high"
-              height={2212}
-              priority
-              sizes="(max-width: 760px) calc(100vw - 32px), (max-width: 1280px) calc(100vw - 56px), 1160px"
-              src="/image.png"
-              width={3644}
-            />
+              height={1080}
+              loop
+              muted
+              playsInline
+              preload="metadata"
+              width={1728}
+            >
+              <source src="/video.mp4" type="video/mp4" />
+            </video>
           </div>
         </div>
       </header>
