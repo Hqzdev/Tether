@@ -32,7 +32,7 @@ extension GraphViewport {
         if contentPt.x >= origin.x + size.width - 20 && contentPt.y >= origin.y + size.height - 20 {
             activeInteraction = .resize(nodeId: hit.node.id, startSize: size)
         } else {
-            activeInteraction = .node(nodeId: hit.node.id, startOffset: nodeOffsets[hit.node.id] ?? .zero, hasMoved: false)
+            activeInteraction = .node(nodeId: hit.node.id, startOffset: positionStore.offset(for: hit.node.id), hasMoved: false)
         }
         onInteractionChanged(true)
     }
@@ -66,11 +66,17 @@ extension GraphViewport {
         case let .node(nodeId, startOffset, hasMoved):
             if hasMoved {
                 let moved = movedNodeOffset(nodeId: nodeId, startOffset: startOffset, translation: unscaledTranslation(value.translation))
-                nodeOffsets[nodeId] = snappedOffset(moved)
+                let snapped = snappedOffset(moved)
+                if let indexedNode = nodes.enumerated().first(where: { $0.element.id == nodeId }) {
+                    positionStore.commitOffset(snapped, for: nodeId, defaultPosition: defaultPosition(for: indexedNode.element, at: indexedNode.offset))
+                }
             } else if let node = nodes.first(where: { $0.id == nodeId }) {
                 onSelect(node)
             }
-            activeDrag = nil
+            if let activeDragNodeId {
+                positionStore.finishDrag(for: activeDragNodeId)
+            }
+            activeDragNodeId = nil
             activeInteraction = nil
         case let .canvas(startOffset):
             panOffset = clampedPan(
@@ -98,7 +104,10 @@ extension GraphViewport {
         var transaction = Transaction()
         transaction.animation = nil
         withTransaction(transaction) {
-            activeDrag = ActiveNodeDrag(nodeId: nodeId, offset: finalOffset)
+            if let indexedNode = nodes.enumerated().first(where: { $0.element.id == nodeId }) {
+                activeDragNodeId = nodeId
+                positionStore.setLiveOffset(finalOffset, for: nodeId, defaultPosition: defaultPosition(for: indexedNode.element, at: indexedNode.offset))
+            }
         }
     }
 }

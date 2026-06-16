@@ -10,7 +10,7 @@ use rusqlite::Connection;
 use tether_domain::{AgentNodeDto, SessionListDto, TraceSnapshot};
 
 use super::node::row_to_node;
-use super::sessions::{ensure_current_session, find_session, session_to_dto};
+use super::sessions::{find_session, latest_session, session_to_dto};
 use super::store_row::TraceRow;
 
 /// Loads the latest 500 calls for a session (the current one when unspecified)
@@ -38,9 +38,16 @@ fn fetch_snapshot_with_payload(
     let conn = db.lock().expect("trace database lock poisoned");
     let session = match requested_session_id {
         Some(session_id) => {
-            find_session(&conn, &session_id)?.unwrap_or(ensure_current_session(&conn)?)
+            Some(find_session(&conn, &session_id)?.ok_or(rusqlite::Error::QueryReturnedNoRows)?)
         }
-        None => ensure_current_session(&conn)?,
+        None => latest_session(&conn)?,
+    };
+    let Some(session) = session else {
+        return Ok(TraceSnapshot {
+            session: None,
+            nodes: Vec::new(),
+            stale_node_ids: Vec::new(),
+        });
     };
     let payload_columns = if include_payload {
         "prompt_system, prompt_user, response_text, response_language,
@@ -179,27 +186,39 @@ fn compute_depths(rows: &[TraceRow]) -> HashMap<String, i64> {
     depths
 }
 
-/// Lists all sessions (newest first) plus the id of the current one.
-pub(super) fn fetch_sessions(db: &Arc<Mutex<Connection>>) -> rusqlite::Result<SessionListDto> {
+/// Lists all live sessions (newest first) with their call counts, plus the id
+/// of the current one. Soft-deleted sessions are excluded.
+pub(super) fn fetch_sessions(
+    db: &Arc<Mutex<Connection>>,
+    active_session_id: Option<String>,
+) -> rusqlite::Result<SessionListDto> {
     let conn = db.lock().expect("trace database lock poisoned");
-    let current = ensure_current_session(&conn)?;
+    let current = match active_session_id {
+        Some(session_id) => find_session(&conn, &session_id)?.or(latest_session(&conn)?),
+        None => latest_session(&conn)?,
+    };
     let mut stmt = conn.prepare(
-        "SELECT id, created_at, name
-         FROM sessions
-         ORDER BY created_at DESC",
+        "SELECT s.id, s.created_at, s.name, COUNT(t.id)
+         FROM sessions s
+         LEFT JOIN trace_calls t ON t.session_id = s.id
+         WHERE s.deleted_at IS NULL
+         GROUP BY s.id, s.created_at, s.name
+         ORDER BY s.created_at DESC",
     )?;
     let sessions = stmt
         .query_map([], |row| {
-            Ok(session_to_dto(
+            let mut dto = session_to_dto(
                 row.get::<_, String>(0)?,
                 row.get::<_, i64>(1)?,
                 row.get::<_, String>(2)?,
-            ))
+            );
+            dto.call_count = row.get::<_, i64>(3)?;
+            Ok(dto)
         })?
         .collect::<rusqlite::Result<Vec<_>>>()?;
 
     Ok(SessionListDto {
         sessions,
-        current_session_id: Some(current.id),
+        current_session_id: current.map(|session| session.id),
     })
 }

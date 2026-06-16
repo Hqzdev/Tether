@@ -4,24 +4,44 @@ use std::sync::{Arc, Mutex};
 
 use rusqlite::{Connection, OptionalExtension, params};
 
-use super::sessions::ensure_current_session;
+use super::sessions::{name_session_from_prompt, resolve_target_session, session_call_count};
 use super::store_row::TraceRow;
 
-/// Inserts a row under the current session. Best-effort: logs and returns on failure.
-pub(super) fn insert_trace_row(db: &Arc<Mutex<Connection>>, row: TraceRow, status: &str) {
+/// Inserts a row under the active session (falling back to the most recent one).
+/// Best-effort: logs and returns on failure.
+pub(super) fn insert_trace_row(
+    db: &Arc<Mutex<Connection>>,
+    row: TraceRow,
+    status: &str,
+    active_session: Option<&str>,
+) -> Option<String> {
     if let Ok(conn) = db.lock() {
-        let session = match ensure_current_session(&conn) {
+        let session = match resolve_target_session(&conn, active_session) {
             Ok(session) => session,
             Err(error) => {
                 eprintln!("  cannot resolve trace session: {error}");
-                return;
+                return None;
             }
         };
 
+        // Capture whether this is the session's opening call before inserting, so
+        // a fresh session can be renamed after its first user prompt lands.
+        let is_first_call = session_call_count(&conn, &session.id).unwrap_or(1) == 0;
+        let prompt_user = row.prompt_user.clone();
+
         let (trace_id, parent_span_id) = resolve_lineage(&conn, &row.id, &row.tool_result_ids);
         insert_row(&conn, row, &session.id, trace_id, parent_span_id);
+
+        if is_first_call
+            && let Err(error) = name_session_from_prompt(&conn, &session.id, &prompt_user)
+        {
+            eprintln!("  cannot name session from prompt: {error}");
+        }
         println!("  captured trace node: {status}");
+        return Some(session.id);
     }
+
+    None
 }
 
 /// Writes one trace row into SQLite.

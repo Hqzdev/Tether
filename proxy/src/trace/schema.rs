@@ -2,7 +2,7 @@
 
 use rusqlite::Connection;
 
-use super::sessions::{backfill_missing_session_ids, ensure_current_session};
+use super::sessions::backfill_missing_session_ids;
 
 /// Initializes the sessions/trace schema and migrates older databases:
 /// adds a missing `session_id` column and backfills it to the current session.
@@ -12,6 +12,19 @@ use super::sessions::{backfill_missing_session_ids, ensure_current_session};
 pub(crate) fn init_schema(conn: &Connection) -> rusqlite::Result<()> {
     conn.execute_batch(include_str!(
         "../../sqlite_migrations/20260601000000_sessions.sql"
+    ))?;
+    add_column_if_missing(
+        conn,
+        "sessions",
+        "name",
+        "TEXT NOT NULL DEFAULT 'Live Session'",
+    )?;
+    // Session-history columns are added before their migration runs because the
+    // partial index references `deleted_at` (SQLite lacks ADD COLUMN IF NOT EXISTS).
+    add_column_if_missing(conn, "sessions", "updated_at", "INTEGER")?;
+    add_column_if_missing(conn, "sessions", "deleted_at", "INTEGER")?;
+    conn.execute_batch(include_str!(
+        "../../sqlite_migrations/20260616000000_session_history.sql"
     ))?;
     if !table_has_column(conn, "trace_calls", "session_id")? {
         conn.execute("ALTER TABLE trace_calls ADD COLUMN session_id TEXT", [])?;
@@ -28,7 +41,6 @@ pub(crate) fn init_schema(conn: &Connection) -> rusqlite::Result<()> {
         "CREATE INDEX IF NOT EXISTS idx_trace_calls_trace_id
              ON trace_calls(trace_id);",
     )?;
-    ensure_current_session(conn)?;
     backfill_missing_session_ids(conn)
 }
 

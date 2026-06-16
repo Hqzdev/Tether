@@ -153,6 +153,77 @@ public struct TraceAPIClient: Sendable {
         return try decoder.decode(TraceSessionList.self, from: data)
     }
 
+    /// Fetches the session-history list with per-session call counts.
+    public func sessionSummaries() async throws -> SessionList {
+        guard let url = URL(string: "/api/sessions", relativeTo: baseURL)?.absoluteURL else {
+            throw ClientError.invalidURL
+        }
+
+        return try await decode(SessionList.self, from: url)
+    }
+
+    /// Loads every captured node for one historical session, oldest-first.
+    public func sessionTraces(sessionId: TraceSession.ID) async throws -> TraceSnapshot {
+        guard let encodedId = sessionId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
+              let url = URL(string: "/api/sessions/\(encodedId)/traces", relativeTo: baseURL)?.absoluteURL
+        else {
+            throw ClientError.invalidURL
+        }
+
+        return try await decode(TraceSnapshot.self, from: url)
+    }
+
+    /// Routes subsequent proxy traffic into an existing session.
+    public func activateSession(sessionId: TraceSession.ID) async throws -> Session {
+        guard let encodedId = sessionId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
+              let url = URL(string: "/api/sessions/\(encodedId)/activate", relativeTo: baseURL)?.absoluteURL
+        else {
+            throw ClientError.invalidURL
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.timeoutInterval = 5
+
+        return try await decode(Session.self, from: request)
+    }
+
+    /// Renames a session and returns its updated metadata.
+    public func renameSession(sessionId: TraceSession.ID, name: String) async throws -> Session {
+        guard let encodedId = sessionId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
+              let url = URL(string: "/api/sessions/\(encodedId)", relativeTo: baseURL)?.absoluteURL
+        else {
+            throw ClientError.invalidURL
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "PATCH"
+        request.timeoutInterval = 5
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(RenameSessionBody(name: name))
+
+        return try await decode(Session.self, from: request)
+    }
+
+    /// Soft-deletes a session so it no longer appears in the history list.
+    public func deleteSession(sessionId: TraceSession.ID) async throws {
+        guard let encodedId = sessionId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
+              let url = URL(string: "/api/sessions/\(encodedId)", relativeTo: baseURL)?.absoluteURL
+        else {
+            throw ClientError.invalidURL
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        request.timeoutInterval = 5
+
+        let (_, response) = try await session.data(for: request)
+        let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+        guard (200..<300).contains(status) else {
+            throw ClientError.badStatus(status)
+        }
+    }
+
     /// Creates a fresh live proxy session and returns its server-generated metadata.
     public func createSession() async throws -> TraceSession {
         guard let url = URL(string: "/api/sessions", relativeTo: baseURL)?.absoluteURL else {
@@ -240,4 +311,8 @@ public struct TraceAPIClient: Sendable {
 
 private struct EditOutputBody: Encodable {
     let output: String
+}
+
+private struct RenameSessionBody: Encodable {
+    let name: String
 }

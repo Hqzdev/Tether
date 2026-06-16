@@ -11,10 +11,12 @@ struct GraphViewport: View {
     let verticalNodeSpacing: CGFloat = 156
 
     let nodes: [AgentNode]
+    /// Count of leading history nodes; the remainder render as the live cluster.
+    let historyCount: Int
     let selectedNode: AgentNode?
     let nodeSize: CGSize
     let depthSpacing: CGFloat
-    @Binding var nodeOffsets: [AgentNode.ID: CGSize]
+    let positionStore: GraphNodePositionStore
     @Binding var nodeSizes: [AgentNode.ID: CGSize]
     let zoomScale: CGFloat
     let onSelect: (AgentNode) -> Void
@@ -26,7 +28,7 @@ struct GraphViewport: View {
     @EnvironmentObject var preferences: AppPreferences
 
     @State var panOffset: CGSize = .zero
-    @State var activeDrag: ActiveNodeDrag?
+    @State var activeDragNodeId: AgentNode.ID?
     @State var activeInteraction: ActiveCanvasInteraction?
     @State var interactionContentSize: CGSize?
 
@@ -66,12 +68,13 @@ struct GraphViewport: View {
 
                 GraphCanvas(
                     nodes: nodes,
+                    historyCount: historyCount,
                     selectedNode: selectedNode,
                     nodeSize: nodeSize,
                     contentSize: contentSize,
-                    nodeOffsets: nodeOffsets,
+                    positionStore: positionStore,
                     nodeSizes: nodeSizes,
-                    activeDrag: activeDrag,
+                    activeDragNodeId: activeDragNodeId,
                     isInteractionActive: activeInteraction != nil,
                     zoomScale: zoomScale,
                     palette: palette
@@ -91,6 +94,12 @@ struct GraphViewport: View {
             )
             .onChange(of: zoomScale) { _, _ in
                 panOffset = clampedPan(panOffset, viewportSize: geometry.size)
+            }
+            .onAppear {
+                syncNodePositions()
+            }
+            .onChange(of: nodes.map(\.id)) { _, _ in
+                syncNodePositions()
             }
             .onChange(of: nodes.count) { _, _ in
                 var transaction = Transaction()

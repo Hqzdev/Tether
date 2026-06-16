@@ -6,6 +6,7 @@ import UI
 /// Main desktop workspace containing sidebar, graph canvas, inspector, and settings overlay.
 struct MainThreePaneLayoutView: View {
     @StateObject var traceStore = TraceStore()
+    @StateObject var sessionStore = SessionStore()
     @State var selectedNodeId: AgentNode.ID?
     @State var inspectorTab: InspectorTab = .context
     @State var searchText = ""
@@ -26,8 +27,24 @@ struct MainThreePaneLayoutView: View {
         traceStore.session
     }
 
-    var nodes: [AgentNode] {
+    /// Read-only history cluster (a loaded session's past calls), provider-filtered.
+    var historyNodes: [AgentNode] {
+        traceStore.sessionNodes.filter { preferences.capturesProvider(of: $0) }
+    }
+
+    /// Live cluster: calls captured in the current view, provider-filtered.
+    var liveNodes: [AgentNode] {
         traceStore.nodes.filter { preferences.capturesProvider(of: $0) }
+    }
+
+    /// History-first ordered node array consumed by the graph.
+    var nodes: [AgentNode] {
+        historyNodes + liveNodes
+    }
+
+    /// Number of leading history nodes, marking the history/live cluster split.
+    var historyCount: Int {
+        historyNodes.count
     }
 
     var filteredNodes: [AgentNode] {
@@ -88,17 +105,24 @@ struct MainThreePaneLayoutView: View {
         }
         .ignoresSafeArea()
         .environmentObject(traceStore)
+        .environmentObject(sessionStore)
         .preferredColorScheme(preferences.appearance.preferredColorScheme)
         .frame(minWidth: 800, minHeight: 520)
         .onAppear {
             _ = LocalProxyLauncher.shared.startIfAvailable()
+            sessionStore.attach(traceStore)
             traceStore.startPolling()
+            sessionStore.startPolling()
         }
         .onDisappear {
             traceStore.stopPolling()
+            sessionStore.stopPolling()
         }
-        .onChange(of: traceStore.nodes) { _, newNodes in
-            syncSelectedNode(with: newNodes)
+        .onChange(of: traceStore.nodes) { _, _ in
+            syncSelectedNode(with: nodes)
+        }
+        .onChange(of: traceStore.sessionNodes) { _, _ in
+            syncSelectedNode(with: nodes)
         }
         .task(id: selectedNode?.id) {
             guard let selectedNodeId = selectedNode?.id else { return }

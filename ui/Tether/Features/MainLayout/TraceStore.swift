@@ -4,14 +4,24 @@ import Networking
 import SwiftUI
 import UI
 
-/// Main-actor state owner for live proxy and Codex trace snapshots.
+/// Main-actor state owner for the trace graph. It polls one view at a time —
+/// either the live multi-agent stream or a loaded historical session — and
+/// splits a loaded session into a read-only history cluster plus any new live
+/// calls. Session list ownership lives in `SessionStore`, not here.
 @MainActor
 final class TraceStore: ObservableObject {
     @Published var session: TraceSession?
-    @Published var sessions: [TraceSession] = []
-    @Published var currentSessionId: TraceSession.ID?
-    @Published var selectedSessionId: TraceSession.ID?
+
+    /// Live cluster: calls captured during the current view. In a loaded session
+    /// these are calls that arrived after the history was loaded.
     @Published var nodes: [AgentNode] = []
+
+    /// History cluster: the read-only nodes loaded from a historical session.
+    @Published var sessionNodes: [AgentNode] = []
+
+    /// Session currently being polled. `nil` means the live multi-agent view.
+    @Published var selectedSessionId: TraceSession.ID?
+
     @Published var proxyStatus: ProxyConnectionStatus = .connecting
 
     let client: TraceAPIClient
@@ -20,8 +30,9 @@ final class TraceStore: ObservableObject {
     var codexBaselineLogId: Int?
     var graphInteractionActive = false
     var refreshAfterInteraction = false
-    var deferredSessionList: TraceSessionList?
     var deferredSnapshot: TraceSnapshot?
+    /// Ids that belong to the loaded history cluster, used to keep new calls out of it.
+    var historyNodeIds: Set<AgentNode.ID> = []
     var nodeDetails: [AgentNode.ID: AgentNode] = [:]
     var loadingNodeDetailIds: Set<AgentNode.ID> = []
 
@@ -32,6 +43,11 @@ final class TraceStore: ObservableObject {
     ) {
         self.client = client ?? TraceAPIClient()
         self.codexObserver = codexObserver
+    }
+
+    /// True when a historical session is loaded (rather than the live view).
+    var isHistoryView: Bool {
+        selectedSessionId != nil
     }
 
     /// Starts the periodic refresh loop if it is not already running.
@@ -69,43 +85,59 @@ final class TraceStore: ObservableObject {
         pollingTask = nil
     }
 
-    /// Refreshes proxy sessions, proxy traces, and local Codex logs into one visible snapshot.
+    /// Restarts polling so a session switch takes effect on the next tick.
+    func restartPolling() {
+        stopPolling()
+        startPolling()
+    }
+
+    /// Refreshes the active view: a single historical session, or the combined
+    /// live proxy + Codex stream when no session is loaded.
     func refresh() async {
         guard !graphInteractionActive else {
             refreshAfterInteraction = true
             return
         }
 
-        async let proxySessionsResult = loadProxySessions()
-        async let codexResult = loadCodexSnapshot()
+        if isHistoryView {
+            await refreshHistory()
+        } else {
+            await refreshLive()
+        }
+    }
 
-        let (sessionList, codex) = await (proxySessionsResult, codexResult)
+    /// Polls one loaded historical session and splits it into history + live clusters.
+    private func refreshHistory() async {
+        let proxyResult = await loadProxySnapshot(sessionId: selectedSessionId)
         guard !shouldDeferRefreshResult() else { return }
 
-        let proxySessions = try? sessionList.get()
-        let codexSnapshot = try? codex.get()
-        var proxySnapshot: TraceSnapshot?
-        var proxyError: Error?
-
-        if let proxySessions {
-            apply(sessionList: proxySessions)
-            let sessionId = selectedSessionId ?? proxySessions.currentSessionId
-            let proxyResult = await loadProxySnapshot(sessionId: sessionId)
-            guard !shouldDeferRefreshResult() else { return }
-
-            proxySnapshot = try? proxyResult.get()
-            if case .failure(let error) = proxyResult {
-                proxyError = error
-            }
-        } else if case .failure(let error) = sessionList {
-            sessions = []
-            currentSessionId = nil
-            selectedSessionId = nil
-            proxyError = error
+        switch proxyResult {
+        case .success(let snapshot):
+            apply(snapshot: snapshot)
+            let liveCount = snapshot.nodes.filter { !historyNodeIds.contains($0.id) }.count
+            proxyStatus = liveCount > 0
+                ? .observingAgents("\(liveCount) new call\(liveCount == 1 ? "" : "s") this session")
+                : .online
+        case .failure(let error):
+            proxyStatus = .offline(error.localizedDescription)
         }
+    }
 
-        let shouldCombineCodex = selectedSessionId == nil || selectedSessionId == currentSessionId
-        if shouldCombineCodex, let combinedSnapshot = combinedSnapshot(
+    /// Polls the live view, combining the current proxy session with local Codex events.
+    private func refreshLive() async {
+        async let codexResult = loadCodexSnapshot()
+        let proxyResult = await loadProxySnapshot(sessionId: nil)
+        let codex = await codexResult
+        guard !shouldDeferRefreshResult() else { return }
+
+        let proxySnapshot = try? proxyResult.get()
+        let codexSnapshot = try? codex.get()
+        let proxyError: Error? = {
+            if case .failure(let error) = proxyResult { return error }
+            return nil
+        }()
+
+        if let combinedSnapshot = combinedSnapshot(
             proxySnapshot: proxySnapshot,
             codexSnapshot: codexSnapshot
         ) {
@@ -141,6 +173,38 @@ final class TraceStore: ObservableObject {
         proxyStatus = .offline(proxyError?.localizedDescription ?? "Start the proxy or run codex in Terminal")
     }
 
+    /// Loads a historical session as a read-only history cluster and begins
+    /// polling it so new calls appear as a separate live cluster.
+    func loadHistory(_ snapshot: TraceSnapshot, sessionId: TraceSession.ID) {
+        resetDeferredTraceUpdates()
+        codexBaselineLogId = nil
+        selectedSessionId = sessionId
+        historyNodeIds = Set(snapshot.nodes.map(\.id))
+        session = snapshot.session
+        sessionNodes = snapshot.nodes
+        nodes = []
+        proxyStatus = .online
+        restartPolling()
+        Task { [weak self] in
+            await self?.refresh()
+        }
+    }
+
+    /// Returns to the live multi-agent view, clearing any loaded history.
+    func enterLiveView() {
+        resetDeferredTraceUpdates()
+        selectedSessionId = nil
+        historyNodeIds = []
+        sessionNodes = []
+        nodes = []
+        session = nil
+        proxyStatus = .connecting
+        restartPolling()
+        Task { [weak self] in
+            await self?.refresh()
+        }
+    }
+
     /// Applies a snapshot to the currently visible graph.
     func apply(snapshot: TraceSnapshot) {
         guard !graphInteractionActive else {
@@ -171,25 +235,33 @@ final class TraceStore: ObservableObject {
 
     /// Applies buffered updates once the current graph gesture ends.
     func flushDeferredTraceUpdates() {
-        if let sessionList = deferredSessionList {
-            deferredSessionList = nil
-            commit(sessionList: sessionList)
-        }
-
         if let snapshot = deferredSnapshot {
             deferredSnapshot = nil
             commit(snapshot: snapshot)
         }
     }
 
-    /// Commits a snapshot only when it changes visible state.
+    /// Commits a snapshot, partitioning into history and live clusters when a
+    /// historical session is loaded. Only writes when visible state changes.
     func commit(snapshot: TraceSnapshot) {
-        let hydratedNodes = snapshot.nodes.map { node in
-            guard let detail = nodeDetails[node.id] else { return node }
-            return node.hydrated(with: detail)
+        let historyCluster: [AgentNode]
+        let liveCluster: [AgentNode]
+        if isHistoryView {
+            historyCluster = snapshot.nodes
+                .filter { historyNodeIds.contains($0.id) }
+                .map(hydrated(_:))
+            liveCluster = snapshot.nodes
+                .filter { !historyNodeIds.contains($0.id) }
+                .map(hydrated(_:))
+        } else {
+            historyCluster = []
+            liveCluster = snapshot.nodes.map(hydrated(_:))
         }
 
-        guard session != snapshot.session || nodes != hydratedNodes else {
+        guard session != snapshot.session
+            || nodes != liveCluster
+            || sessionNodes != historyCluster
+        else {
             return
         }
 
@@ -197,34 +269,19 @@ final class TraceStore: ObservableObject {
         transaction.animation = nil
         withTransaction(transaction) {
             session = snapshot.session
-            nodes = hydratedNodes
+            nodes = liveCluster
+            sessionNodes = historyCluster
         }
     }
 
-    /// Commits session metadata only when it changes visible state.
-    func commit(sessionList: TraceSessionList) {
-        let nextSelectedSessionId: TraceSession.ID?
-        if let selectedSessionId, sessionList.sessions.contains(where: { $0.id == selectedSessionId }) {
-            nextSelectedSessionId = selectedSessionId
-        } else {
-            nextSelectedSessionId = sessionList.currentSessionId ?? sessionList.sessions.first?.id
-        }
-
-        guard sessions != sessionList.sessions
-            || currentSessionId != sessionList.currentSessionId
-            || selectedSessionId != nextSelectedSessionId
-        else {
-            return
-        }
-
-        sessions = sessionList.sessions
-        currentSessionId = sessionList.currentSessionId
-        selectedSessionId = nextSelectedSessionId
+    /// Attaches any lazily loaded inspector payload to a graph summary node.
+    private func hydrated(_ node: AgentNode) -> AgentNode {
+        guard let detail = nodeDetails[node.id] else { return node }
+        return node.hydrated(with: detail)
     }
 
     /// Drops buffered live updates after an explicit clear or new-session reset.
     func resetDeferredTraceUpdates() {
-        deferredSessionList = nil
         deferredSnapshot = nil
         refreshAfterInteraction = false
         nodeDetails = [:]
@@ -241,7 +298,7 @@ final class TraceStore: ObservableObject {
 
     /// Lazily hydrates prompt/response/error payloads for the selected proxy node.
     func loadNodeDetailIfNeeded(_ nodeId: AgentNode.ID) async {
-        guard let node = nodes.first(where: { $0.id == nodeId }),
+        guard let node = (nodes + sessionNodes).first(where: { $0.id == nodeId }),
               node.needsDetailPayload,
               nodeDetails[nodeId] == nil,
               !loadingNodeDetailIds.contains(nodeId)
@@ -257,22 +314,32 @@ final class TraceStore: ObservableObject {
         do {
             let detail = try await client.traceNodeDetail(nodeId: nodeId)
             nodeDetails[nodeId] = detail
-
-            guard let index = nodes.firstIndex(where: { $0.id == nodeId }) else {
-                return
-            }
-
-            let hydratedNode = nodes[index].hydrated(with: detail)
-            guard nodes[index] != hydratedNode else { return }
-            nodes[index] = hydratedNode
+            hydrateVisibleNode(nodeId, with: detail)
         } catch {
             // Local Codex nodes and stale proxy selections may not have proxy-side details.
         }
     }
 
+    /// Replaces a node in whichever cluster currently holds it with its hydrated form.
+    private func hydrateVisibleNode(_ nodeId: AgentNode.ID, with detail: AgentNode) {
+        if let index = nodes.firstIndex(where: { $0.id == nodeId }) {
+            let hydratedNode = nodes[index].hydrated(with: detail)
+            if nodes[index] != hydratedNode {
+                nodes[index] = hydratedNode
+            }
+        }
+
+        if let index = sessionNodes.firstIndex(where: { $0.id == nodeId }) {
+            let hydratedNode = sessionNodes[index].hydrated(with: detail)
+            if sessionNodes[index] != hydratedNode {
+                sessionNodes[index] = hydratedNode
+            }
+        }
+    }
+
     /// Hydrates every currently visible summary node before full-fidelity export.
     func loadVisibleNodeDetailsIfNeeded() async {
-        let nodeIds = nodes
+        let nodeIds = (sessionNodes + nodes)
             .filter(\.needsDetailPayload)
             .map(\.id)
 
@@ -282,7 +349,7 @@ final class TraceStore: ObservableObject {
     }
 }
 
-private extension AgentNode {
+extension AgentNode {
     /// Summary payloads intentionally omit inspector-only text fields.
     var needsDetailPayload: Bool {
         cacheStatus != "codex-log"

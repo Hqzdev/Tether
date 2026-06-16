@@ -1,4 +1,143 @@
+import Combine
 import SwiftUI
+
+/// Stores graph node positions outside the canvas view tree so live drag updates
+/// only invalidate the moved node and its live connection overlay.
+@MainActor
+final class GraphNodePositionStore: ObservableObject {
+    private var positions: [String: GraphNodePosition] = [:]
+
+    /// Returns the observable position state for one node, creating it if needed.
+    func positionState(for nodeId: String, defaultPosition: CGPoint) -> GraphNodePosition {
+        if let position = positions[nodeId] {
+            return position
+        }
+
+        let position = GraphNodePosition(id: nodeId, basePosition: defaultPosition)
+        positions[nodeId] = position
+        return position
+    }
+
+    /// Keeps position state aligned with the currently visible graph nodes.
+    func sync(defaultPositions: [String: CGPoint]) {
+        positions = positions.filter { defaultPositions.keys.contains($0.key) }
+
+        for (nodeId, defaultPosition) in defaultPositions {
+            positionState(for: nodeId, defaultPosition: defaultPosition)
+                .updateBasePosition(defaultPosition)
+        }
+    }
+
+    /// Drops positions for nodes that disappeared from the trace snapshot.
+    func prune(validNodeIds: Set<String>) {
+        positions = positions.filter { validNodeIds.contains($0.key) }
+    }
+
+    /// Resets every node to its automatic timeline position.
+    func reset() {
+        for position in positions.values {
+            position.reset()
+        }
+    }
+
+    /// Returns the current canvas origin for one node.
+    func position(for nodeId: String, defaultPosition: CGPoint) -> CGPoint {
+        positions[nodeId]?.position ?? defaultPosition
+    }
+
+    /// Returns the persisted canvas origin for one node, ignoring a live drag.
+    func persistedPosition(for nodeId: String, defaultPosition: CGPoint) -> CGPoint {
+        positions[nodeId]?.persistedPosition ?? defaultPosition
+    }
+
+    /// Returns the current offset from the node's automatic timeline position.
+    func offset(for nodeId: String) -> CGSize {
+        positions[nodeId]?.currentOffset ?? .zero
+    }
+
+    /// Updates the transient drag position for one node.
+    func setLiveOffset(_ offset: CGSize, for nodeId: String, defaultPosition: CGPoint) {
+        positionState(for: nodeId, defaultPosition: defaultPosition)
+            .setLiveOffset(offset)
+    }
+
+    /// Commits a drag result so future snapshots keep the user's layout.
+    func commitOffset(_ offset: CGSize, for nodeId: String, defaultPosition: CGPoint) {
+        positionState(for: nodeId, defaultPosition: defaultPosition)
+            .commitOffset(offset)
+    }
+
+    /// Clears the transient drag marker without changing the persisted position.
+    func finishDrag(for nodeId: String) {
+        positions[nodeId]?.finishDrag()
+    }
+}
+
+/// Per-node observable position state. A drag only publishes changes through the
+/// moved node's instance instead of invalidating the whole graph canvas.
+@MainActor
+final class GraphNodePosition: ObservableObject, Identifiable {
+    let id: String
+
+    @Published private(set) var position: CGPoint
+    @Published private(set) var isDragging = false
+
+    private var basePosition: CGPoint
+    private var persistedOffset: CGSize = .zero
+    private var liveOffset: CGSize?
+
+    var persistedPosition: CGPoint {
+        basePosition.offset(by: persistedOffset)
+    }
+
+    var currentOffset: CGSize {
+        liveOffset ?? persistedOffset
+    }
+
+    init(id: String, basePosition: CGPoint) {
+        self.id = id
+        self.basePosition = basePosition
+        self.position = basePosition
+    }
+
+    /// Updates the automatic timeline origin while preserving user offsets.
+    func updateBasePosition(_ basePosition: CGPoint) {
+        guard self.basePosition != basePosition else { return }
+
+        self.basePosition = basePosition
+        position = basePosition.offset(by: currentOffset)
+    }
+
+    /// Applies a live drag offset.
+    func setLiveOffset(_ offset: CGSize) {
+        liveOffset = offset
+        isDragging = true
+        position = basePosition.offset(by: offset)
+    }
+
+    /// Stores the final drag offset.
+    func commitOffset(_ offset: CGSize) {
+        persistedOffset = offset
+        liveOffset = nil
+        isDragging = false
+        position = basePosition.offset(by: offset)
+    }
+
+    /// Ends drag state without changing the stored offset.
+    func finishDrag() {
+        liveOffset = nil
+        isDragging = false
+        position = basePosition.offset(by: persistedOffset)
+    }
+
+    /// Clears all manual layout changes.
+    func reset() {
+        persistedOffset = .zero
+        liveOffset = nil
+        isDragging = false
+        position = basePosition
+    }
+}
 
 /// Sides used as connection anchors on node cards.
 enum NodeAnchorSide: CaseIterable {
@@ -117,5 +256,10 @@ extension CGPoint {
     /// Offsets this point along a vector by a distance.
     func offset(by direction: CGSize, distance: CGFloat) -> CGPoint {
         CGPoint(x: x + direction.width * distance, y: y + direction.height * distance)
+    }
+
+    /// Offsets this point by a size delta.
+    func offset(by delta: CGSize) -> CGPoint {
+        CGPoint(x: x + delta.width, y: y + delta.height)
     }
 }

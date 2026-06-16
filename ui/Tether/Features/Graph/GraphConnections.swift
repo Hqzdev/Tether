@@ -10,6 +10,8 @@ struct GraphConnections: View, Equatable {
     let nodeSizes: [AgentNode.ID: CGSize]
     let defaultNodeSize: CGSize
     let scope: GraphConnectionScope
+    /// Index of the first live node; the edge into it from history is not drawn.
+    var clusterBoundaryIndex: Int?
     let palette: AgentTracePalette
 
     var body: some View {
@@ -26,6 +28,11 @@ struct GraphConnections: View, Equatable {
 
     /// Draws one edge from the previous node to the current node.
     private func drawConnection(at index: Int, in context: GraphicsContext) {
+        // Never bridge the history cluster and the live cluster.
+        if clusterBoundaryIndex == index {
+            return
+        }
+
         let previous = nodes[index - 1]
         let current = nodes[index]
 
@@ -100,6 +107,43 @@ struct GraphConnections: View, Equatable {
 
         let controlDistance = max(28, min(160, anchors.distance * 0.45))
         return (anchors.start.offset(by: anchors.startSide.normal, distance: controlDistance), anchors.end.offset(by: anchors.endSide.normal, distance: controlDistance))
+    }
+}
+
+/// Redraws only the connection edges touching the active dragged node.
+struct LiveGraphConnections: View {
+    let nodes: [GraphConnectionNode]
+    let positionStore: GraphNodePositionStore
+    @ObservedObject var activePosition: GraphNodePosition
+    let activeNodeId: AgentNode.ID
+    let contentSize: CGSize
+    let nodeSizes: [AgentNode.ID: CGSize]
+    let defaultNodeSize: CGSize
+    let defaultPositions: [AgentNode.ID: CGPoint]
+    var clusterBoundaryIndex: Int?
+    let palette: AgentTracePalette
+
+    var body: some View {
+        GraphConnections(
+            nodes: nodes,
+            positions: currentPositions,
+            contentSize: contentSize,
+            nodeSizes: nodeSizes,
+            defaultNodeSize: defaultNodeSize,
+            scope: .only(nodeId: activeNodeId),
+            clusterBoundaryIndex: clusterBoundaryIndex,
+            palette: palette
+        )
+    }
+
+    private var currentPositions: [AgentNode.ID: CGPoint] {
+        Dictionary(uniqueKeysWithValues: nodes.map { node in
+            let defaultPosition = defaultPositions[node.id] ?? .zero
+            let position = node.id == activePosition.id
+                ? activePosition.position
+                : positionStore.persistedPosition(for: node.id, defaultPosition: defaultPosition)
+            return (node.id, position)
+        })
     }
 }
 

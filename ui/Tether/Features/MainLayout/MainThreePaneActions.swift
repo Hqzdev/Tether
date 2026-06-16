@@ -7,26 +7,45 @@ import UniformTypeIdentifiers
 extension MainThreePaneLayoutView {
     /// Starts a new trace session and clears transient UI selections.
     func startNewSession() {
-        responseEdits.removeAll()
-        replayImpacts.removeAll()
-        selectedNodeId = nil
-        traceStore.startNewSession()
+        resetTransientSelection()
+        Task {
+            await sessionStore.createNewSession()
+        }
     }
 
-    /// Clears all traces and resets transient UI state.
+    /// Clears all traces, returns to the live view, and resets transient UI state.
     func clearAllTraces() {
-        responseEdits.removeAll()
-        replayImpacts.removeAll()
-        selectedNodeId = nil
+        resetTransientSelection()
         traceStore.clearTrace()
+        Task {
+            sessionStore.enterLiveView()
+            await sessionStore.refreshNow()
+        }
     }
 
-    /// Selects a historical session from the sidebar.
-    func selectSession(_ sessionId: TraceSession.ID) {
+    /// Loads a historical session from the sidebar into the graph.
+    func selectSession(_ sessionId: Session.ID) {
+        resetTransientSelection()
+        Task {
+            await sessionStore.loadSession(sessionId)
+        }
+    }
+
+    /// Soft-deletes a session from the sidebar.
+    func deleteSession(_ sessionId: Session.ID) {
+        if sessionStore.activeSessionId == sessionId {
+            resetTransientSelection()
+        }
+        Task {
+            await sessionStore.deleteSession(sessionId)
+        }
+    }
+
+    /// Clears transient inspector edits and node selection on a session switch.
+    private func resetTransientSelection() {
         responseEdits.removeAll()
         replayImpacts.removeAll()
         selectedNodeId = nil
-        traceStore.selectSession(sessionId)
     }
 
     /// Persists a mocked response through the proxy when possible and returns replay-boundary evidence.

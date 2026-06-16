@@ -61,14 +61,19 @@ extension GraphViewport {
 
     /// Returns a node's current canvas origin after persisted and active offsets.
     func position(for node: AgentNode, at index: Int) -> CGPoint {
-        let base = defaultPosition(for: node, at: index)
-        let offset = activeDrag?.nodeId == node.id ? activeDrag?.offset ?? .zero : nodeOffsets[node.id] ?? .zero
-        return CGPoint(x: base.x + offset.width, y: base.y + offset.height)
+        positionStore.position(for: node.id, defaultPosition: defaultPosition(for: node, at: index))
     }
 
-    /// Returns the automatic vertical timeline position for a node.
+    /// Returns the automatic timeline position for a node, splitting the history
+    /// cluster (left) from the offset live cluster (right).
     func defaultPosition(for _: AgentNode, at index: Int) -> CGPoint {
-        CGPoint(x: nodeBoundaryInset, y: nodeBoundaryInset + CGFloat(index) * verticalNodeSpacing)
+        GraphClusterLayout.defaultPosition(
+            index: index,
+            historyCount: historyCount,
+            nodeSize: nodeSize,
+            inset: nodeBoundaryInset,
+            spacing: verticalNodeSpacing
+        )
     }
 
     /// Converts screen-space drag translation into canvas-space movement.
@@ -94,12 +99,15 @@ extension GraphViewport {
 
         return CGSize(width: clampedOrigin.x - basePosition.x, height: clampedOrigin.y - basePosition.y)
     }
-}
 
-/// Transient node drag preview state.
-struct ActiveNodeDrag {
-    let nodeId: AgentNode.ID
-    let offset: CGSize
+    /// Synchronizes the external position store with the current visible nodes.
+    func syncNodePositions() {
+        positionStore.sync(
+            defaultPositions: Dictionary(uniqueKeysWithValues: nodes.enumerated().map { index, node in
+                (node.id, defaultPosition(for: node, at: index))
+            })
+        )
+    }
 }
 
 /// Current canvas gesture interaction.

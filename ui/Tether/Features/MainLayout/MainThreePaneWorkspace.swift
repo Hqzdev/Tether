@@ -57,10 +57,12 @@ extension MainThreePaneLayoutView {
             selectedNodeId: selectedNode?.id,
             searchText: $searchText,
             proxyStatus: traceStore.proxyStatus,
-            sessions: traceStore.sessions,
-            selectedSessionId: traceStore.selectedSessionId,
-            liveSessionId: traceStore.currentSessionId,
+            sessions: sessionStore.sessions,
+            activeSessionId: sessionStore.activeSessionId,
+            liveSessionId: sessionStore.liveSessionId,
             onSelectSession: selectSession,
+            onNewSession: startNewSession,
+            onDeleteSession: deleteSession,
             onSelect: { selectedNodeId = $0.id },
             onShowSettings: {
                 withAnimation(.smooth(duration: 0.16)) {
@@ -76,6 +78,7 @@ extension MainThreePaneLayoutView {
         GraphPane(
             session: session,
             nodes: nodes,
+            historyCount: historyCount,
             selectedNode: selectedNode,
             totalLatencyMs: totalLatencyMs,
             onSelect: { selectedNodeId = $0.id },

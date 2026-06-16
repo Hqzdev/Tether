@@ -10,13 +10,15 @@ struct GraphPane: View {
 
     let session: TraceSession?
     let nodes: [AgentNode]
+    /// Leading history nodes within `nodes`; the rest are the live cluster.
+    let historyCount: Int
     let selectedNode: AgentNode?
     let totalLatencyMs: Int
     let onSelect: (AgentNode) -> Void
     let onInteractionChanged: (Bool) -> Void
     let palette: AgentTracePalette
 
-    @State private var nodeOffsets: [AgentNode.ID: CGSize] = [:]
+    @StateObject private var nodePositionStore = GraphNodePositionStore()
     @State private var nodeSizes: [AgentNode.ID: CGSize] = [:]
     @State private var zoomScale: CGFloat = 1
 
@@ -55,10 +57,11 @@ struct GraphPane: View {
 
             GraphViewport(
                 nodes: nodes,
+                historyCount: historyCount,
                 selectedNode: selectedNode,
                 nodeSize: nodeSize,
                 depthSpacing: depthSpacing,
-                nodeOffsets: $nodeOffsets,
+                positionStore: nodePositionStore,
                 nodeSizes: $nodeSizes,
                 zoomScale: zoomScale,
                 onSelect: onSelect,
@@ -79,12 +82,12 @@ struct GraphPane: View {
         }
         .background(palette.window.opacity(0.48))
         .onChange(of: nodes.map(\.id)) { _, ids in
-            nodeOffsets = nodeOffsets.filter { ids.contains($0.key) }
+            nodePositionStore.prune(validNodeIds: Set(ids))
             nodeSizes = nodeSizes.filter { ids.contains($0.key) }
         }
         .onReceive(NotificationCenter.default.publisher(for: .agentTraceResetGraphLayout)) { _ in
             withAnimation(.smooth(duration: 0.2)) {
-                nodeOffsets = [:]
+                nodePositionStore.reset()
                 nodeSizes = [:]
             }
             setZoom(1)

@@ -7,12 +7,13 @@ import UI
 struct UsageSettingsView: View {
     let palette: AgentTracePalette
     @EnvironmentObject private var traceStore: TraceStore
+    @EnvironmentObject private var sessionStore: SessionStore
 
     @State private var statusMessage: String?
     @State private var statusIsError = false
 
     private var stats: UsageStats {
-        UsageStats(sessionCount: traceStore.sessions.count, nodes: traceStore.nodes)
+        UsageStats(sessionCount: sessionStore.sessions.count, nodes: traceStore.sessionNodes + traceStore.nodes)
     }
 
     var body: some View {

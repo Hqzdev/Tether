@@ -10,35 +10,10 @@ extension TraceStore {
         }
     }
 
-    /// Starts a new proxy session and resets local response edits.
-    func startNewSession() {
-        Task {
-            await createNewSession()
-        }
-    }
-
-    /// Selects a historical proxy session and refreshes its snapshot.
-    func selectSession(_ sessionId: TraceSession.ID) {
-        resetDeferredTraceUpdates()
-        selectedSessionId = sessionId
-        Task {
-            await refresh()
-        }
-    }
-
     /// Requests a manual refresh from menu commands.
     func reload() {
         Task {
             await refresh()
-        }
-    }
-
-    /// Loads the proxy session list without throwing through async-let boundaries.
-    func loadProxySessions() async -> Result<TraceSessionList, Error> {
-        do {
-            return .success(try await client.sessions())
-        } catch {
-            return .failure(error)
         }
     }
 
@@ -60,51 +35,23 @@ extension TraceStore {
         }
     }
 
-    /// Creates a fresh proxy session and uses the current Codex log id as a baseline.
-    func createNewSession() async {
-        codexBaselineLogId = try? await codexObserver.latestResponseEventId()
-        resetDeferredTraceUpdates()
-        session = nil
-        nodes = []
-
-        do {
-            let newSession = try await client.createSession()
-            selectedSessionId = newSession.id
-            currentSessionId = newSession.id
-            if !sessions.contains(where: { $0.id == newSession.id }) {
-                sessions.insert(newSession, at: 0)
-            }
-            proxyStatus = .online
-            await refresh()
-        } catch {
-            proxyStatus = .observingCodex("Open Terminal and run codex")
-        }
-    }
-
-    /// Clears proxy traces and hides previously observed Codex events from the live graph.
+    /// Clears proxy traces, returns to the live view, and hides previously observed
+    /// Codex events until new activity arrives.
     func clearAllTraces() async {
         codexBaselineLogId = try? await codexObserver.latestResponseEventId()
         resetDeferredTraceUpdates()
+        selectedSessionId = nil
+        historyNodeIds = []
+        sessionNodes = []
         session = nil
         nodes = []
 
         do {
             try await client.clearTrace()
-            selectedSessionId = nil
             proxyStatus = .online
             await refresh()
         } catch {
             proxyStatus = .observingCodex("Open Terminal and run codex")
         }
-    }
-
-    /// Applies session list updates while preserving valid historical selections.
-    func apply(sessionList: TraceSessionList) {
-        guard !graphInteractionActive else {
-            deferredSessionList = sessionList
-            return
-        }
-
-        commit(sessionList: sessionList)
     }
 }

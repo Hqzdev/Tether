@@ -5,26 +5,33 @@ import UI
 /// Positions a node card on the canvas without participating in hit testing.
 struct MovableNodeCard: View, Equatable {
     let node: NodeCardModel
+    @ObservedObject var nodePosition: GraphNodePosition
     let selected: Bool
-    let basePosition: CGPoint
-    let currentOffset: CGSize
     let nodeSize: CGSize
-    let isDragging: Bool
     let isPerformanceMode: Bool
     let palette: AgentTracePalette
 
     var body: some View {
         NodeCard(node: node, selected: selected, size: nodeSize, isPerformanceMode: isPerformanceMode, palette: palette)
-            .position(x: basePosition.x + currentOffset.width + nodeSize.width / 2, y: basePosition.y + currentOffset.height + nodeSize.height / 2)
-            .scaleEffect(isDragging ? 1.008 : 1)
-            .zIndex(isDragging ? 30 : selected ? 10 : 1)
+            .position(x: nodePosition.position.x + nodeSize.width / 2, y: nodePosition.position.y + nodeSize.height / 2)
+            .scaleEffect(nodePosition.isDragging ? 1.008 : 1)
+            .zIndex(nodePosition.isDragging ? 30 : selected ? 10 : 1)
             .contentShape(RoundedRectangle(cornerRadius: palette.panelRadius, style: .continuous))
             .allowsHitTesting(false)
             .transaction { transaction in
-                if isDragging {
+                if nodePosition.isDragging {
                     transaction.animation = nil
                 }
             }
+    }
+
+    static func == (lhs: MovableNodeCard, rhs: MovableNodeCard) -> Bool {
+        lhs.node == rhs.node
+            && lhs.nodePosition === rhs.nodePosition
+            && lhs.selected == rhs.selected
+            && lhs.nodeSize == rhs.nodeSize
+            && lhs.isPerformanceMode == rhs.isPerformanceMode
+            && lhs.palette == rhs.palette
     }
 }
 
