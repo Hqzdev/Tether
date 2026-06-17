@@ -401,6 +401,16 @@ fn first_line_id(value: &str) -> String {
     }
 }
 
+/// Encodes bytes as lower-case hexadecimal.
+fn hex(bytes: &[u8]) -> String {
+    use std::fmt::Write as _;
+    let mut out = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        let _ = write!(out, "{byte:02x}");
+    }
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use serde_json::json;
@@ -436,14 +446,4 @@ mod tests {
         assert!(inputs.withheld.contains(&"deferred-tools".to_string()));
         assert!(!inputs.input_hash.is_empty());
     }
-}
-
-/// Encodes bytes as lower-case hexadecimal.
-fn hex(bytes: &[u8]) -> String {
-    use std::fmt::Write as _;
-    let mut out = String::with_capacity(bytes.len() * 2);
-    for byte in bytes {
-        let _ = write!(out, "{byte:02x}");
-    }
-    out
 }
