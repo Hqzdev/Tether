@@ -13,8 +13,18 @@ extension MainThreePaneLayoutView {
         }
     }
 
-    /// Clears all traces, returns to the live view, and resets transient UI state.
-    func clearAllTraces() {
+    /// Returns to the live view without deleting any stored sessions or traces.
+    func returnToLiveView() {
+        resetTransientSelection()
+        Task {
+            sessionStore.enterLiveView()
+            await sessionStore.refreshNow()
+        }
+    }
+
+    /// Permanently deletes every stored session and trace, then returns to live.
+    /// This is the only path that removes history; invoked from Privacy settings.
+    func deleteAllHistory() {
         resetTransientSelection()
         traceStore.clearTrace()
         Task {

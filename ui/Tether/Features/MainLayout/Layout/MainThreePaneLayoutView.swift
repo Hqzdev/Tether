@@ -137,11 +137,14 @@ struct MainThreePaneLayoutView: View {
         .onReceive(NotificationCenter.default.publisher(for: .agentTraceCopySelection)) { _ in
             copySelection()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .agentTraceClearView)) { _ in
+            returnToLiveView()
+        }
         .onReceive(NotificationCenter.default.publisher(for: .agentTraceClearAllTraces)) { _ in
             if preferences.confirmBeforeClearing {
                 showingClearConfirmation = true
             } else {
-                clearAllTraces()
+                deleteAllHistory()
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .agentTraceShowInspector)) { _ in
@@ -161,14 +164,14 @@ struct MainThreePaneLayoutView: View {
                 showingSettings = true
             }
         }
-        .alert("Clear All Traces?", isPresented: $showingClearConfirmation) {
-            Button("Clear All Traces", role: .destructive) {
-                clearAllTraces()
+        .alert("Delete All History?", isPresented: $showingClearConfirmation) {
+            Button("Delete All History", role: .destructive) {
+                deleteAllHistory()
             }
 
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This permanently clears all proxy sessions and hides existing Terminal Codex events until new activity arrives.")
+            Text("This permanently deletes every stored session and trace and hides existing Terminal Codex events until new activity arrives. This cannot be undone.")
         }
         .sheet(isPresented: $showingConnectionHelp) {
             ConnectionHelpSheet()

@@ -23,8 +23,10 @@ public final class LocalProxyLauncher {
         }
 
         let runtimeDirectory: URL
+        let databaseURL: URL
         do {
             runtimeDirectory = try Self.runtimeDirectory()
+            databaseURL = try Self.databaseURL()
         } catch {
             return false
         }
@@ -32,7 +34,7 @@ public final class LocalProxyLauncher {
         let process = Process()
         process.executableURL = binaryURL
         process.currentDirectoryURL = binaryURL.deletingLastPathComponent()
-        process.environment = proxyEnvironment(runtimeDirectory: runtimeDirectory)
+        process.environment = proxyEnvironment(databaseURL: databaseURL)
 
         do {
             let logURL = try logFileURL(in: runtimeDirectory)
@@ -80,16 +82,14 @@ public final class LocalProxyLauncher {
     }
 
     /// Builds the environment passed to the proxy without persisting provider secrets.
-    private func proxyEnvironment(runtimeDirectory: URL) -> [String: String] {
+    private func proxyEnvironment(databaseURL: URL) -> [String: String] {
         var environment = ProcessInfo.processInfo.environment
         let settings = ProxySettingsStore.current
         environment["TETHER_ADDR"] = settings.listenAddress
         environment["TETHER_CACHE"] = settings.localCacheEnabled ? "on" : "off"
         environment["OPENAI_UPSTREAM"] = settings.openAIUpstreamURL
         environment["ANTHROPIC_UPSTREAM"] = settings.anthropicUpstreamURL
-        environment["TETHER_DB"] = runtimeDirectory
-            .appendingPathComponent("tether-cache.sqlite")
-            .path
+        environment["TETHER_DB"] = databaseURL.path
         if let openAIKey = KeychainStore.read(.openAIAPIKey) {
             environment["OPENAI_API_KEY"] = openAIKey
         }
@@ -110,11 +110,49 @@ public final class LocalProxyLauncher {
         return url
     }
 
-    /// Creates the cache-backed runtime directory used for the proxy database and logs.
+    /// Creates the cache-backed runtime directory used for the proxy logs.
     private static func runtimeDirectory() throws -> URL {
         let root = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
         let directory = root.appendingPathComponent("Tether", isDirectory: true)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         return directory
+    }
+
+    /// Persistent on-device location for the session/trace database. Application
+    /// Support is backed up and never purged by macOS, so session history survives
+    /// the low-disk conditions that can silently wipe the caches directory.
+    private static func databaseURL() throws -> URL {
+        let root = try FileManager.default.url(
+            for: .applicationSupportDirectory,
+            in: .userDomainMask,
+            appropriateFor: nil,
+            create: true
+        )
+        let directory = root.appendingPathComponent("Tether", isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let url = directory.appendingPathComponent("tether-cache.sqlite")
+        migrateLegacyDatabaseIfNeeded(to: url)
+        return url
+    }
+
+    /// Moves a database left in the volatile caches directory by older builds into
+    /// the persistent store, preserving previously captured sessions and traces.
+    private static func migrateLegacyDatabaseIfNeeded(to destination: URL) {
+        let manager = FileManager.default
+        guard !manager.fileExists(atPath: destination.path),
+              let legacyDirectory = try? runtimeDirectory() else {
+            return
+        }
+
+        let legacyBase = legacyDirectory.appendingPathComponent("tether-cache.sqlite")
+        guard manager.fileExists(atPath: legacyBase.path) else { return }
+
+        // SQLite spreads data across the main file plus its WAL/SHM sidecars.
+        for suffix in ["", "-wal", "-shm"] {
+            let from = URL(fileURLWithPath: legacyBase.path + suffix)
+            let to = URL(fileURLWithPath: destination.path + suffix)
+            guard manager.fileExists(atPath: from.path) else { continue }
+            try? manager.moveItem(at: from, to: to)
+        }
     }
 }

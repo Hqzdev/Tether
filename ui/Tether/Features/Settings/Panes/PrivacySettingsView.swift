@@ -56,15 +56,15 @@ struct PrivacySettingsView: View {
     private var dataSection: some View {
         SettingsSection("Data", palette: palette) {
             SettingsButtonRow(
-                "Clear all traces",
-                subtitle: "Permanently remove every captured proxy and Codex session.",
-                buttonTitle: "Clear Traces",
+                "Delete all history",
+                subtitle: "Permanently remove every stored session and trace from this device. Clearing the cache or the view leaves history untouched — this is the only way to delete it.",
+                buttonTitle: "Delete History",
                 systemImage: "trash",
                 destructive: true,
                 palette: palette
             ) {
                 NotificationCenter.default.post(name: .agentTraceClearAllTraces, object: nil)
-                statusMessage = "Requested clearing of all traces."
+                statusMessage = "Requested deletion of all stored history."
                 statusIsError = false
             }
 
