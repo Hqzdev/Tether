@@ -1,12 +1,17 @@
 //! Authentication composition context and short-lived OAuth PKCE state.
 
 use std::{
+    borrow::Cow,
     collections::HashMap,
     sync::{Arc, Mutex},
     time::{Duration, Instant},
 };
 
-use sqlx::{PgPool, postgres::PgPoolOptions};
+use sqlx::{
+    PgPool,
+    migrate::{Migration, MigrationType, Migrator},
+    postgres::PgPoolOptions,
+};
 
 use tether_crypto::KeyCipher;
 
@@ -56,7 +61,7 @@ impl AuthContext {
                 ApiError::unavailable("failed to connect auth database")
             })?;
 
-        sqlx::migrate!("./migrations")
+        auth_migrator()
             .run(&pool)
             .await
             .map_err(|error| {
@@ -108,6 +113,21 @@ impl AuthContext {
             },
         );
         Ok(())
+    }
+}
+
+fn auth_migrator() -> Migrator {
+    Migrator {
+        migrations: Cow::Owned(vec![Migration::new(
+            20260530000000,
+            Cow::Borrowed("auth settings"),
+            MigrationType::Simple,
+            Cow::Borrowed(include_str!(
+                "../../migrations/20260530000000_auth_settings.sql"
+            )),
+            false,
+        )]),
+        ..Migrator::DEFAULT
     }
 }
 

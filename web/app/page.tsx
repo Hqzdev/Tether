@@ -955,7 +955,7 @@ export default function TetherLanding() {
               Free during alpha. Open the source on GitHub, <span className="grad">run it locally</span>, or send feedback about
               the workflow that should ship next.
             </p>
-            <p className="alpha-note">Release v1.4.5 is ready for local macOS testing.</p>
+            <p className="alpha-note">Release v1.5.0 is ready for local macOS testing.</p>
             <div className="download-actions">
               <div className="download-direct">
                 <a
@@ -963,7 +963,7 @@ export default function TetherLanding() {
                   href={GITHUB_RELEASE_HREF}
                   onClick={() =>
                     trackEvent("download_clicked", {
-                      asset: "GitHub release v1.4.5",
+                      asset: "GitHub release v1.5.0",
                       location: "final_cta",
                     })
                   }
