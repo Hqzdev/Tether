@@ -460,11 +460,15 @@ function AdjacentDocs({ page }: { page: DocsPageData }) {
 }
 
 function PageToc({
+  activeSectionId,
   copiedKey,
+  onSectionSelect,
   onCopy,
   page,
 }: {
+  activeSectionId: string;
   copiedKey: string | null;
+  onSectionSelect: (sectionId: string) => void;
   onCopy: (value: string, copyKey: string) => void;
   page: DocsPageData;
 }) {
@@ -478,13 +482,21 @@ function PageToc({
       <nav aria-label="On this page">
         <h2>On this page</h2>
         <ul>
-          {page.sections.map((section, index) => (
-            <li key={section.title}>
-              <a className={index === 0 ? styles.activeTocLink : undefined} href={`#${sectionId(section.title)}`}>
-                {section.title}
-              </a>
-            </li>
-          ))}
+          {page.sections.map((section) => {
+            const id = sectionId(section.title);
+
+            return (
+              <li key={section.title}>
+                <a
+                  className={activeSectionId === id ? styles.activeTocLink : undefined}
+                  href={`#${id}`}
+                  onClick={() => onSectionSelect(id)}
+                >
+                  {section.title}
+                </a>
+              </li>
+            );
+          })}
         </ul>
       </nav>
       <div className={styles.resourcePanel}>
@@ -513,6 +525,49 @@ function PageToc({
 export function DocsPage({ page }: { page: DocsPageData }) {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const sectionIds = useMemo(() => page.sections.map((section) => sectionId(section.title)), [page.sections]);
+  const [activeSectionId, setActiveSectionId] = useState(sectionIds[0] ?? "");
+
+  useEffect(() => {
+    setActiveSectionId(sectionIds[0] ?? "");
+  }, [sectionIds]);
+
+  useEffect(() => {
+    if (sectionIds.length === 0) {
+      return;
+    }
+
+    let frame = 0;
+
+    const updateActiveSection = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        const sectionTops = sectionIds
+          .map((id) => {
+            const element = document.getElementById(id);
+            return element ? { id, top: element.getBoundingClientRect().top } : null;
+          })
+          .filter((entry): entry is { id: string; top: number } => entry !== null);
+
+        const passedSection = sectionTops
+          .filter((entry) => entry.top <= 140)
+          .at(-1);
+        const nextActive = passedSection?.id ?? sectionTops[0]?.id ?? sectionIds[0];
+
+        setActiveSectionId(nextActive);
+      });
+    };
+
+    updateActiveSection();
+    window.addEventListener("scroll", updateActiveSection, { passive: true });
+    window.addEventListener("resize", updateActiveSection);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", updateActiveSection);
+      window.removeEventListener("resize", updateActiveSection);
+    };
+  }, [sectionIds]);
 
   const handleCopy = async (value: string, key: string) => {
     await copyToClipboard(value);
@@ -582,7 +637,7 @@ export function DocsPage({ page }: { page: DocsPageData }) {
           </header>
           <div className={styles.sections}>
             {page.sections.map((section, sectionIndex) => {
-              const id = sectionId(section.title);
+              const id = sectionIds[sectionIndex] ?? sectionId(section.title);
 
               return (
                 <section className={styles.section} id={id} key={section.title}>
@@ -598,7 +653,13 @@ export function DocsPage({ page }: { page: DocsPageData }) {
           </div>
           <AdjacentDocs page={page} />
         </main>
-        <PageToc copiedKey={copiedKey} onCopy={handleCopy} page={page} />
+        <PageToc
+          activeSectionId={activeSectionId}
+          copiedKey={copiedKey}
+          onCopy={handleCopy}
+          onSectionSelect={setActiveSectionId}
+          page={page}
+        />
       </div>
     </div>
   );
