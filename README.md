@@ -167,6 +167,20 @@ npm start
 
 ---
 
+## Connect CometAPI
+
+CometAPI powers cross-model replay in the macOS inspector. After Tether has captured a node, you can replay the stored request with another model and compare the result in the replay diff sheet.
+
+1. Open the macOS app.
+2. Go to Settings -> Extensions.
+3. Paste your CometAPI API key in the CometAPI section.
+4. Click Save & Test.
+5. Select any captured graph node, open the inspector footer, choose a model under Cross-model replay, and click Replay with that model.
+
+The key is saved through the local proxy endpoint `PUT /api/settings/cometapi-key`. This CometAPI workflow does not require storing the key in macOS Keychain.
+
+---
+
 ## Contributing
 
 Read [CONTRIBUTING.md](./CONTRIBUTING.md) before making changes. Code style, required English function comments, and documentation ownership rules live in [CODESTYLE.md](./CODESTYLE.md).

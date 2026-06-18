@@ -35,6 +35,7 @@ export const DOCS_NAV_GROUPS: DocsNavGroup[] = [
       { slug: "overview", label: "Overview" },
       { slug: "install", label: "Install" },
       { slug: "routing-provider-calls", label: "Route provider calls" },
+      { slug: "connect-cometapi", label: "Connect CometAPI" },
     ],
   },
   {
@@ -200,6 +201,80 @@ export const DOCS_PAGES: DocsPage[] = [
               ["/v1/messages", "Anthropic"],
               ["/v1/chat/completions", "OpenAI-compatible"],
               ["/v1/embeddings", "OpenAI-compatible"],
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "connect-cometapi",
+    title: "Connect CometAPI",
+    category: "Getting Started",
+    description:
+      "Save a CometAPI key in the local proxy and use cross-model replay from the macOS inspector.",
+    sections: [
+      {
+        title: "What CometAPI enables",
+        blocks: [
+          {
+            kind: "paragraph",
+            text:
+              "Tether can replay a captured trace node through CometAPI with a different model. The original request stays in the local trace store, the proxy sends the replay to CometAPI, and the inspector shows a side-by-side diff of the original and replayed response.",
+          },
+          {
+            kind: "list",
+            items: [
+              "Compare a failed or surprising response against another model without rebuilding the whole agent run.",
+              "Review latency, token, and cost differences in the replay diff sheet.",
+              "Keep the CometAPI key in the local proxy settings database instead of hard-coding it in scripts.",
+            ],
+          },
+        ],
+      },
+      {
+        title: "Save and test the key",
+        blocks: [
+          {
+            kind: "list",
+            items: [
+              "Open the macOS app and go to Settings -> Extensions.",
+              "In the CometAPI section, paste your CometAPI API key.",
+              "Click Save & Test.",
+              "A successful connection shows Connected with the number of available models.",
+            ],
+          },
+          {
+            kind: "paragraph",
+            text:
+              "The Save & Test action stores the key through the local proxy endpoint PUT /api/settings/cometapi-key, then fetches the model list from CometAPI. You do not need to add the key to Keychain for this workflow.",
+          },
+        ],
+      },
+      {
+        title: "Run cross-model replay",
+        blocks: [
+          {
+            kind: "list",
+            items: [
+              "Run an agent call through the Tether proxy so a node appears in the graph.",
+              "Click the node and open the inspector footer.",
+              "Use the Cross-model replay picker to choose a CometAPI model.",
+              "Click Replay with selected model to open the ReplayDiffView sheet.",
+            ],
+          },
+        ],
+      },
+      {
+        title: "Troubleshooting",
+        blocks: [
+          {
+            kind: "table",
+            headers: ["Symptom", "Check"],
+            rows: [
+              ["Save & Test returns an error", "Confirm the local proxy is running and the CometAPI key is valid."],
+              ["No models appear", "Retry Save & Test; the model picker depends on GET /api/providers/cometapi/models."],
+              ["Replay button fails", "Confirm the selected trace node has a stored request body that can be replayed."],
             ],
           },
         ],
