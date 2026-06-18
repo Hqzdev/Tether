@@ -24,60 +24,56 @@ struct InspectorReplayFooter: View {
     private let runCount = 3
 
     var body: some View {
-        VStack(spacing: 7) {
+        VStack(spacing: 12) {
             if editing {
                 Button {
                     saveDraft()
                 } label: {
-                    Text(saving ? "Saving Replay Boundary..." : "Save Mocked Response & Replay")
+                    Text(saving ? "Saving replay boundary..." : "Save mocked response and replay")
                         .frame(maxWidth: .infinity)
-                        .frame(height: 38)
+                        .frame(height: 36)
                 }
-                .buttonStyle(TimeTravelButtonStyle(active: true, palette: palette))
+                .buttonStyle(TimeTravelButtonStyle(role: .primary, palette: palette))
                 .disabled(saving)
 
-                Text(saveError ?? "downstream steps will re-run against your edit - cancel")
-                    .font(.system(size: 10.5, design: .monospaced))
-                    .foregroundStyle(saveError == nil ? palette.textQuaternary : palette.pinkText)
-                    .onTapGesture {
-                        editing = false
-                        saveError = nil
-                    }
-                    .lineLimit(1)
-            } else {
                 Button {
+                    editing = false
+                    saveError = nil
+                } label: {
+                    Text(saveError ?? "Downstream steps will re-run against this edit - cancel")
+                        .font(.system(size: 11))
+                        .foregroundStyle(saveError == nil ? palette.textTertiary : palette.pinkText)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.plain)
+            } else {
+                ReplayAction(
+                    title: "Time-travel - edit response",
+                    caption: "Intercept and rewrite this node output, then replay the chain",
+                    role: .primary,
+                    disabled: false,
+                    palette: palette
+                ) {
                     draft = responseText
                     editing = true
                     tab = .response
-                } label: {
-                    Text("Time-Travel - Edit Response")
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 38)
                 }
-                .buttonStyle(TimeTravelButtonStyle(active: false, palette: palette))
 
-                Text("intercept and rewrite this node output, then replay the chain")
-                    .font(.system(size: 10.5, design: .monospaced))
-                    .foregroundStyle(palette.textQuaternary)
-
-                Button {
-                    runMultiple()
-                } label: {
-                    Text(running ? "Running \(runCount)x..." : "Run \(runCount)x and compare")
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 38)
-                }
-                .buttonStyle(TimeTravelButtonStyle(active: false, palette: palette))
-                .disabled(running)
-
-                Text(runError ?? "replay this node \(runCount)x to check provider non-determinism")
-                    .font(.system(size: 10.5, design: .monospaced))
-                    .foregroundStyle(runError == nil ? palette.textQuaternary : palette.pinkText)
-                    .lineLimit(1)
+                ReplayAction(
+                    title: running ? "Running \(runCount)x..." : "Run \(runCount)x and compare",
+                    caption: runError ?? "Check provider non-determinism",
+                    role: .secondary,
+                    disabled: running,
+                    captionColor: runError == nil ? palette.textTertiary : palette.pinkText,
+                    palette: palette,
+                    action: runMultiple
+                )
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 14)
         .background(palette.panelSecondary.opacity(0.50))
         .overlay(alignment: .top) {
             Rectangle()
@@ -132,6 +128,35 @@ struct InspectorReplayFooter: View {
                     saving = false
                 }
             }
+        }
+    }
+}
+
+private struct ReplayAction: View {
+    let title: String
+    let caption: String
+    let role: TimeTravelButtonRole
+    let disabled: Bool
+    var captionColor: Color? = nil
+    let palette: AgentTracePalette
+    let action: () -> Void
+
+    var body: some View {
+        VStack(spacing: 6) {
+            Button(action: action) {
+                Text(title)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 36)
+            }
+            .buttonStyle(TimeTravelButtonStyle(role: role, palette: palette))
+            .disabled(disabled)
+
+            Text(caption)
+                .font(.system(size: 11))
+                .foregroundStyle(captionColor ?? palette.textTertiary)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .frame(maxWidth: .infinity)
         }
     }
 }

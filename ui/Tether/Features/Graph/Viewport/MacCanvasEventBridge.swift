@@ -59,6 +59,7 @@ struct MacCanvasEventBridge: NSViewRepresentable {
         var onScroll: ((CGSize) -> Void)?
         var onMagnify: ((CGFloat) -> Void)?
         private var monitor: Any?
+        private var cachedWindowFrame: CGRect = .null
 
         /// Installs a local monitor for scroll and magnify events inside the bridge view.
         func installMonitor() {
@@ -100,8 +101,19 @@ struct MacCanvasEventBridge: NSViewRepresentable {
         /// Returns whether the event occurred inside the bridge view bounds.
         private func contains(event: NSEvent) -> Bool {
             guard let view, event.window === view.window else { return false }
-            let location = view.convert(event.locationInWindow, from: nil)
-            return view.bounds.contains(location)
+            updateCachedWindowFrame()
+            return cachedWindowFrame.contains(event.locationInWindow)
+        }
+
+        /// Stores the bridge's visible frame in window coordinates for reliable event scoping.
+        private func updateCachedWindowFrame() {
+            guard let view else {
+                cachedWindowFrame = .null
+                return
+            }
+
+            let visibleBounds = view.bounds.intersection(view.visibleRect)
+            cachedWindowFrame = view.convert(visibleBounds, to: nil)
         }
     }
 }

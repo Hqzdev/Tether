@@ -2,7 +2,7 @@ import Core
 import SwiftUI
 import UI
 
-/// Draws curved edges between graph node cards.
+/// Draws animated rounded bottom-to-top paths between graph node cards.
 struct GraphConnections: View, Equatable {
     let nodes: [GraphConnectionNode]
     let positions: [AgentNode.ID: CGPoint]
@@ -15,11 +15,14 @@ struct GraphConnections: View, Equatable {
     let palette: AgentTracePalette
 
     var body: some View {
-        Canvas { context, _ in
-            guard nodes.count > 1 else { return }
+        TimelineView(.animation) { timeline in
+            Canvas { context, _ in
+                guard nodes.count > 1 else { return }
 
-            for index in 1..<nodes.count {
-                drawConnection(at: index, in: context)
+                let dashPhase = dashPhase(at: timeline.date)
+                for index in 1..<nodes.count {
+                    drawConnection(at: index, dashPhase: dashPhase, in: context)
+                }
             }
         }
         .frame(width: contentSize.width, height: contentSize.height, alignment: .topLeading)
@@ -27,7 +30,7 @@ struct GraphConnections: View, Equatable {
     }
 
     /// Draws one edge from the previous node to the current node.
-    private func drawConnection(at index: Int, in context: GraphicsContext) {
+    private func drawConnection(at index: Int, dashPhase: CGFloat, in context: GraphicsContext) {
         // Never bridge the history cluster and the live cluster.
         if clusterBoundaryIndex == index {
             return
@@ -46,16 +49,23 @@ struct GraphConnections: View, Equatable {
 
         let fromSize = nodeSizes[previous.id] ?? defaultNodeSize
         let toSize = nodeSizes[current.id] ?? defaultNodeSize
-        let anchors = bestAnchorPair(from: from, sourceSize: fromSize, to: to, targetSize: toSize)
-        let controlPoints = controlPoints(for: anchors)
+        let anchors = verticalAnchorPair(from: from, sourceSize: fromSize, to: to, targetSize: toSize)
 
-        var path = Path()
-        path.move(to: anchors.start)
-        path.addCurve(to: anchors.end, control1: controlPoints.first, control2: controlPoints.second)
+        let path = roundedVerticalPath(from: anchors.start, to: anchors.end)
 
         let edgeColor = palette.color(for: current.status)
-        context.stroke(path, with: .color(edgeColor), style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
+        context.stroke(path, with: .color(edgeColor.opacity(0.20)), style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
+        context.stroke(
+            path,
+            with: .color(edgeColor.opacity(0.92)),
+            style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round, dash: [9, 15], dashPhase: dashPhase)
+        )
         drawEndpoint(at: anchors.end, color: edgeColor, in: context)
+    }
+
+    /// Negative phase moves the dash train forward along the path direction.
+    private func dashPhase(at date: Date) -> CGFloat {
+        -CGFloat(date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 2)) * 48
     }
 
     /// Draws the circular endpoint marker for an edge.
@@ -65,48 +75,31 @@ struct GraphConnections: View, Equatable {
         context.stroke(marker, with: .color(color), lineWidth: 2)
     }
 
-    /// Chooses the lowest-penalty pair of source and target anchors.
-    private func bestAnchorPair(from sourceOrigin: CGPoint, sourceSize: CGSize, to targetOrigin: CGPoint, targetSize: CGSize) -> NodeAnchorPair {
-        let sourceCenter = sourceOrigin.center(in: sourceSize)
-        let targetCenter = targetOrigin.center(in: targetSize)
-        let centerDelta = CGSize(width: targetCenter.x - sourceCenter.x, height: targetCenter.y - sourceCenter.y)
-        let preferredSides = preferredAnchorSides(for: centerDelta)
-        var bestPair: NodeAnchorPair?
-        var bestScore = CGFloat.infinity
-
-        for startSide in NodeAnchorSide.allCases {
-            for endSide in NodeAnchorSide.allCases {
-                let pair = NodeAnchorPair(startSide: startSide, endSide: endSide, sourceOrigin: sourceOrigin, sourceSize: sourceSize, targetOrigin: targetOrigin, targetSize: targetSize)
-                let score = pair.score(preferredSides: preferredSides)
-                if score < bestScore {
-                    bestScore = score
-                    bestPair = pair
-                }
-            }
-        }
-
-        return bestPair ?? NodeAnchorPair(start: .zero, end: .zero, startSide: .right, endSide: .left, distance: 0)
+    /// Resolves the fixed bottom-to-top anchor pair for a sequential path.
+    private func verticalAnchorPair(from sourceOrigin: CGPoint, sourceSize: CGSize, to targetOrigin: CGPoint, targetSize: CGSize) -> NodeAnchorPair {
+        NodeAnchorPair(
+            startSide: .bottom,
+            endSide: .top,
+            sourceOrigin: sourceOrigin,
+            sourceSize: sourceSize,
+            targetOrigin: targetOrigin,
+            targetSize: targetSize
+        )
     }
 
-    /// Prefers horizontal or vertical anchor flow based on center delta.
-    private func preferredAnchorSides(for delta: CGSize) -> (start: NodeAnchorSide, end: NodeAnchorSide) {
-        if abs(delta.width) >= abs(delta.height) {
-            return delta.width >= 0 ? (.right, .left) : (.left, .right)
-        }
-
-        return delta.height >= 0 ? (.bottom, .top) : (.top, .bottom)
-    }
-
-    /// Builds Bezier control points from the selected anchor pair.
-    private func controlPoints(for anchors: NodeAnchorPair) -> (first: CGPoint, second: CGPoint) {
-        if anchors.startSide.isVertical && anchors.endSide.isVertical {
-            let distance = abs(anchors.end.y - anchors.start.y) * 0.5
-            let direction: CGFloat = anchors.end.y >= anchors.start.y ? 1 : -1
-            return (CGPoint(x: anchors.start.x, y: anchors.start.y + distance * direction), CGPoint(x: anchors.end.x, y: anchors.end.y - distance * direction))
-        }
-
-        let controlDistance = max(28, min(160, anchors.distance * 0.45))
-        return (anchors.start.offset(by: anchors.startSide.normal, distance: controlDistance), anchors.end.offset(by: anchors.endSide.normal, distance: controlDistance))
+    /// Builds a smooth bottom-to-top curve without hard elbows.
+    private func roundedVerticalPath(from start: CGPoint, to end: CGPoint) -> Path {
+        let verticalDistance = abs(end.y - start.y)
+        let direction: CGFloat = end.y >= start.y ? 1 : -1
+        let controlDistance = max(42, min(180, verticalDistance * 0.56))
+        var path = Path()
+        path.move(to: start)
+        path.addCurve(
+            to: end,
+            control1: CGPoint(x: start.x, y: start.y + controlDistance * direction),
+            control2: CGPoint(x: end.x, y: end.y - controlDistance * direction)
+        )
+        return path
     }
 }
 

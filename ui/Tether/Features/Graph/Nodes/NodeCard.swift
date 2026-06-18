@@ -51,6 +51,10 @@ struct NodeCardModel: Identifiable, Equatable {
     let stale: Bool
     let status: NodeStatus
 
+    var hasBillableCost: Bool {
+        cost != "$0.0000" && cost != "$0" && cost != "$0.00"
+    }
+
     init(node: AgentNode) {
         id = node.id
         agentName = node.agentName
@@ -79,11 +83,11 @@ private struct NodeCard: View {
         VStack(spacing: 0) {
             NodeCardHeader(node: node, palette: palette)
             ProgressBar(value: node.barPercent, status: node.status, palette: palette)
-                .padding(.top, 9)
+                .padding(.top, 10)
             NodeCardFooter(node: node, palette: palette)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
         .frame(width: size.width, height: size.height, alignment: .topLeading)
         .clipped()
         .background(NodeCardBackground(selected: selected, isPerformanceMode: isPerformanceMode, palette: palette))

@@ -16,7 +16,7 @@ struct NodeCardHeader: View {
                 Text(node.stepName)
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(palette.text)
-                    .lineLimit(nil)
+                    .lineLimit(2)
 
                 HStack(spacing: 6) {
                     AgentBadge(name: node.agentName, palette: palette)
@@ -46,24 +46,61 @@ struct NodeCardFooter: View {
     let palette: AgentTracePalette
 
     var body: some View {
-        HStack(spacing: 10) {
-            NodeFootnote(label: "lat", text: node.latency, palette: palette)
-            NodeFootnote(label: "cost", text: node.cost, palette: palette)
+        VStack(spacing: 7) {
+            HStack(alignment: .top, spacing: 12) {
+                NodeMetric(symbol: "timer", label: "Latency", value: node.latency, palette: palette)
+                NodeMetric(
+                    symbol: "arrow.down.left.arrow.up.right",
+                    label: "Tokens",
+                    value: "\(node.tokensIn) in / \(node.tokensOut) out",
+                    palette: palette
+                )
+            }
 
-            Spacer(minLength: 0)
-
-            Text("\(node.tokensIn) down \(node.tokensOut) up tok")
-                .font(.system(size: 10.5, design: .monospaced))
-                .foregroundStyle(palette.textTertiary)
-                .lineLimit(nil)
+            if node.hasBillableCost {
+                HStack {
+                    NodeMetric(symbol: "creditcard", label: "Cost", value: node.cost, palette: palette)
+                    Spacer(minLength: 0)
+                }
+            }
         }
-        .padding(.top, 10)
+        .padding(.top, 9)
         .overlay(alignment: .top) {
             Rectangle()
                 .frame(height: 1)
                 .foregroundStyle(palette.border)
         }
-        .padding(.top, 10)
+        .padding(.top, 9)
+    }
+}
+
+private struct NodeMetric: View {
+    let symbol: String
+    let label: String
+    let value: String
+    let palette: AgentTracePalette
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 5) {
+            Image(systemName: symbol)
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundStyle(palette.textQuaternary)
+                .frame(width: 12)
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(label)
+                    .font(.system(size: 9))
+                    .foregroundStyle(palette.textQuaternary)
+                    .lineLimit(1)
+
+                Text(value)
+                    .font(.system(size: 10.5, weight: .semibold, design: .monospaced))
+                    .foregroundStyle(palette.textSecondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.82)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

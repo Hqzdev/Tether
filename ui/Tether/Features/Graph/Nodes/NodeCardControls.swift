@@ -8,7 +8,7 @@ struct NodeAnchorMarkers: View {
 
     var body: some View {
         GeometryReader { geometry in
-            ForEach(NodeAnchorSide.allCases, id: \.self) { side in
+            ForEach([NodeAnchorSide.top, .bottom], id: \.self) { side in
                 Circle()
                     .fill(palette.window.opacity(0.96))
                     .frame(width: 10, height: 10)
@@ -43,29 +43,9 @@ struct ProgressBar: View {
                             endPoint: .trailing
                         )
                     )
-                    .frame(width: geometry.size.width * min(max(value, 0), 100) / 100)
+                    .frame(width: geometry.size.width * min(max(value, 0), 1))
             }
         }
         .frame(height: 3)
-    }
-}
-
-/// Compact metric label used in graph node footers.
-struct NodeFootnote: View {
-    let label: String
-    let text: String
-    let palette: AgentTracePalette
-
-    var body: some View {
-        HStack(spacing: 4) {
-            Text(label)
-                .foregroundStyle(palette.textQuaternary)
-            Text(text)
-                .fontWeight(.semibold)
-                .foregroundStyle(palette.textSecondary)
-        }
-        .font(.system(size: 10.5, design: .monospaced))
-        .foregroundStyle(palette.textTertiary)
-        .lineLimit(1)
     }
 }

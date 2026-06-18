@@ -63,13 +63,16 @@ struct CallRowMetrics: View {
 
     var body: some View {
         VStack(alignment: .trailing, spacing: 3) {
-            Text(node.cost)
-                .font(.system(size: 11.5, weight: .semibold, design: .monospaced))
-                .foregroundStyle(node.cost == "$0.0000" ? palette.textQuaternary : palette.textSecondary)
+            if node.hasBillableCost {
+                Text(node.cost)
+                    .font(.system(size: 11.5, weight: .semibold, design: .monospaced))
+                    .foregroundStyle(palette.textSecondary)
+            }
 
             Text(node.status == .cached ? "0ms" : node.latency.replacingOccurrences(of: " (timeout)", with: ""))
                 .font(.system(size: 10, design: .monospaced))
                 .foregroundStyle(node.status == .cached ? palette.cyan : palette.textQuaternary)
         }
+        .frame(minWidth: 44, alignment: .trailing)
     }
 }

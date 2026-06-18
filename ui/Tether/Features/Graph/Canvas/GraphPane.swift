@@ -4,7 +4,7 @@ import UI
 
 /// Center pane that renders the draggable trace graph and its summary metrics.
 struct GraphPane: View {
-    private let nodeSize = CGSize(width: 320, height: 112)
+    private let nodeSize = CGSize(width: 336, height: 136)
     private let depthSpacing: CGFloat = 380
     private let zoomRange: ClosedRange<CGFloat> = 0.5...1.8
 
@@ -36,8 +36,7 @@ struct GraphPane: View {
     }
 
     private var headerContext: String {
-        let nodeTitle = selectedNode?.stepName ?? "Waiting for calls"
-        return "Live trace · \(nodeTitle)"
+        nodes.isEmpty ? "Waiting for calls" : "Live trace"
     }
 
     var body: some View {

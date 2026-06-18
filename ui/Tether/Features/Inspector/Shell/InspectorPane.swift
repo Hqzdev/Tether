@@ -88,34 +88,71 @@ private struct InspectorHeader: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            HStack(spacing: 9) {
+            VStack(alignment: .leading, spacing: 8) {
                 if let node {
-                    StatusDot(status: node.status, palette: palette)
-                    Text(node.stepName)
-                        .font(.system(size: 13.5, weight: .semibold))
-                        .foregroundStyle(palette.text)
-                        .lineLimit(1)
+                    HStack(alignment: .top, spacing: 12) {
+                        Text(node.stepName)
+                            .font(.system(size: 19, weight: .semibold))
+                            .foregroundStyle(palette.text)
+                            .lineLimit(2)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(maxWidth: .infinity, alignment: .leading)
 
-                    Spacer(minLength: 0)
+                        InspectorStatusBadge(status: node.status, stale: node.stale, palette: palette)
+                    }
+
                     InspectorModelBadges(node: node, palette: palette)
                 } else {
                     Text("Inspector")
-                        .font(.headline)
+                        .font(.system(size: 19, weight: .semibold))
                         .foregroundStyle(.secondary)
-
-                    Spacer(minLength: 0)
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
 
             InspectorTabPicker(tab: $tab, palette: palette)
         }
-        .padding(.horizontal, 14)
-        .padding(.top, 12)
+        .padding(.horizontal, 16)
+        .padding(.top, 14)
+        .padding(.bottom, 12)
         .overlay(alignment: .bottom) {
             Rectangle()
                 .fill(palette.border)
                 .frame(height: 1)
         }
+    }
+}
+
+private struct InspectorStatusBadge: View {
+    let status: NodeStatus
+    let stale: Bool
+    let palette: AgentTracePalette
+
+    private var text: String {
+        stale ? "STALE" : status.label
+    }
+
+    private var color: Color {
+        stale ? palette.amber : palette.color(for: status)
+    }
+
+    private var background: Color {
+        stale ? palette.amber.opacity(0.10) : palette.background(for: status)
+    }
+
+    var body: some View {
+        Text(text)
+            .font(.system(size: 10.5, weight: .bold))
+            .foregroundStyle(color)
+            .padding(.horizontal, 9)
+            .padding(.vertical, 4)
+            .background(background)
+            .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .stroke(color.opacity(0.22), lineWidth: 1)
+            }
+            .fixedSize()
     }
 }
 

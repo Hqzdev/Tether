@@ -18,9 +18,7 @@ struct CallRow: View, Equatable {
     var body: some View {
         Button(action: onSelect) {
             HStack(alignment: .top, spacing: 9) {
-                StatusDot(status: node.status, palette: palette, size: 12)
-                    .padding(.top, 3)
-                    .frame(width: 16)
+                CallStatusRail(status: node.status, selected: selected, palette: palette)
                 CallRowBody(node: node, palette: palette)
                 CallRowMetrics(node: node, palette: palette)
             }
@@ -67,6 +65,10 @@ struct CallRowModel: Identifiable, Equatable {
     let stale: Bool
     let status: NodeStatus
 
+    var hasBillableCost: Bool {
+        cost != "$0.0000" && cost != "$0" && cost != "$0.00"
+    }
+
     init(node: AgentNode) {
         id = node.id
         agentName = node.agentName
@@ -78,5 +80,24 @@ struct CallRowModel: Identifiable, Equatable {
         latency = node.latency
         stale = node.stale
         status = node.status
+    }
+}
+
+private struct CallStatusRail: View {
+    let status: NodeStatus
+    let selected: Bool
+    let palette: AgentTracePalette
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: 2, style: .continuous)
+            .fill(palette.color(for: status))
+            .frame(width: selected ? 4 : 3, height: 34)
+            .overlay {
+                RoundedRectangle(cornerRadius: 2, style: .continuous)
+                    .stroke(palette.window.opacity(0.72), lineWidth: 1)
+            }
+            .padding(.top, 1)
+            .frame(width: 10, alignment: .leading)
+            .accessibilityHidden(true)
     }
 }

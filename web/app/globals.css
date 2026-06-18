@@ -461,17 +461,37 @@ h2.title {
   background: radial-gradient(closest-side, rgba(14,165,233,.18), transparent 70%);
   filter: blur(38px);
 }
-.product-shot-frame {
-  border: 1px solid rgba(186,230,253,.9);
-  border-radius: 24px;
-  background: #fff;
-  box-shadow: 0 34px 90px rgba(14,165,233,.10), 0 18px 50px rgba(15,23,42,.12);
+.cinematic-embed {
+  width: 100%;
+  height: clamp(640px, 68vw, 920px);
+  margin: 22px auto 0;
   overflow: hidden;
+  border: 1px solid rgba(212, 212, 216, .9);
+  border-radius: 24px;
+  background: #e8e9ed;
+  box-shadow: 0 34px 90px rgba(14,165,233,.10), 0 18px 50px rgba(15,23,42,.12);
+  contain: layout paint;
 }
-.product-shot-image {
+.cinematic-embed-frame {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
+  border: 0;
+  background: #e8e9ed;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cinematic-embed-frame {
+    visibility: hidden;
+  }
+  .cinematic-embed {
+    position: relative;
+  }
+  .cinematic-embed::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: url("/Tether.PNG") center / cover no-repeat;
+  }
 }
 
 /* ====== HERO DEMO: split editor | mini app ====== */
@@ -1104,7 +1124,6 @@ h2.title {
   .proof-grid { grid-template-columns: 1fr; }
   .proof-card { min-height: 0; }
   .product-shot { margin-top: 40px; }
-  .product-shot-frame { border-radius: 12px; }
   .bento { grid-template-columns: 1fr; }
   .foot-grid { grid-template-columns: 1fr; }
   .hero h1 { letter-spacing: 0; }

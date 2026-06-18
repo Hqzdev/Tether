@@ -91,6 +91,7 @@ struct GraphViewport: View {
                     onScroll: { delta in panBy(scrollDelta(delta), viewportSize: geometry.size) },
                     onMagnify: { delta in onZoom(zoomScale * max(0.2, 1 + delta * preferences.zoomSensitivity), false) }
                 )
+                .frame(width: geometry.size.width, height: geometry.size.height)
             )
             .onChange(of: zoomScale) { _, _ in
                 panOffset = clampedPan(panOffset, viewportSize: geometry.size)

@@ -463,20 +463,13 @@ export default function TetherLanding() {
 
         <div className="product-shot reveal">
           <div className="product-shot-glow" />
-          <div className="product-shot-frame">
-            <video
-              aria-label="Tether showing a live AI agent trace graph with response metadata"
-              autoPlay
-              className="product-shot-image"
-              height={1080}
-              loop
-              muted
-              playsInline
-              preload="metadata"
-              width={1728}
-            >
-              <source src="/video.mp4" type="video/mp4" />
-            </video>
+          <div className="cinematic-embed" aria-label="Tether cinematic product animation">
+            <iframe
+              aria-label="Tether cinematic animation"
+              className="cinematic-embed-frame"
+              loading="lazy"
+              src="/tether-cinematic-animation/index.html"
+            />
           </div>
         </div>
       </header>

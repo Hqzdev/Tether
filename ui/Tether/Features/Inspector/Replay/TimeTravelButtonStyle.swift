@@ -1,30 +1,58 @@
 import SwiftUI
 import UI
 
-/// Gradient button style used for time-travel replay controls.
+/// Visual hierarchy for replay controls.
+enum TimeTravelButtonRole {
+    case primary
+    case secondary
+}
+
+/// Native macOS-style button treatment used for time-travel replay controls.
 struct TimeTravelButtonStyle: ButtonStyle {
-    let active: Bool
+    let role: TimeTravelButtonRole
     let palette: AgentTracePalette
+
+    @Environment(\.isEnabled) private var isEnabled
 
     /// Renders the replay button with active and inactive color treatments.
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 12.5, weight: .semibold))
-            .foregroundStyle(active ? Color(hex: 0x3a2a00) : Color.white)
-            .background(
-                LinearGradient(
-                    colors: active
-                        ? [Color(hex: 0xffd27a), Color(hex: 0xf5b94f)]
-                        : [palette.accent, palette.accentTwo, palette.accentThree],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
-            )
-            .clipShape(RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous))
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundStyle(foregroundColor)
+            .background(backgroundColor(configuration: configuration))
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous)
-                    .stroke(active ? Color(hex: 0xe0a23f) : palette.accent.opacity(0.22), lineWidth: 1)
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .stroke(borderColor, lineWidth: 1)
             )
-            .opacity(configuration.isPressed ? 0.86 : 1)
+            .opacity(isEnabled ? 1 : 0.52)
+            .scaleEffect(configuration.isPressed ? 0.995 : 1)
+    }
+
+    private var foregroundColor: Color {
+        switch role {
+        case .primary:
+            return Color.white
+        case .secondary:
+            return palette.text
+        }
+    }
+
+    private var borderColor: Color {
+        switch role {
+        case .primary:
+            return Color(hex: 0x18181b)
+        case .secondary:
+            return palette.borderStrong
+        }
+    }
+
+    private func backgroundColor(configuration: Configuration) -> Color {
+        switch role {
+        case .primary:
+            return configuration.isPressed ? Color(hex: 0x3f3f46) : Color(hex: 0x18181b)
+        case .secondary:
+            return configuration.isPressed ? palette.panelSecondary : palette.window
+        }
     }
 }
