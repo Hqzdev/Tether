@@ -1,6 +1,28 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { DM_Mono, DM_Sans, Fustat } from "next/font/google";
 import "./globals.css";
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-dm-sans",
+});
+
+const dmMono = DM_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  display: "swap",
+  variable: "--font-dm-mono",
+});
+
+const fustat = Fustat({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-fustat",
+});
+
+const fontVariables = `${dmSans.variable} ${dmMono.variable} ${fustat.variable}`;
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://useTether.dev";
 const GTM_ID = "GTM-WCSRPQFF";
@@ -245,7 +267,7 @@ const jsonLd = {
  */
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={fontVariables}>
       <head>
         <script
           dangerouslySetInnerHTML={{

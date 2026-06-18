@@ -51,7 +51,7 @@ struct InspectorReplayFooter: View {
             } else {
                 ReplayAction(
                     title: "Time-travel - edit response",
-                    caption: "Intercept and rewrite this node output, then replay the chain",
+                    caption: nil,
                     role: .primary,
                     disabled: false,
                     palette: palette
@@ -63,10 +63,10 @@ struct InspectorReplayFooter: View {
 
                 ReplayAction(
                     title: running ? "Running \(runCount)x..." : "Run \(runCount)x and compare",
-                    caption: runError ?? "Check provider non-determinism",
+                    caption: runError,
                     role: .secondary,
                     disabled: running,
-                    captionColor: runError == nil ? palette.textTertiary : palette.pinkText,
+                    captionColor: palette.pinkText,
                     palette: palette,
                     action: runMultiple
                 )
@@ -134,7 +134,7 @@ struct InspectorReplayFooter: View {
 
 private struct ReplayAction: View {
     let title: String
-    let caption: String
+    let caption: String?
     let role: TimeTravelButtonRole
     let disabled: Bool
     var captionColor: Color? = nil
@@ -151,12 +151,14 @@ private struct ReplayAction: View {
             .buttonStyle(TimeTravelButtonStyle(role: role, palette: palette))
             .disabled(disabled)
 
-            Text(caption)
-                .font(.system(size: 11))
-                .foregroundStyle(captionColor ?? palette.textTertiary)
-                .multilineTextAlignment(.center)
-                .lineLimit(2)
-                .frame(maxWidth: .infinity)
+            if let caption, !caption.isEmpty {
+                Text(caption)
+                    .font(.system(size: 12))
+                    .foregroundStyle(captionColor ?? Color(hex: 0x888888))
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .frame(maxWidth: .infinity)
+            }
         }
     }
 }

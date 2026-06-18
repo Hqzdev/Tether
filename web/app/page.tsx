@@ -331,10 +331,6 @@ export default function TetherLanding() {
     fitTreeView();
   }, []);
 
-  function handleFeatureHover(view: InspectorView) {
-    if (!window.matchMedia("(hover: none)").matches) setActiveView(view);
-  }
-
   function replayChain() {
     trackEvent("replay_started", { location: "inspector" });
     setReplayState("running");
@@ -663,7 +659,6 @@ export default function TetherLanding() {
                     title: feature.title,
                   });
                 }}
-                onMouseEnter={() => handleFeatureHover(feature.view)}
                 type="button"
               >
                 <span className="fl-ico" data-acc={feature.acc}>

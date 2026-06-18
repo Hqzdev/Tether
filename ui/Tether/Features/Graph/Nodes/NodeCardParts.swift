@@ -20,22 +20,20 @@ struct NodeCardHeader: View {
 
                 HStack(spacing: 6) {
                     AgentBadge(name: node.agentName, palette: palette)
-                    Text("\(node.provider) / \(node.model) - \(node.requestId)")
-                        .font(.system(size: 10.5, design: .monospaced))
-                        .foregroundStyle(palette.textQuaternary)
-                        .lineLimit(1)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            Text(node.stale ? "STALE" : node.status.label)
-                .font(.system(size: 9.5, weight: .bold))
-                .tracking(0.4)
-                .foregroundStyle(node.stale ? palette.amber : palette.color(for: node.status))
-                .padding(.horizontal, 7)
-                .padding(.vertical, 3)
-                .background(node.stale ? palette.amber.opacity(0.10) : palette.background(for: node.status))
-                .clipShape(RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous))
+            if node.stale {
+                Text("STALE")
+                    .font(.system(size: 9.5, weight: .bold))
+                    .tracking(0.4)
+                    .foregroundStyle(palette.amber)
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 3)
+                    .background(palette.amber.opacity(0.10))
+                    .clipShape(RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous))
+            }
         }
     }
 }
@@ -48,9 +46,9 @@ struct NodeCardFooter: View {
     var body: some View {
         VStack(spacing: 7) {
             HStack(alignment: .top, spacing: 12) {
-                NodeMetric(symbol: "timer", label: "Latency", value: node.latency, palette: palette)
+                NodeMetric(symbol: "clock", label: "Latency", value: node.latency, palette: palette)
                 NodeMetric(
-                    symbol: "arrow.down.left.arrow.up.right",
+                    symbol: "number",
                     label: "Tokens",
                     value: "\(node.tokensIn) in / \(node.tokensOut) out",
                     palette: palette
@@ -83,7 +81,8 @@ private struct NodeMetric: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 5) {
             Image(systemName: symbol)
-                .font(.system(size: 9, weight: .semibold))
+                .font(.system(size: 10, weight: .regular))
+                .symbolRenderingMode(.monochrome)
                 .foregroundStyle(palette.textQuaternary)
                 .frame(width: 12)
 

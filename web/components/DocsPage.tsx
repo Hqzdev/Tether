@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
 import {
   DOCS_NAV_GROUPS,
@@ -10,6 +10,7 @@ import {
   type DocsBlock,
   type DocsPage as DocsPageData,
 } from "@/lib/docs-pages";
+import { docsPageToMarkdown } from "@/lib/docs-markdown";
 import styles from "./DocsPage.module.css";
 
 const GITHUB_HREF = "https://github.com/Hqzdev/Tether";
@@ -18,6 +19,10 @@ const RELEASE_HREF = "https://github.com/Hqzdev/Tether/releases/latest";
 
 function docsHref(slug: string) {
   return slug === "overview" ? "/docs" : `/docs/${slug}`;
+}
+
+function docsMarkdownHref(slug: string) {
+  return `/docs/${slug}/markdown`;
 }
 
 function sectionId(title: string) {
@@ -109,6 +114,144 @@ function DocsTopNav() {
         Install v1.2
       </a>
     </header>
+  );
+}
+
+function aiQuestionHref(provider: "chatgpt" | "claude" | "perplexity", pageUrl: string, page: DocsPageData) {
+  const prompt = `Read this Tether documentation page and help me understand it: ${pageUrl}\n\nPage: ${page.title}`;
+  const encodedPrompt = encodeURIComponent(prompt);
+
+  switch (provider) {
+    case "chatgpt":
+      return `https://chatgpt.com/?q=${encodedPrompt}`;
+    case "claude":
+      return `https://claude.ai/new?q=${encodedPrompt}`;
+    case "perplexity":
+      return `https://www.perplexity.ai/search/new?q=${encodedPrompt}`;
+  }
+}
+
+function DocsCopyMenu({
+  copiedKey,
+  onCopy,
+  page,
+}: {
+  copiedKey: string | null;
+  onCopy: (value: string, copyKey: string) => void;
+  page: DocsPageData;
+}) {
+  const [open, setOpen] = useState(false);
+  const [pageUrl, setPageUrl] = useState(docsHref(page.slug));
+  const menuRef = useRef<HTMLDivElement>(null);
+  const copyKey = `markdown-${page.slug}`;
+  const markdown = useMemo(() => docsPageToMarkdown(page), [page]);
+
+  useEffect(() => {
+    setPageUrl(new URL(docsHref(page.slug), window.location.origin).toString());
+  }, [page.slug]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!menuRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
+  const copyMarkdown = () => {
+    onCopy(markdown, copyKey);
+    setOpen(false);
+  };
+
+  return (
+    <div className={styles.copyMenu} ref={menuRef}>
+      <button
+        aria-expanded={open}
+        aria-haspopup="menu"
+        className={styles.copyMenuTrigger}
+        onClick={() => setOpen((current) => !current)}
+        type="button"
+      >
+        <Icon name={copiedKey === copyKey ? "check" : "file-lines"} size={18} />
+        <span>{copiedKey === copyKey ? "Copied page" : "Copy page"}</span>
+        <span className={styles.copyMenuChevron}>
+          <Icon name="arrow-down-long" size={15} />
+        </span>
+      </button>
+      {open ? (
+        <div className={styles.copyMenuPanel} role="menu">
+          <button role="menuitem" type="button" onClick={copyMarkdown}>
+            <span className={styles.copyMenuIcon}>
+              <Icon name="file-lines" size={22} />
+            </span>
+            <span>
+              <strong>Copy page</strong>
+              <small>Copy page as Markdown for LLMs</small>
+            </span>
+          </button>
+          <a href={docsMarkdownHref(page.slug)} role="menuitem" target="_blank">
+            <span className={styles.copyMenuIcon}>
+              <Icon name="file-lines" size={22} />
+            </span>
+            <span>
+              <strong>
+                View as Markdown <Icon name="arrow-right" size={14} />
+              </strong>
+              <small>View this page as plain text</small>
+            </span>
+          </a>
+          <a href={aiQuestionHref("chatgpt", pageUrl, page)} rel="noreferrer" role="menuitem" target="_blank">
+            <span className={styles.copyMenuIcon}>
+              <Icon name="spark" size={22} />
+            </span>
+            <span>
+              <strong>
+                Open in ChatGPT <Icon name="arrow-right" size={14} />
+              </strong>
+              <small>Ask questions about this page</small>
+            </span>
+          </a>
+          <a href={aiQuestionHref("claude", pageUrl, page)} rel="noreferrer" role="menuitem" target="_blank">
+            <span className={styles.copyMenuIcon}>
+              <Icon name="feather" size={22} />
+            </span>
+            <span>
+              <strong>
+                Open in Claude <Icon name="arrow-right" size={14} />
+              </strong>
+              <small>Ask questions about this page</small>
+            </span>
+          </a>
+          <a href={aiQuestionHref("perplexity", pageUrl, page)} rel="noreferrer" role="menuitem" target="_blank">
+            <span className={styles.copyMenuIcon}>
+              <Icon name="circle-nodes" size={22} />
+            </span>
+            <span>
+              <strong>
+                Open in Perplexity <Icon name="arrow-right" size={14} />
+              </strong>
+              <small>Ask questions about this page</small>
+            </span>
+          </a>
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -342,9 +485,11 @@ function PageToc({
       <nav aria-label="On this page">
         <h2>On this page</h2>
         <ul>
-          {page.sections.map((section) => (
+          {page.sections.map((section, index) => (
             <li key={section.title}>
-              <a href={`#${sectionId(section.title)}`}>{section.title}</a>
+              <a className={index === 0 ? styles.activeTocLink : undefined} href={`#${sectionId(section.title)}`}>
+                {section.title}
+              </a>
             </li>
           ))}
         </ul>
@@ -408,7 +553,10 @@ export function DocsPage({ page }: { page: DocsPageData }) {
             <span>{page.title}</span>
           </div>
           <header className={styles.hero}>
-            <span className={styles.category}>{page.category}</span>
+            <div className={styles.heroTopline}>
+              <span className={styles.category}>{page.category}</span>
+              <DocsCopyMenu copiedKey={copiedKey} onCopy={handleCopy} page={page} />
+            </div>
             <h1>{page.title}</h1>
             <p>{page.description}</p>
             <div className={styles.heroActions}>

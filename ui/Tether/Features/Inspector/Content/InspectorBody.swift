@@ -1,4 +1,5 @@
 import Core
+import AppKit
 import SwiftUI
 import UI
 
@@ -188,8 +189,8 @@ private struct ContextHashSection: View {
 
     var body: some View {
         InspectorSection(title: "Boundary Hashes", palette: palette) {
-            MetadataInlineRow(label: "Input Hash", value: node.inputHash, palette: palette)
-            MetadataInlineRow(label: "Output Hash", value: node.outputHash, palette: palette)
+            MetadataInlineRow(label: "Input Hash", value: node.inputHash, valueFontSize: 11, palette: palette)
+            MetadataInlineRow(label: "Output Hash", value: node.outputHash, valueFontSize: 11, palette: palette)
             MetadataInlineRow(label: "Trace ID", value: node.traceId.isEmpty ? "n/a" : node.traceId, palette: palette)
             MetadataInlineRow(label: "Parent Span", value: node.parentSpanId ?? "root", palette: palette)
         }
@@ -220,27 +221,44 @@ private struct ContextCategoryGroup: View {
     let category: AgentContextCategory
     let sources: [AgentContextSource]
     let palette: AgentTracePalette
+    @State private var isExpanded = false
 
     var body: some View {
-        DisclosureGroup {
-            VStack(spacing: 0) {
-                ForEach(sources) { source in
-                    ContextSourceRow(source: source, palette: palette)
+        VStack(spacing: 0) {
+            Button {
+                withAnimation(.smooth(duration: 0.16)) {
+                    isExpanded.toggle()
                 }
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(palette.textTertiary)
+                        .frame(width: 16)
+
+                    Text(category.title)
+                        .font(.system(size: 11.5, weight: .semibold))
+                        .foregroundStyle(palette.text)
+                    Text("\(sources.count)")
+                        .font(.system(size: 10, design: .monospaced))
+                        .foregroundStyle(palette.textTertiary)
+                    Spacer(minLength: 0)
+                }
+                .padding(.vertical, 8)
+                .contentShape(Rectangle())
             }
-        } label: {
-            HStack(spacing: 8) {
-                Text(category.title)
-                    .font(.system(size: 11.5, weight: .semibold))
-                    .foregroundStyle(palette.text)
-                Text("\(sources.count)")
-                    .font(.system(size: 10, design: .monospaced))
-                    .foregroundStyle(palette.textTertiary)
-                Spacer(minLength: 0)
+            .buttonStyle(.plain)
+            .pointingHandCursor()
+
+            if isExpanded {
+                VStack(spacing: 0) {
+                    ForEach(sources) { source in
+                        ContextSourceRow(source: source, palette: palette)
+                    }
+                }
+                .transition(.opacity.combined(with: .move(edge: .top)))
             }
-            .padding(.vertical, 8)
         }
-        .tint(palette.accent)
         .padding(.horizontal, 14)
         .overlay(alignment: .bottom) {
             Rectangle()
@@ -391,7 +409,15 @@ struct InspectorSection<Content: View>: View {
 struct MetadataInlineRow: View {
     let label: String
     let value: String
+    let valueFontSize: CGFloat
     let palette: AgentTracePalette
+
+    init(label: String, value: String, valueFontSize: CGFloat = 11.5, palette: AgentTracePalette) {
+        self.label = label
+        self.value = value
+        self.valueFontSize = valueFontSize
+        self.palette = palette
+    }
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 12) {
@@ -401,7 +427,7 @@ struct MetadataInlineRow: View {
                 .frame(width: 112, alignment: .leading)
 
             Text(value.isEmpty ? "n/a" : value)
-                .font(.system(size: 11.5, design: .monospaced))
+                .font(.system(size: valueFontSize, design: .monospaced))
                 .foregroundStyle(palette.text)
                 .lineLimit(nil)
                 .textSelection(.enabled)
@@ -414,6 +440,35 @@ struct MetadataInlineRow: View {
                 .fill(palette.borderSoft)
                 .frame(height: 1)
         }
+    }
+}
+
+private struct PointingHandCursorModifier: ViewModifier {
+    @State private var hovering = false
+
+    func body(content: Content) -> some View {
+        content
+            .onHover { isHovering in
+                guard hovering != isHovering else { return }
+                hovering = isHovering
+                if isHovering {
+                    NSCursor.pointingHand.push()
+                } else {
+                    NSCursor.pop()
+                }
+            }
+            .onDisappear {
+                if hovering {
+                    NSCursor.pop()
+                    hovering = false
+                }
+            }
+    }
+}
+
+private extension View {
+    func pointingHandCursor() -> some View {
+        modifier(PointingHandCursorModifier())
     }
 }
 

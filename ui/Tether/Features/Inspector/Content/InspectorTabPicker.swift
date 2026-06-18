@@ -20,21 +20,27 @@ struct InspectorTabPicker: View {
                 } label: {
                     Text(item.title)
                         .font(.system(size: 11.5, weight: selected ? .semibold : .medium))
-                        .foregroundStyle(selected ? palette.text : palette.textTertiary)
+                        .foregroundStyle(selected ? palette.accent : palette.textTertiary)
                         .frame(maxWidth: .infinity)
                         .frame(height: 26)
                         .contentShape(RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous))
                         .background {
                             if selected {
-                                Color.clear
-                                    .liquidGlass(
-                                        palette: palette,
-                                        in: RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous),
-                                        tint: palette.glassTintStrong,
-                                        interactive: true,
-                                        strokeOpacity: 0.82
-                                    )
+                                RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous)
+                                    .fill(palette.accentBackground.opacity(0.95))
+                                    .overlay {
+                                        RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous)
+                                            .stroke(palette.accent.opacity(0.42), lineWidth: 1)
+                                    }
                                     .matchedGeometryEffect(id: "selection", in: pill)
+                            }
+                        }
+                        .overlay(alignment: .bottom) {
+                            if selected {
+                                Capsule()
+                                    .fill(palette.accent)
+                                    .frame(height: 2)
+                                    .padding(.horizontal, 10)
                             }
                         }
                 }

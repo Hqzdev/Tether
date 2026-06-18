@@ -16,7 +16,9 @@ struct CallRowBody: View {
 
             HStack(spacing: 6) {
                 AgentBadge(name: node.agentName, palette: palette)
+                    .opacity(0.4)
                 ModelBadge(model: "\(node.provider) / \(node.model)", palette: palette)
+                    .opacity(0.4)
                 if node.stale {
                     Text("STALE")
                         .font(.system(size: 9, weight: .bold, design: .monospaced))
@@ -26,10 +28,6 @@ struct CallRowBody: View {
                         .background(palette.amber.opacity(0.10))
                         .clipShape(RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous))
                 }
-                Text(node.timestamp)
-                    .font(.system(size: 10.5, design: .monospaced))
-                    .foregroundStyle(palette.textQuaternary)
-                    .lineLimit(1)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -63,12 +61,6 @@ struct CallRowMetrics: View {
 
     var body: some View {
         VStack(alignment: .trailing, spacing: 3) {
-            if node.hasBillableCost {
-                Text(node.cost)
-                    .font(.system(size: 11.5, weight: .semibold, design: .monospaced))
-                    .foregroundStyle(palette.textSecondary)
-            }
-
             Text(node.status == .cached ? "0ms" : node.latency.replacingOccurrences(of: " (timeout)", with: ""))
                 .font(.system(size: 10, design: .monospaced))
                 .foregroundStyle(node.status == .cached ? palette.cyan : palette.textQuaternary)

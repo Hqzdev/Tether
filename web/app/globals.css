@@ -49,9 +49,9 @@ svg.ic.spin { animation: ic-spin 1s linear infinite; }
   --accent-3: #ec4899;
   --accent-bg: rgba(79, 70, 229, 0.10);
 
-  --font-ui: "DM Sans", "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --font-display: "Fustat", "DM Sans", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: "DM Mono", "JetBrains Mono", "SF Mono", ui-monospace, "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
+  --font-ui: var(--font-dm-sans), "DM Sans", "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-display: var(--font-fustat), var(--font-dm-sans), "Fustat", "DM Sans", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: var(--font-dm-mono), "DM Mono", "JetBrains Mono", "SF Mono", ui-monospace, "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
 
   --r-sm: 5px;
   --r-md: 8px;
@@ -136,7 +136,7 @@ section { position: relative; }
 .kicker::before { display: none; }
 h2.title {
   font-family: var(--font-display);
-  font-size: clamp(30px, 4.2vw, 50px); line-height: 1.04; letter-spacing: 0;
+  font-size: clamp(30px, 4.2vw, 50px); line-height: 1.04; letter-spacing: -0.02em;
   font-weight: 680; margin: 18px 0 0; text-wrap: balance;
 }
 .section-sub { font-size: 18px; color: var(--text-2); margin-top: 18px; max-width: 600px; text-wrap: pretty; }
@@ -172,8 +172,8 @@ h2.title {
   border-color: #27272a;
   box-shadow: 0 10px 26px rgba(15,23,42,.12);
 }
-.btn-ghost { background: transparent; }
-.btn-ghost:hover { background: var(--bg-hover); }
+.btn-ghost { background: #fff; border-color: #18181b; color: #18181b; }
+.btn-ghost:hover { background: var(--bg-hover); border-color: #18181b; }
 
 .btn-primary.pulse { animation: none; }
 
@@ -330,18 +330,38 @@ h2.title {
 .sp-text b { color: var(--accent); font-weight: 650; }
 .hero h1 {
   font-family: var(--font-display);
-  font-size: clamp(40px, 6.6vw, 80px); line-height: 0.98; letter-spacing: 0;
+  font-size: clamp(40px, 6.6vw, 80px); line-height: 0.98; letter-spacing: -0.025em;
   font-weight: 700; margin: 26px auto 0; max-width: 16ch; text-wrap: balance;
 }
+/* Accent gradient is reserved for headlines only.
+   In body copy `.grad` renders as plain text so the accent keeps its meaning. */
 .landing-page .grad {
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  font-style: normal;
+  font-weight: inherit;
+  color: inherit;
+}
+.landing-page h1 .grad,
+.landing-page h2.title .grad,
+.landing-page .download-pane h2 .grad {
   background: linear-gradient(120deg, var(--accent) 0%, var(--accent-2) 48%, var(--accent-3) 100%);
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
   font-style: italic;
   font-weight: 700;
+  /* italic glyphs lean past the clip box — give them room so the last letter isn't cut,
+     then pull following text back so spacing before a trailing period stays tight */
+  padding-right: 0.09em;
+  margin-right: -0.07em;
+  padding-bottom: 0.04em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
 }
 .landing-page h1 .grad { font-weight: inherit; }
 @media (forced-colors: active) {
-  .landing-page .grad {
+  .landing-page h1 .grad,
+  .landing-page h2.title .grad,
+  .landing-page .download-pane h2 .grad {
     background: none;
     color: LinkText;
     -webkit-text-fill-color: currentColor;
@@ -364,7 +384,7 @@ h2.title {
 .urgency-link:hover { color: var(--accent-2); }
 .hero .meta-row {
   display: flex; gap: 18px; justify-content: center; margin-top: 20px; flex-wrap: wrap;
-  font-family: var(--font-mono); font-size: 12px; color: var(--text-4);
+  font-family: var(--font-mono); font-size: 12px; color: var(--text-3);
 }
 .hero .meta-row span { display: inline-flex; align-items: center; gap: 6px; }
 .hero .meta-row .ic { color: var(--accent); }
@@ -407,7 +427,7 @@ h2.title {
 .proof-meta {
   margin-bottom: 8px;
   font-family: var(--font-mono);
-  color: var(--text-4);
+  color: var(--text-3);
   font-size: 10.5px;
   letter-spacing: .9px;
   text-transform: uppercase;
@@ -655,20 +675,20 @@ h2.title {
   display: inline-flex; align-items: center; gap: 7px;
   height: 32px; padding: 0 12px; border-radius: var(--r-pill);
   font-family: var(--font-ui); font-size: 12px; font-weight: 580;
-  color: var(--text-2);
-  background: rgba(255,255,255,.88);
-  border: 1px solid var(--border);
+  color: #18181b;
+  background: rgba(255,255,255,.92);
+  border: 1px solid #18181b;
   backdrop-filter: blur(8px) saturate(140%);
   box-shadow: 0 8px 22px rgba(15,23,42,.09), inset 0 1px 0 rgba(255,255,255,.75);
   cursor: pointer;
   transition: all .2s var(--ease-expo);
 }
 .fit-view-btn:hover {
-  color: var(--text);
-  border-color: var(--border-strong);
+  color: #18181b;
+  border-color: #18181b;
   background: #fff;
 }
-.fit-view-btn .ic { font-size: 13px; color: var(--accent); }
+.fit-view-btn .ic { font-size: 13px; color: #18181b; }
 .s2-status {
   font-size: 9px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase;
   padding: 3px 7px; border-radius: 999px; background: var(--bg-panel-2);
@@ -783,19 +803,19 @@ h2.title {
 .tt-area .json-number { color: #f0b072; }
 .tt-foot { padding: 12px 14px; border-top: 1px solid var(--border); background: var(--bg-panel-2); }
 .tt-btn {
-  width: 100%; height: 40px; border-radius: var(--r-pill); cursor: pointer; border: 1px solid #e0a23f;
+  width: 100%; height: 40px; border-radius: var(--r-pill); cursor: pointer; border: 1px solid #18181b;
   display: flex; align-items: center; justify-content: center; gap: 9px;
-  font-family: var(--font-ui); font-size: 13px; font-weight: 640; color: #3a2a00;
-  background: linear-gradient(180deg, #ffd27a, #f5b94f);
-  box-shadow: 0 2px 12px rgba(245,185,79,.28), inset 0 1px 0 rgba(255,255,255,.3);
-  transition: filter .2s;
+  font-family: var(--font-ui); font-size: 13px; font-weight: 640; color: #fff;
+  background: #18181b;
+  box-shadow: 0 1px 2px rgba(15,23,42,.12);
+  transition: background-color .2s, box-shadow .2s;
 }
-.tt-btn:hover { filter: brightness(1.06); }
-.tt-btn:disabled { cursor: wait; filter: saturate(.9); }
+.tt-btn:hover { background: #27272a; box-shadow: 0 10px 26px rgba(15,23,42,.12); }
+.tt-btn:disabled { cursor: wait; opacity: .7; }
 .tt-btn.done {
-  background: linear-gradient(180deg,#34d399,#10b981);
-  border-color: #10b981;
-  color: #052e1b;
+  background: #18181b;
+  border-color: #18181b;
+  color: #fff;
 }
 
 /* keychain / privacy view */
@@ -1126,7 +1146,7 @@ h2.title {
   .product-shot { margin-top: 40px; }
   .bento { grid-template-columns: 1fr; }
   .foot-grid { grid-template-columns: 1fr; }
-  .hero h1 { letter-spacing: 0; }
+  .hero h1 { letter-spacing: -0.02em; }
   .mini-node[data-depth="1"] { margin-left: 14px; }
   .mini-node[data-depth="2"] { margin-left: 28px; }
   .mini-node[data-depth="3"] { margin-left: 42px; }

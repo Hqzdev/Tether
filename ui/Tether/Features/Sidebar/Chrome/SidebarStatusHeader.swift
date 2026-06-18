@@ -20,17 +20,12 @@ struct SidebarStatusHeader: View {
                         .font(.caption)
                         .fontWeight(.semibold)
                         .foregroundStyle(proxyStatus.color(palette))
-                    Text(proxyStatus.detail)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
                 }
 
                 Spacer(minLength: 0)
             }
             .padding(.horizontal, 10)
-            .frame(height: 46)
+            .frame(height: 38)
             .liquidGlass(
                 palette: palette,
                 cornerRadius: palette.controlRadius,

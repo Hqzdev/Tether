@@ -31,10 +31,41 @@ struct GraphPaneHeader: View {
             .fixedSize(horizontal: false, vertical: true)
 
             HStack(spacing: 10) {
-                MetricBox(label: "Total Time", value: totalLatency, valueColor: palette.text, palette: palette)
-                MetricBox(label: "Steps", value: "\(stepCount)", valueColor: palette.text, palette: palette)
-                MetricBox(label: "Agents", value: agentCount, valueColor: palette.accent, palette: palette)
-                MetricBox(label: "Status", value: statusText, valueColor: statusColor, palette: palette)
+                MetricBox(
+                    label: "Total Time",
+                    value: totalLatency,
+                    valueColor: palette.text,
+                    valueFontSize: 24,
+                    valueWeight: .bold,
+                    width: 104,
+                    palette: palette
+                )
+                MetricBox(
+                    label: "Steps",
+                    value: "\(stepCount)",
+                    valueColor: palette.text,
+                    valueFontSize: 18,
+                    valueWeight: .semibold,
+                    palette: palette
+                )
+                MetricBox(
+                    label: "Agents",
+                    value: agentCount,
+                    valueColor: palette.accent,
+                    valueFontSize: 18,
+                    valueWeight: .semibold,
+                    palette: palette
+                )
+                MetricBox(
+                    label: "Status",
+                    value: statusText,
+                    valueColor: statusColor,
+                    valueFontSize: 13,
+                    valueWeight: .semibold,
+                    labelFontSize: 9,
+                    width: 68,
+                    palette: palette
+                )
             }
             .fixedSize(horizontal: true, vertical: false)
 
@@ -55,23 +86,46 @@ private struct MetricBox: View {
     let label: String
     let value: String
     let valueColor: Color
+    let valueFontSize: CGFloat
+    let valueWeight: Font.Weight
+    let labelFontSize: CGFloat
+    let width: CGFloat
     let palette: AgentTracePalette
+
+    init(
+        label: String,
+        value: String,
+        valueColor: Color,
+        valueFontSize: CGFloat = 18,
+        valueWeight: Font.Weight = .semibold,
+        labelFontSize: CGFloat = 11,
+        width: CGFloat = 82,
+        palette: AgentTracePalette
+    ) {
+        self.label = label
+        self.value = value
+        self.valueColor = valueColor
+        self.valueFontSize = valueFontSize
+        self.valueWeight = valueWeight
+        self.labelFontSize = labelFontSize
+        self.width = width
+        self.palette = palette
+    }
 
     var body: some View {
         VStack(alignment: .trailing, spacing: 2) {
             Text(value)
-                .font(.title3.monospacedDigit())
-                .fontWeight(.semibold)
+                .font(.system(size: valueFontSize, weight: valueWeight, design: .monospaced))
                 .foregroundStyle(valueColor)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
 
             Text(label.uppercased())
-                .font(.caption2)
+                .font(.system(size: labelFontSize))
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
         }
-        .frame(width: 82, height: 52, alignment: .trailing)
+        .frame(width: width, height: 52, alignment: .trailing)
         .padding(.horizontal, 12)
         .liquidGlass(
             palette: palette,
