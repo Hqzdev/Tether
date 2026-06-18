@@ -452,7 +452,7 @@ h2.title {
 /* ====== hero product screenshot ====== */
 .product-shot {
   width: 100%;
-  max-width: 1160px;
+  max-width: 1440px;
   margin: 56px auto 0;
   position: relative;
 }
@@ -463,7 +463,7 @@ h2.title {
 }
 .cinematic-embed {
   width: 100%;
-  height: clamp(640px, 68vw, 920px);
+  aspect-ratio: 16 / 9;
   margin: 22px auto 0;
   overflow: hidden;
   border: 1px solid rgba(212, 212, 216, .9);
