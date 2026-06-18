@@ -181,31 +181,24 @@ function DocsCopyMenu({
 
   return (
     <div className={styles.copyMenu} ref={menuRef}>
-      <button
-        aria-expanded={open}
-        aria-haspopup="menu"
-        className={styles.copyMenuTrigger}
-        onClick={() => setOpen((current) => !current)}
-        type="button"
-      >
-        <Icon name={copiedKey === copyKey ? "check" : "file-lines"} size={18} />
-        <span>{copiedKey === copyKey ? "Copied page" : "Copy page"}</span>
-        <span className={styles.copyMenuChevron}>
+      <div className={styles.copyMenuTrigger}>
+        <button className={styles.copyMenuMain} onClick={copyMarkdown} type="button">
+          <Icon name={copiedKey === copyKey ? "check" : "file-lines"} size={18} />
+          <span>{copiedKey === copyKey ? "Copied page" : "Copy page"}</span>
+        </button>
+        <button
+          aria-expanded={open}
+          aria-label={open ? "Close page actions" : "Open page actions"}
+          className={styles.copyMenuChevron}
+          onClick={() => setOpen((current) => !current)}
+          type="button"
+        >
           <Icon name="arrow-down-long" size={15} />
-        </span>
-      </button>
+        </button>
+      </div>
       {open ? (
-        <div className={styles.copyMenuPanel} role="menu">
-          <button role="menuitem" type="button" onClick={copyMarkdown}>
-            <span className={styles.copyMenuIcon}>
-              <Icon name="file-lines" size={22} />
-            </span>
-            <span>
-              <strong>Copy page</strong>
-              <small>Copy page as Markdown for LLMs</small>
-            </span>
-          </button>
-          <a href={docsMarkdownHref(page.slug)} role="menuitem" target="_blank">
+        <div className={styles.copyMenuPanel}>
+          <a href={docsMarkdownHref(page.slug)} target="_blank">
             <span className={styles.copyMenuIcon}>
               <Icon name="file-lines" size={22} />
             </span>
@@ -216,7 +209,7 @@ function DocsCopyMenu({
               <small>View this page as plain text</small>
             </span>
           </a>
-          <a href={aiQuestionHref("chatgpt", pageUrl, page)} rel="noreferrer" role="menuitem" target="_blank">
+          <a href={aiQuestionHref("chatgpt", pageUrl, page)} rel="noreferrer" target="_blank">
             <span className={styles.copyMenuIcon}>
               <Icon name="spark" size={22} />
             </span>
@@ -227,7 +220,7 @@ function DocsCopyMenu({
               <small>Ask questions about this page</small>
             </span>
           </a>
-          <a href={aiQuestionHref("claude", pageUrl, page)} rel="noreferrer" role="menuitem" target="_blank">
+          <a href={aiQuestionHref("claude", pageUrl, page)} rel="noreferrer" target="_blank">
             <span className={styles.copyMenuIcon}>
               <Icon name="feather" size={22} />
             </span>
@@ -238,7 +231,7 @@ function DocsCopyMenu({
               <small>Ask questions about this page</small>
             </span>
           </a>
-          <a href={aiQuestionHref("perplexity", pageUrl, page)} rel="noreferrer" role="menuitem" target="_blank">
+          <a href={aiQuestionHref("perplexity", pageUrl, page)} rel="noreferrer" target="_blank">
             <span className={styles.copyMenuIcon}>
               <Icon name="circle-nodes" size={22} />
             </span>
