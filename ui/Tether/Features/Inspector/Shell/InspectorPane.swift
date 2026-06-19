@@ -1,4 +1,5 @@
 import Core
+import Networking
 import SwiftUI
 import UI
 
@@ -18,6 +19,14 @@ struct RunMultipleAction: Sendable {
     }
 }
 
+struct ReplayWithModelAction: Sendable {
+    let perform: @MainActor @Sendable (AgentNode, String) async throws -> ReplayResult
+
+    init(_ perform: @escaping @MainActor @Sendable (AgentNode, String) async throws -> ReplayResult) {
+        self.perform = perform
+    }
+}
+
 /// Right-hand inspector that shows prompt, response, and metadata for the selected node.
 struct InspectorPane: View {
     let node: AgentNode?
@@ -26,6 +35,7 @@ struct InspectorPane: View {
     @Binding var replayImpacts: [AgentNode.ID: TraceInvalidationResult]
     let onSaveMockResponse: SaveMockResponseAction
     let onRunMultiple: RunMultipleAction
+    let onReplayWithModel: ReplayWithModelAction
     let palette: AgentTracePalette
 
     @State private var editing = false
@@ -66,6 +76,7 @@ struct InspectorPane: View {
                     replayImpacts: $replayImpacts,
                     onSaveMockResponse: onSaveMockResponse,
                     onRunMultiple: onRunMultiple,
+                    onReplayWithModel: onReplayWithModel,
                     palette: palette
                 )
             }

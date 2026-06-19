@@ -14,6 +14,7 @@ mod context;
 mod error;
 mod gateway;
 mod logging;
+mod providers;
 mod settings;
 mod trace;
 
@@ -22,6 +23,7 @@ use std::sync::{Arc, Mutex};
 
 use axum::Router;
 use rusqlite::Connection;
+use tokio::sync::RwLock;
 
 use auth::AuthContext;
 use logging::{BOLD, CYAN, DIM, RESET};
@@ -42,6 +44,7 @@ pub(crate) struct AppState {
     /// credential, so the agent never needs to hold the key.
     openai_api_key: Option<Arc<str>>,
     anthropic_api_key: Option<Arc<str>>,
+    comet_models: providers::CometModelCache,
 }
 
 /// Boots storage, trace ingestion, routes, and the proxy HTTP listener.
@@ -86,6 +89,7 @@ async fn main() {
         auth,
         openai_api_key,
         anthropic_api_key,
+        comet_models: Arc::new(RwLock::new(None)),
     };
     trace::spawn_ingest_worker(state.db.clone(), trace_events);
 
@@ -93,6 +97,7 @@ async fn main() {
         .merge(api_docs::router())
         .merge(auth::router())
         .merge(settings::router())
+        .merge(providers::router())
         .merge(trace::router())
         .fallback(gateway::proxy)
         .with_state(state);

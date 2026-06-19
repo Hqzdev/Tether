@@ -37,6 +37,9 @@ pub(super) fn row_to_node(depth: i64, row: TraceRow, max_latency: i64) -> AgentN
         context_inputs,
         input_hash: row.input_hash,
         stale: row.stale,
+        is_replay: row.is_replay,
+        replay_source_id: row.replay_source_id,
+        replay_provider: row.replay_provider,
         agent_name,
         depth,
         step_name,
@@ -75,7 +78,9 @@ fn agent_name_for(provider: &str, model: &str) -> String {
     let provider = provider.to_ascii_lowercase();
     let model = model.to_ascii_lowercase();
 
-    if provider == "anthropic" || model.contains("claude") {
+    if provider == "cometapi" {
+        "CometAPI".to_string()
+    } else if provider == "anthropic" || model.contains("claude") {
         "Claude Code".to_string()
     } else if provider == "openai" {
         "Codex".to_string()

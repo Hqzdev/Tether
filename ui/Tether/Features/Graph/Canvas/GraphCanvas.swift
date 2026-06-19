@@ -39,8 +39,8 @@ struct GraphCanvas: View {
                 ForEach(Array(nodes.enumerated()), id: \.element.id) { index, node in
                     let source = NodeSource.of(index: index, historyCount: historyCount)
                     MovableNodeCard(
-                        node: NodeCardModel(node: node),
-                        nodePosition: positionStore.positionState(for: node.id, defaultPosition: defaultPosition(for: index)),
+                        node: NodeCardModel(node: node, replayCostImproved: replayCostImproved(for: node)),
+                        nodePosition: positionStore.positionState(for: node.id, defaultPosition: defaultPosition(for: index, node: node)),
                         selected: node.id == selectedNode?.id,
                         nodeSize: nodeSizes[node.id] ?? nodeSize,
                         isPerformanceMode: isInteractionActive || source == .history,
@@ -77,7 +77,7 @@ struct GraphCanvas: View {
                 positionStore: positionStore,
                 activePosition: positionStore.positionState(
                     for: activeDragNodeId,
-                    defaultPosition: defaultPositions[activeDragNodeId] ?? defaultPosition(for: 0)
+                    defaultPosition: defaultPositions[activeDragNodeId] ?? defaultPosition(for: 0, node: nodes.first)
                 ),
                 activeNodeId: activeDragNodeId,
                 contentSize: contentSize,
@@ -98,32 +98,66 @@ struct GraphCanvas: View {
     }
 
     private var connectionNodes: [GraphConnectionNode] {
-        nodes.map { GraphConnectionNode(id: $0.id, status: $0.status) }
+        nodes.map {
+            GraphConnectionNode(
+                id: $0.id,
+                status: $0.status,
+                isReplay: $0.isReplay,
+                replaySourceId: $0.replaySourceId
+            )
+        }
     }
 
     private var defaultPositions: [AgentNode.ID: CGPoint] {
         Dictionary(uniqueKeysWithValues: nodes.enumerated().map { index, node in
-            (node.id, defaultPosition(for: index))
+            (node.id, defaultPosition(for: index, node: node))
         })
     }
 
     private var persistedPositions: [AgentNode.ID: CGPoint] {
         Dictionary(uniqueKeysWithValues: nodes.enumerated().map { index, node in
-            let base = defaultPosition(for: index)
+            let base = defaultPosition(for: index, node: node)
             return (node.id, positionStore.persistedPosition(for: node.id, defaultPosition: base))
         })
     }
 
     /// Returns the automatic canvas position for a node index, accounting for the
     /// history (left) and live (right-offset) clusters.
-    private func defaultPosition(for index: Int) -> CGPoint {
-        GraphClusterLayout.defaultPosition(
+    private func defaultPosition(for index: Int, node: AgentNode?) -> CGPoint {
+        if let node,
+           node.isReplay,
+           let sourceId = node.replaySourceId,
+           let sourceIndex = nodes.firstIndex(where: { $0.id == sourceId }) {
+            let source = GraphClusterLayout.defaultPosition(
+                index: sourceIndex,
+                historyCount: historyCount,
+                nodeSize: nodeSize,
+                inset: nodeBoundaryInset,
+                spacing: verticalNodeSpacing
+            )
+            return CGPoint(x: source.x + 400, y: source.y)
+        }
+
+        return GraphClusterLayout.defaultPosition(
             index: index,
             historyCount: historyCount,
             nodeSize: nodeSize,
             inset: nodeBoundaryInset,
             spacing: verticalNodeSpacing
         )
+    }
+
+    private func replayCostImproved(for node: AgentNode) -> Bool {
+        guard node.isReplay,
+              let sourceId = node.replaySourceId,
+              let source = nodes.first(where: { $0.id == sourceId }) else {
+            return false
+        }
+        return costValue(node.cost) < costValue(source.cost)
+    }
+
+    private func costValue(_ value: String) -> Double {
+        Double(value.trimmingCharacters(in: CharacterSet(charactersIn: "$"))) ?? 0
     }
 }
 

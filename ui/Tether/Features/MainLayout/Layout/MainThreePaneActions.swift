@@ -55,6 +55,14 @@ extension MainThreePaneLayoutView {
         return results
     }
 
+    /// Creates a CometAPI replay branch using a different model.
+    @MainActor
+    func replayWithModel(node: AgentNode, model: String) async throws -> ReplayResult {
+        let result = try await CometAPIClient.replayWithModel(traceId: node.id, model: model)
+        await traceStore.refresh()
+        return result
+    }
+
     /// Copies the currently selected inspector content to the pasteboard.
     func copySelection() {
         guard let text = clipboardTextForSelectedNode(), !text.isEmpty else {

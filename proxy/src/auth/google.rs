@@ -1,4 +1,4 @@
-т//! Google ID-token verification against Google's JWKS.
+//! Google ID-token verification against Google's JWKS.
 
 use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode, decode_header};
 use serde::Deserialize;

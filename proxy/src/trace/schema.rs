@@ -37,11 +37,19 @@ pub(crate) fn init_schema(conn: &Connection) -> rusqlite::Result<()> {
             input_hash        TEXT,
             stale             INTEGER NOT NULL DEFAULT 0,
             request_body      BLOB,
-            request_target    TEXT
+            request_target    TEXT,
+            is_replay         INTEGER NOT NULL DEFAULT 0,
+            replay_source_id  TEXT,
+            replay_provider   TEXT
         );
 
         CREATE INDEX IF NOT EXISTS idx_trace_calls_created_at
-            ON trace_calls(created_at);",
+            ON trace_calls(created_at);
+
+        CREATE TABLE IF NOT EXISTS provider_settings (
+            key   TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        );",
     )?;
     add_column_if_missing(conn, "trace_calls", "trace_id", "TEXT")?;
     add_column_if_missing(conn, "trace_calls", "parent_span_id", "TEXT")?;
@@ -51,6 +59,9 @@ pub(crate) fn init_schema(conn: &Connection) -> rusqlite::Result<()> {
     add_column_if_missing(conn, "trace_calls", "stale", "INTEGER NOT NULL DEFAULT 0")?;
     add_column_if_missing(conn, "trace_calls", "request_body", "BLOB")?;
     add_column_if_missing(conn, "trace_calls", "request_target", "TEXT")?;
+    add_column_if_missing(conn, "trace_calls", "is_replay", "INTEGER NOT NULL DEFAULT 0")?;
+    add_column_if_missing(conn, "trace_calls", "replay_source_id", "TEXT")?;
+    add_column_if_missing(conn, "trace_calls", "replay_provider", "TEXT")?;
     conn.execute_batch(
         "CREATE INDEX IF NOT EXISTS idx_trace_calls_trace_id
              ON trace_calls(trace_id);",

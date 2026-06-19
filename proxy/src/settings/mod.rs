@@ -1,11 +1,15 @@
 //! User settings service: profile, app preferences, and stored provider keys.
 
 mod app;
+pub(crate) mod cometapi;
 mod keys;
 mod profile;
 mod types;
 
-use axum::{Router, routing::get};
+use axum::{
+    Router,
+    routing::get,
+};
 
 use crate::AppState;
 
@@ -25,5 +29,9 @@ pub(crate) fn router() -> Router<AppState> {
         .route(
             "/api/settings/keys",
             axum::routing::post(keys::update_api_keys),
+        )
+        .route(
+            "/api/settings/cometapi-key",
+            get(cometapi::get_cometapi_key_status).put(cometapi::put_cometapi_key),
         )
 }

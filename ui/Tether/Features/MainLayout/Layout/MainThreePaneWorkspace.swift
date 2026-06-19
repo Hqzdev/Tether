@@ -89,6 +89,7 @@ extension MainThreePaneLayoutView {
             replayImpacts: $replayImpacts,
             onSaveMockResponse: SaveMockResponseAction(saveMockResponse),
             onRunMultiple: RunMultipleAction(runMultiple),
+            onReplayWithModel: ReplayWithModelAction(replayWithModel),
             palette: palette
         )
     }

@@ -12,7 +12,7 @@ use axum::{
 use tether_domain::{AgentNodeDto, TraceSnapshot};
 
 use super::query::{fetch_node_detail, fetch_snapshot, fetch_snapshot_summary};
-use super::replay::{edit_output, list_downstream, replay_node};
+use super::replay::{edit_output, list_downstream, replay_node, replay_with_model};
 use crate::AppState;
 
 /// Mounts the trace and cache routes onto the proxy router.
@@ -27,6 +27,7 @@ pub(crate) fn router() -> Router<AppState> {
         .route("/api/traces/{id}/output", patch(edit_output))
         .route("/api/traces/{id}/downstream", get(list_downstream))
         .route("/api/traces/{id}/replay", post(replay_node))
+        .route("/api/traces/{id}/replay-with", post(replay_with_model))
         .route("/api/cache", delete(clear_cache))
 }
 

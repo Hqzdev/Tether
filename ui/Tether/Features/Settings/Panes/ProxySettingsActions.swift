@@ -75,5 +75,64 @@ extension ProxySettingsView {
             anthropicKey = ""
             anthropicKeyStored = true
         }
+        if !cometAPIKey.isEmpty {
+            let value = cometAPIKey
+            KeychainStore.save(.cometAPIKey, value: value)
+            cometAPIKey = ""
+            cometAPIKeyStored = true
+            Task {
+                await syncCometAPIKey(value)
+            }
+        }
+    }
+
+    /// Tests the CometAPI key by syncing it to the proxy and loading the model catalog.
+    func testCometAPIConnection() {
+        let key = cometAPIKey.isEmpty ? KeychainStore.read(.cometAPIKey) ?? "" : cometAPIKey
+        guard !key.isEmpty else {
+            cometAPIStatus = "Enter a CometAPI key first"
+            cometAPIStatusIsError = true
+            return
+        }
+
+        testingCometAPI = true
+        cometAPIStatus = "Testing..."
+        cometAPIStatusIsError = false
+        Task {
+            do {
+                let connected = try await CometAPIClient.testConnection(apiKey: key)
+                await MainActor.run {
+                    if connected {
+                        KeychainStore.save(.cometAPIKey, value: key)
+                        cometAPIKey = ""
+                        cometAPIKeyStored = true
+                        cometAPIStatus = "Connected: 500+ models available"
+                        cometAPIStatusIsError = false
+                    } else {
+                        cometAPIStatus = "No models returned"
+                        cometAPIStatusIsError = true
+                    }
+                    testingCometAPI = false
+                }
+            } catch {
+                await MainActor.run {
+                    cometAPIStatus = error.localizedDescription
+                    cometAPIStatusIsError = true
+                    testingCometAPI = false
+                }
+            }
+        }
+    }
+
+    /// Persists the CometAPI key to the local proxy without exposing it in replay calls.
+    private func syncCometAPIKey(_ key: String) async {
+        do {
+            try await CometAPIClient().saveAPIKey(key)
+        } catch {
+            await MainActor.run {
+                cometAPIStatus = error.localizedDescription
+                cometAPIStatusIsError = true
+            }
+        }
     }
 }

@@ -16,8 +16,13 @@ struct ProxySettingsView: View {
     @State var footerMessageIsError = false
     @State var openAIKey = ""
     @State var anthropicKey = ""
+    @State var cometAPIKey = ""
     @State var openAIKeyStored = KeychainStore.hasValue(.openAIAPIKey)
     @State var anthropicKeyStored = KeychainStore.hasValue(.anthropicAPIKey)
+    @State var cometAPIKeyStored = KeychainStore.hasValue(.cometAPIKey)
+    @State var cometAPIStatus = "Not tested"
+    @State var cometAPIStatusIsError = false
+    @State var testingCometAPI = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -27,6 +32,7 @@ struct ProxySettingsView: View {
                     listenSection
                     upstreamSection
                     providerKeysSection
+                    cometAPISection
                     cacheSection
                 }
                 .padding(.top, 66)
@@ -63,6 +69,39 @@ struct ProxySettingsView: View {
             ProviderKeyField(title: "OpenAI", stored: openAIKeyStored, placeholder: "sk-...", key: $openAIKey, palette: palette)
             ProviderKeyField(title: "Anthropic", stored: anthropicKeyStored, placeholder: "sk-ant-...", key: $anthropicKey, palette: palette)
             Text("Stored in the macOS Keychain. The proxy injects these on upstream calls when your client does not send its own key.")
+                .font(.caption)
+                .foregroundStyle(palette.textTertiary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.vertical, 12)
+        }
+    }
+
+    private var cometAPISection: some View {
+        SettingsSection("CometAPI", palette: palette) {
+            ProviderKeyField(title: "CometAPI", stored: cometAPIKeyStored, placeholder: "sk-comet-...", key: $cometAPIKey, palette: palette)
+
+            SettingsRow(
+                "Connection",
+                subtitle: cometAPIStatus,
+                palette: palette
+            ) {
+                Button {
+                    testCometAPIConnection()
+                } label: {
+                    if testingCometAPI {
+                        ProgressView()
+                            .controlSize(.small)
+                            .frame(width: 120, height: 30)
+                    } else {
+                        Label("Test", systemImage: cometAPIStatusIsError ? "xmark.circle" : "checkmark.circle")
+                            .frame(width: 120, height: 30)
+                    }
+                }
+                .buttonStyle(SettingsSecondaryButtonStyle(palette: palette))
+                .disabled(testingCometAPI || (!cometAPIKeyStored && cometAPIKey.isEmpty))
+            }
+
+            Text("CometAPI keys are kept in Keychain and synced to the local proxy. Replay requests send only the selected model.")
                 .font(.caption)
                 .foregroundStyle(palette.textTertiary)
                 .frame(maxWidth: .infinity, alignment: .leading)

@@ -45,6 +45,18 @@ pub(super) struct ApiKeysUpdateRequest {
     pub(super) api_key_anthropic: Option<String>,
 }
 
+/// CometAPI key payload for the local proxy settings store.
+#[derive(Debug, Deserialize)]
+pub(super) struct CometApiKeyRequest {
+    pub(super) api_key: String,
+}
+
+/// Public CometAPI key state. The key value is never returned to clients.
+#[derive(Debug, Serialize)]
+pub(super) struct CometApiKeyStatus {
+    pub(super) configured: bool,
+}
+
 /// Generic mutation acknowledgement for key updates.
 #[derive(Debug, Serialize)]
 pub(super) struct UpdateResponse {

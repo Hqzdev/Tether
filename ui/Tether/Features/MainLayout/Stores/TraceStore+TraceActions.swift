@@ -35,6 +35,11 @@ extension TraceStore {
         }
     }
 
+    /// Replays the stored request for `node` through CometAPI using `model`.
+    func replayWithModel(_ node: AgentNode, _ model: String) async throws -> ReplayResult {
+        try await CometAPIClient.replayWithModel(traceId: node.id, model: model)
+    }
+
     /// Clears proxy traces and hides previously observed Codex events until new
     /// activity arrives.
     func clearAllTraces() async {

@@ -25,6 +25,9 @@ extension AgentNode {
         case inputHash
         case outputHash
         case stale
+        case isReplay
+        case replaySourceId
+        case replayProvider
         case status
         case prompt
         case response
@@ -56,6 +59,9 @@ extension AgentNode {
         let inputHash = try container.decodeIfPresent(String.self, forKey: .inputHash) ?? ""
         let outputHash = try container.decodeIfPresent(String.self, forKey: .outputHash) ?? ""
         let stale = try container.decodeIfPresent(Bool.self, forKey: .stale) ?? false
+        let isReplay = try container.decodeIfPresent(Bool.self, forKey: .isReplay) ?? false
+        let replaySourceId = try container.decodeIfPresent(String.self, forKey: .replaySourceId)
+        let replayProvider = try container.decodeIfPresent(String.self, forKey: .replayProvider)
         let status = try container.decode(NodeStatus.self, forKey: .status)
         let prompt = try container.decode(AgentPrompt.self, forKey: .prompt)
         let response = try container.decode(AgentResponse.self, forKey: .response)
@@ -86,6 +92,9 @@ extension AgentNode {
             inputHash: inputHash,
             outputHash: outputHash,
             stale: stale,
+            isReplay: isReplay,
+            replaySourceId: replaySourceId,
+            replayProvider: replayProvider,
             status: status,
             prompt: prompt,
             response: response,
@@ -119,6 +128,9 @@ extension AgentNode {
         try container.encode(inputHash, forKey: .inputHash)
         try container.encode(outputHash, forKey: .outputHash)
         try container.encode(stale, forKey: .stale)
+        try container.encode(isReplay, forKey: .isReplay)
+        try container.encodeIfPresent(replaySourceId, forKey: .replaySourceId)
+        try container.encodeIfPresent(replayProvider, forKey: .replayProvider)
         try container.encode(status, forKey: .status)
         try container.encode(prompt, forKey: .prompt)
         try container.encode(response, forKey: .response)

@@ -12,6 +12,7 @@ public enum KeychainStore {
     public enum Account: String, CaseIterable {
         case openAIAPIKey = "openai-api-key"
         case anthropicAPIKey = "anthropic-api-key"
+        case cometAPIKey = "cometapi-api-key"
     }
 
     /// Reads a provider key from the macOS Keychain when it exists.

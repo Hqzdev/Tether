@@ -7,6 +7,7 @@ use rusqlite::{Connection, OptionalExtension, params};
 
 use super::replay_types::{
     DownstreamResult, InvalidationResult, ReplayResult, ReplaySpec, ReplayUpdate,
+    ReplayWithInsert, ReplayWithResult, ReplayWithSpec,
 };
 use crate::context::short_hash;
 
@@ -74,6 +75,39 @@ pub(super) fn load_replay_spec(conn: &Connection, id: &str) -> Result<ReplaySpec
     .ok_or_else(|| "trace node not found".to_string())
 }
 
+/// Loads source request fields for a cross-model replay.
+pub(super) fn load_replay_with_spec(conn: &Connection, id: &str) -> Result<ReplayWithSpec, String> {
+    conn.query_row(
+        "SELECT id, COALESCE(trace_id, ''), parent_span_id, prompt_system, prompt_user,
+                COALESCE(context_inputs, '{}'), COALESCE(input_hash, ''), temperature,
+                request_body
+         FROM trace_calls WHERE id = ?1",
+        [id],
+        |row| {
+            let source_id: String = row.get(0)?;
+            let trace_id: String = row.get(1)?;
+            Ok(ReplayWithSpec {
+                id: source_id.clone(),
+                trace_id: if trace_id.is_empty() {
+                    source_id
+                } else {
+                    trace_id
+                },
+                parent_span_id: row.get(2)?,
+                prompt_system: row.get(3)?,
+                prompt_user: row.get(4)?,
+                context_inputs: row.get(5)?,
+                input_hash: row.get(6)?,
+                temperature: row.get(7)?,
+                body: row.get::<_, Option<Vec<u8>>>(8)?.unwrap_or_default(),
+            })
+        },
+    )
+    .optional()
+    .map_err(|error| error.to_string())?
+    .ok_or_else(|| "trace node not found".to_string())
+}
+
 /// Persists replay output and marks descendants stale.
 pub(super) fn persist_replay_result(
     conn: &Connection,
@@ -114,6 +148,62 @@ pub(super) fn persist_replay_result(
         tokens_in: update.tokens_in,
         tokens_out: update.tokens_out,
         invalidated,
+    })
+}
+
+/// Inserts a new trace row for a CometAPI cross-model replay.
+pub(super) fn insert_replay_with_result(
+    conn: &Connection,
+    insert: ReplayWithInsert,
+) -> Result<ReplayWithResult, String> {
+    conn.execute(
+        "INSERT INTO trace_calls
+            (id, created_at, provider, method, path, model, status_code, cache_status,
+             latency_ms, request_id, prompt_system, prompt_user, response_text,
+             response_language, error_code, error_message, error_detail, tokens_in,
+             tokens_out, cost, temperature, trace_id, parent_span_id, tool_use_ids,
+             context_inputs, input_hash, stale, request_body, request_target,
+             is_replay, replay_source_id, replay_provider)
+         VALUES (?1, strftime('%s','now') * 1000, 'cometapi', 'POST', '/v1/chat/completions',
+                 ?2, ?3, 'replay', ?4, ?5, ?6, ?7, ?8, ?9, NULL, NULL, NULL,
+                 ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, 0, ?19,
+                 '/chat/completions', 1, ?20, 'cometapi')",
+        params![
+            insert.id.as_str(),
+            insert.model.as_str(),
+            i64::from(insert.status_code),
+            insert.latency_ms,
+            insert.request_id.as_str(),
+            insert.prompt_system.as_str(),
+            insert.prompt_user.as_str(),
+            insert.response_text.as_str(),
+            insert.response_language.as_str(),
+            insert.tokens_in,
+            insert.tokens_out,
+            insert.cost.as_str(),
+            insert.temperature,
+            insert.trace_id.as_str(),
+            insert.parent_span_id.as_deref(),
+            insert.tool_use_ids.as_str(),
+            insert.context_inputs.as_str(),
+            insert.input_hash.as_str(),
+            insert.request_body.as_slice(),
+            insert.source_node_id.as_str(),
+        ],
+    )
+    .map_err(|error| error.to_string())?;
+
+    let node_id = insert.id;
+    Ok(ReplayWithResult {
+        new_trace_id: node_id.clone(),
+        node_id,
+        source_node_id: insert.source_node_id,
+        model: insert.model,
+        response_text: insert.response_text,
+        latency_ms: insert.latency_ms,
+        cost_usd: cost_to_usd(&insert.cost),
+        input_tokens: insert.tokens_in,
+        output_tokens: insert.tokens_out,
     })
 }
 
@@ -178,4 +268,8 @@ fn mark_stale(conn: &Connection, ids: &[String]) -> rusqlite::Result<()> {
         conn.execute("UPDATE trace_calls SET stale = 1 WHERE id = ?1", [id])?;
     }
     Ok(())
+}
+
+fn cost_to_usd(cost: &str) -> f64 {
+    cost.trim_start_matches('$').parse::<f64>().unwrap_or(0.0)
 }

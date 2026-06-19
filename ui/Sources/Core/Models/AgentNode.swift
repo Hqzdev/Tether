@@ -72,6 +72,15 @@ public struct AgentNode: Identifiable, Hashable, Codable, Sendable {
     /// Whether this node was invalidated by an upstream output edit or replay.
     public let stale: Bool
 
+    /// Whether this node is a generated replay branch rather than an original provider call.
+    public let isReplay: Bool
+
+    /// Original node id that produced this replay branch.
+    public let replaySourceId: String?
+
+    /// Provider used for the replay branch.
+    public let replayProvider: String?
+
     /// Node execution status.
     public let status: NodeStatus
 
@@ -109,6 +118,9 @@ public struct AgentNode: Identifiable, Hashable, Codable, Sendable {
         inputHash: String = "",
         outputHash: String = "",
         stale: Bool = false,
+        isReplay: Bool = false,
+        replaySourceId: String? = nil,
+        replayProvider: String? = nil,
         status: NodeStatus,
         prompt: AgentPrompt,
         response: AgentResponse,
@@ -145,6 +157,9 @@ public struct AgentNode: Identifiable, Hashable, Codable, Sendable {
         self.inputHash = inputHash.isEmpty ? self.contextInputs.inputHash : inputHash
         self.outputHash = outputHash.isEmpty ? Self.shortHash(response.text) : outputHash
         self.stale = stale
+        self.isReplay = isReplay
+        self.replaySourceId = replaySourceId
+        self.replayProvider = replayProvider
         self.status = status
         self.prompt = prompt
         self.response = response

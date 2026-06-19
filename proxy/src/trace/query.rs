@@ -39,7 +39,8 @@ fn fetch_snapshot_with_payload(
     let sql = format!(
         "SELECT id, created_at, provider, method, path, model, status_code, cache_status,
                 latency_ms, request_id, {payload_columns}, tokens_in, tokens_out,
-                cost, temperature, trace_id, parent_span_id, input_hash, stale
+                cost, temperature, trace_id, parent_span_id, input_hash, stale,
+                is_replay, replay_source_id, replay_provider
          FROM trace_calls
          ORDER BY created_at ASC
          LIMIT 5000"
@@ -84,7 +85,8 @@ pub(super) fn fetch_node_detail(
                 latency_ms, request_id, prompt_system, prompt_user, response_text,
                 response_language, error_code, error_message, error_detail, tool_use_ids,
                 context_inputs, tokens_in, tokens_out, cost, temperature, trace_id,
-                parent_span_id, input_hash, stale
+                parent_span_id, input_hash, stale, is_replay, replay_source_id,
+                replay_provider
          FROM trace_calls
          WHERE id = ?1 OR trace_id = ?1
          ORDER BY created_at ASC",
@@ -133,6 +135,9 @@ fn trace_row_from_query(row: &rusqlite::Row<'_>) -> rusqlite::Result<TraceRow> {
         parent_span_id: row.get(24)?,
         input_hash: row.get::<_, Option<String>>(25)?.unwrap_or_default(),
         stale: row.get::<_, Option<i64>>(26)?.unwrap_or(0) != 0,
+        is_replay: row.get::<_, Option<i64>>(27)?.unwrap_or(0) != 0,
+        replay_source_id: row.get(28)?,
+        replay_provider: row.get(29)?,
         request_body: Vec::new(),
         request_target: String::new(),
         tool_result_ids: Vec::new(),
@@ -182,6 +187,9 @@ fn collapse_rows_to_requests(rows: Vec<TraceRow>) -> Vec<TraceRow> {
 }
 
 fn request_key(row: &TraceRow) -> String {
+    if row.is_replay {
+        return row.id.clone();
+    }
     if row.trace_id.is_empty() {
         row.id.clone()
     } else {
@@ -215,6 +223,13 @@ impl RequestGroup {
         self.row.tokens_out += row.tokens_out.max(0);
         self.row.cost = sum_costs(&self.row.cost, &row.cost);
         self.row.stale = self.row.stale || row.stale;
+        self.row.is_replay = self.row.is_replay || row.is_replay;
+        if self.row.replay_source_id.is_none() {
+            self.row.replay_source_id = row.replay_source_id;
+        }
+        if self.row.replay_provider.is_none() {
+            self.row.replay_provider = row.replay_provider;
+        }
 
         if !row.response_text.is_empty() {
             self.row.response_text = row.response_text;

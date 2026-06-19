@@ -49,13 +49,15 @@ struct NodeCardModel: Identifiable, Equatable {
     let tokensOut: Int
     let requestId: String
     let stale: Bool
+    let isReplay: Bool
+    let replayCostImproved: Bool
     let status: NodeStatus
 
     var hasBillableCost: Bool {
         cost != "$0.0000" && cost != "$0" && cost != "$0.00"
     }
 
-    init(node: AgentNode) {
+    init(node: AgentNode, replayCostImproved: Bool = false) {
         id = node.id
         agentName = node.agentName
         stepName = node.stepName
@@ -68,6 +70,8 @@ struct NodeCardModel: Identifiable, Equatable {
         tokensOut = node.tokensOut
         requestId = node.requestId
         stale = node.stale
+        isReplay = node.isReplay
+        self.replayCostImproved = replayCostImproved
         status = node.status
     }
 }
@@ -90,7 +94,14 @@ private struct NodeCard: View {
         .padding(.vertical, 12)
         .frame(width: size.width, height: size.height, alignment: .topLeading)
         .clipped()
-        .background(NodeCardBackground(selected: selected, isPerformanceMode: isPerformanceMode, palette: palette))
+        .background(
+            NodeCardBackground(
+                selected: selected,
+                isPerformanceMode: isPerformanceMode,
+                replayCostImproved: node.isReplay && node.replayCostImproved,
+                palette: palette
+            )
+        )
         .clipShape(RoundedRectangle(cornerRadius: palette.panelRadius, style: .continuous))
         .overlay(alignment: .leading) {
             RoundedRectangle(cornerRadius: 3, style: .continuous)
@@ -98,7 +109,7 @@ private struct NodeCard: View {
                 .frame(width: 3)
                 .padding(.vertical, 10)
         }
-        .overlay(NodeCardBorder(selected: selected, palette: palette))
+        .overlay(NodeCardBorder(selected: selected, isReplay: node.isReplay, palette: palette))
         .shadow(color: selected && !isPerformanceMode ? Color(hex: 0x0f172a).opacity(0.10) : .clear, radius: 12, x: 0, y: 6)
         .overlay {
             if !isPerformanceMode {
@@ -111,6 +122,18 @@ private struct NodeCard: View {
                 .font(.system(size: 10))
                 .foregroundStyle(.secondary)
                 .padding(6)
+        }
+        .overlay(alignment: .topTrailing) {
+            if node.isReplay {
+                Text("↻")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(palette.violet)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3)
+                    .background(palette.violet.opacity(0.10))
+                    .clipShape(Capsule())
+                    .padding(8)
+            }
         }
     }
 }

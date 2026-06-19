@@ -36,8 +36,8 @@ struct GraphConnections: View, Equatable {
             return
         }
 
-        let previous = nodes[index - 1]
         let current = nodes[index]
+        let previous = replaySource(for: current) ?? nodes[index - 1]
 
         guard scope.includes(previousId: previous.id, currentId: current.id) else {
             return
@@ -49,18 +49,27 @@ struct GraphConnections: View, Equatable {
 
         let fromSize = nodeSizes[previous.id] ?? defaultNodeSize
         let toSize = nodeSizes[current.id] ?? defaultNodeSize
-        let anchors = verticalAnchorPair(from: from, sourceSize: fromSize, to: to, targetSize: toSize)
+        let anchors = current.isReplay
+            ? horizontalAnchorPair(from: from, sourceSize: fromSize, to: to, targetSize: toSize)
+            : verticalAnchorPair(from: from, sourceSize: fromSize, to: to, targetSize: toSize)
 
-        let path = roundedVerticalPath(from: anchors.start, to: anchors.end)
+        let path = current.isReplay
+            ? roundedHorizontalPath(from: anchors.start, to: anchors.end)
+            : roundedVerticalPath(from: anchors.start, to: anchors.end)
 
-        let edgeColor = palette.color(for: current.status)
+        let edgeColor = current.isReplay ? palette.violet : palette.color(for: current.status)
         context.stroke(path, with: .color(edgeColor.opacity(0.20)), style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
         context.stroke(
             path,
             with: .color(edgeColor.opacity(0.92)),
-            style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round, dash: [9, 15], dashPhase: dashPhase)
+            style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round, dash: current.isReplay ? [4, 8] : [9, 15], dashPhase: dashPhase)
         )
         drawEndpoint(at: anchors.end, color: edgeColor, in: context)
+    }
+
+    private func replaySource(for node: GraphConnectionNode) -> GraphConnectionNode? {
+        guard node.isReplay, let sourceId = node.replaySourceId else { return nil }
+        return nodes.first { $0.id == sourceId }
     }
 
     /// Negative phase moves the dash train forward along the path direction.
@@ -87,6 +96,17 @@ struct GraphConnections: View, Equatable {
         )
     }
 
+    private func horizontalAnchorPair(from sourceOrigin: CGPoint, sourceSize: CGSize, to targetOrigin: CGPoint, targetSize: CGSize) -> NodeAnchorPair {
+        NodeAnchorPair(
+            startSide: .right,
+            endSide: .left,
+            sourceOrigin: sourceOrigin,
+            sourceSize: sourceSize,
+            targetOrigin: targetOrigin,
+            targetSize: targetSize
+        )
+    }
+
     /// Builds a smooth bottom-to-top curve without hard elbows.
     private func roundedVerticalPath(from start: CGPoint, to end: CGPoint) -> Path {
         let verticalDistance = abs(end.y - start.y)
@@ -98,6 +118,20 @@ struct GraphConnections: View, Equatable {
             to: end,
             control1: CGPoint(x: start.x, y: start.y + controlDistance * direction),
             control2: CGPoint(x: end.x, y: end.y - controlDistance * direction)
+        )
+        return path
+    }
+
+    private func roundedHorizontalPath(from start: CGPoint, to end: CGPoint) -> Path {
+        let horizontalDistance = abs(end.x - start.x)
+        let direction: CGFloat = end.x >= start.x ? 1 : -1
+        let controlDistance = max(60, min(180, horizontalDistance * 0.48))
+        var path = Path()
+        path.move(to: start)
+        path.addCurve(
+            to: end,
+            control1: CGPoint(x: start.x + controlDistance * direction, y: start.y),
+            control2: CGPoint(x: end.x - controlDistance * direction, y: end.y)
         )
         return path
     }
@@ -144,6 +178,8 @@ struct LiveGraphConnections: View {
 struct GraphConnectionNode: Equatable {
     let id: AgentNode.ID
     let status: NodeStatus
+    let isReplay: Bool
+    let replaySourceId: AgentNode.ID?
 }
 
 /// Controls which edges a connection layer draws.

@@ -89,6 +89,7 @@
 		C0F000000000000000000004 /* Tether/Features/Inspector/Replay/NonDeterminismResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0F100000000000000000004 /* Tether/Features/Inspector/Replay/NonDeterminismResultsView.swift */; };
 		C0F000000000000000000005 /* Tether/Features/Update/UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0F100000000000000000005 /* Tether/Features/Update/UpdateChecker.swift */; };
 		C0F000000000000000000006 /* Tether/Features/Update/UpdateBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0F100000000000000000006 /* Tether/Features/Update/UpdateBannerView.swift */; };
+		C0F000000000000000000007 /* Tether/Features/Inspector/Replay/ReplayDiffView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0F100000000000000000007 /* Tether/Features/Inspector/Replay/ReplayDiffView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -171,6 +172,7 @@
 		C0F100000000000000000004 /* Tether/Features/Inspector/Replay/NonDeterminismResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tether/Features/Inspector/Replay/NonDeterminismResultsView.swift; sourceTree = SOURCE_ROOT; };
 		C0F100000000000000000005 /* Tether/Features/Update/UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tether/Features/Update/UpdateChecker.swift; sourceTree = SOURCE_ROOT; };
 		C0F100000000000000000006 /* Tether/Features/Update/UpdateBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tether/Features/Update/UpdateBannerView.swift; sourceTree = SOURCE_ROOT; };
+		C0F100000000000000000007 /* Tether/Features/Inspector/Replay/ReplayDiffView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tether/Features/Inspector/Replay/ReplayDiffView.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -279,6 +281,7 @@
 				C0D800000000000000000030 /* Tether/Features/Sidebar/Chrome/SidebarFooter.swift */,
 				C0D800000000000000000031 /* Tether/Features/Sidebar/Chrome/ProxyConnectionStatus+Sidebar.swift */,
 				C0F100000000000000000004 /* Tether/Features/Inspector/Replay/NonDeterminismResultsView.swift */,
+				C0F100000000000000000007 /* Tether/Features/Inspector/Replay/ReplayDiffView.swift */,
 				C0F100000000000000000005 /* Tether/Features/Update/UpdateChecker.swift */,
 				C0F100000000000000000006 /* Tether/Features/Update/UpdateBannerView.swift */,
 				C0D800000000000000000032 /* Tether/Features/Welcome/WelcomeBranding.swift */,
@@ -448,6 +451,7 @@
 				C0D900000000000000000030 /* Tether/Features/Sidebar/Chrome/SidebarFooter.swift in Sources */,
 				C0D900000000000000000031 /* Tether/Features/Sidebar/Chrome/ProxyConnectionStatus+Sidebar.swift in Sources */,
 				C0F000000000000000000004 /* Tether/Features/Inspector/Replay/NonDeterminismResultsView.swift in Sources */,
+				C0F000000000000000000007 /* Tether/Features/Inspector/Replay/ReplayDiffView.swift in Sources */,
 				C0F000000000000000000005 /* Tether/Features/Update/UpdateChecker.swift in Sources */,
 				C0F000000000000000000006 /* Tether/Features/Update/UpdateBannerView.swift in Sources */,
 				C0D900000000000000000032 /* Tether/Features/Welcome/WelcomeBranding.swift in Sources */,

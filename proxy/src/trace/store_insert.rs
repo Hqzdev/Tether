@@ -23,10 +23,11 @@ fn insert_row(conn: &Connection, row: TraceRow, trace_id: String, parent_span_id
              latency_ms, request_id, prompt_system, prompt_user, response_text,
              response_language, error_code, error_message, error_detail, tokens_in,
              tokens_out, cost, temperature, trace_id, parent_span_id, tool_use_ids,
-             context_inputs, input_hash, stale, request_body, request_target)
+             context_inputs, input_hash, stale, request_body, request_target,
+             is_replay, replay_source_id, replay_provider)
          VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14,
                  ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26,
-                 ?27, ?28, ?29)",
+                 ?27, ?28, ?29, ?30, ?31, ?32)",
         params![
             row.id,
             row.created_at,
@@ -57,6 +58,9 @@ fn insert_row(conn: &Connection, row: TraceRow, trace_id: String, parent_span_id
             row.stale as i64,
             row.request_body,
             row.request_target,
+            row.is_replay as i64,
+            row.replay_source_id,
+            row.replay_provider,
         ],
     );
 }

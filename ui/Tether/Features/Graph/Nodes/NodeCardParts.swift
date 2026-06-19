@@ -107,6 +107,7 @@ private struct NodeMetric: View {
 struct NodeCardBackground: View {
     let selected: Bool
     let isPerformanceMode: Bool
+    let replayCostImproved: Bool
     let palette: AgentTracePalette
 
     var body: some View {
@@ -124,6 +125,10 @@ struct NodeCardBackground: View {
             if selected {
                 palette.accentBackground.opacity(0.85)
             }
+
+            if replayCostImproved {
+                palette.greenBackground.opacity(0.70)
+            }
         }
     }
 }
@@ -131,10 +136,14 @@ struct NodeCardBackground: View {
 /// Border treatment for selected and inactive node cards.
 struct NodeCardBorder: View {
     let selected: Bool
+    let isReplay: Bool
     let palette: AgentTracePalette
 
     var body: some View {
         RoundedRectangle(cornerRadius: palette.panelRadius, style: .continuous)
-            .stroke(selected ? palette.accent : palette.borderStrong, lineWidth: selected ? 2 : 1)
+            .stroke(
+                selected ? palette.accent : palette.borderStrong,
+                style: StrokeStyle(lineWidth: selected ? 2 : 1, dash: isReplay ? [4, 3] : [])
+            )
     }
 }
