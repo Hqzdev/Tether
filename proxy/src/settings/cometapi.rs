@@ -21,8 +21,11 @@ pub(super) async fn put_cometapi_key(
             .lock()
             .map_err(|_| ApiError::internal("settings database lock poisoned"))?;
         if api_key.is_empty() {
-            conn.execute("DELETE FROM provider_settings WHERE key = ?1", [COMETAPI_KEY])
-                .map_err(|error| ApiError::internal(format!("settings database error: {error}")))?;
+            conn.execute(
+                "DELETE FROM provider_settings WHERE key = ?1",
+                [COMETAPI_KEY],
+            )
+            .map_err(|error| ApiError::internal(format!("settings database error: {error}")))?;
         } else {
             conn.execute(
                 "INSERT INTO provider_settings (key, value)

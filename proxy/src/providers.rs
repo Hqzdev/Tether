@@ -57,7 +57,9 @@ async fn cometapi_models(State(state): State<AppState>) -> Result<Json<Vec<Model
         .bearer_auth(api_key)
         .send()
         .await
-        .map_err(|error| ApiError::unavailable(format!("CometAPI models request failed: {error}")))?;
+        .map_err(|error| {
+            ApiError::unavailable(format!("CometAPI models request failed: {error}"))
+        })?;
 
     let status = response.status();
     let body = response
@@ -104,7 +106,11 @@ fn sorted_models(models: Vec<RemoteModel>) -> Vec<ModelInfo> {
             }
         })
         .collect::<Vec<_>>();
-    models.sort_by(|a, b| model_rank(&a.id).cmp(&model_rank(&b.id)).then(a.name.cmp(&b.name)));
+    models.sort_by(|a, b| {
+        model_rank(&a.id)
+            .cmp(&model_rank(&b.id))
+            .then(a.name.cmp(&b.name))
+    });
     models.truncate(MODEL_LIMIT);
     models
 }
@@ -115,7 +121,14 @@ fn is_text_model(model: &RemoteModel) -> bool {
     }
     let id = model.id.to_ascii_lowercase();
     let blocked = [
-        "embed", "embedding", "image", "audio", "tts", "whisper", "moderation", "rerank",
+        "embed",
+        "embedding",
+        "image",
+        "audio",
+        "tts",
+        "whisper",
+        "moderation",
+        "rerank",
         "vision",
     ];
     !blocked.iter().any(|needle| id.contains(needle))
@@ -141,7 +154,11 @@ fn provider_for(model: &RemoteModel) -> String {
         "anthropic".to_string()
     } else if id.contains("gemini") || model.owned_by.as_deref() == Some("google") {
         "google".to_string()
-    } else if id.starts_with("gpt-") || id.starts_with("o1") || id.starts_with("o3") || id.starts_with("o4") {
+    } else if id.starts_with("gpt-")
+        || id.starts_with("o1")
+        || id.starts_with("o3")
+        || id.starts_with("o4")
+    {
         "openai".to_string()
     } else {
         model

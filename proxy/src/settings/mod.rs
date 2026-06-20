@@ -6,10 +6,7 @@ mod keys;
 mod profile;
 mod types;
 
-use axum::{
-    Router,
-    routing::get,
-};
+use axum::{Router, routing::get};
 
 use crate::AppState;
 

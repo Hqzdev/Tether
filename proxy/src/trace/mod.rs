@@ -27,6 +27,7 @@ mod replay;
 mod replay_headers;
 mod replay_store;
 mod replay_types;
+mod replay_with;
 mod routes;
 mod schema;
 mod store;

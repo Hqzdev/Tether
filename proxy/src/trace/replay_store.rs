@@ -6,8 +6,8 @@ use axum::http::StatusCode;
 use rusqlite::{Connection, OptionalExtension, params};
 
 use super::replay_types::{
-    DownstreamResult, InvalidationResult, ReplayResult, ReplaySpec, ReplayUpdate,
-    ReplayWithInsert, ReplayWithResult, ReplayWithSpec,
+    DownstreamResult, InvalidationResult, ReplayResult, ReplaySpec, ReplayUpdate, ReplayWithInsert,
+    ReplayWithResult, ReplayWithSpec,
 };
 use crate::context::short_hash;
 

@@ -61,13 +61,10 @@ impl AuthContext {
                 ApiError::unavailable("failed to connect auth database")
             })?;
 
-        auth_migrator()
-            .run(&pool)
-            .await
-            .map_err(|error| {
-                eprintln!("failed to run auth migrations: {error}");
-                ApiError::internal("failed to run auth migrations")
-            })?;
+        auth_migrator().run(&pool).await.map_err(|error| {
+            eprintln!("failed to run auth migrations: {error}");
+            ApiError::internal("failed to run auth migrations")
+        })?;
 
         Ok(Some(Self {
             pool,

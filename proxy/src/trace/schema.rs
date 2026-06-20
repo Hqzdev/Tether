@@ -59,7 +59,12 @@ pub(crate) fn init_schema(conn: &Connection) -> rusqlite::Result<()> {
     add_column_if_missing(conn, "trace_calls", "stale", "INTEGER NOT NULL DEFAULT 0")?;
     add_column_if_missing(conn, "trace_calls", "request_body", "BLOB")?;
     add_column_if_missing(conn, "trace_calls", "request_target", "TEXT")?;
-    add_column_if_missing(conn, "trace_calls", "is_replay", "INTEGER NOT NULL DEFAULT 0")?;
+    add_column_if_missing(
+        conn,
+        "trace_calls",
+        "is_replay",
+        "INTEGER NOT NULL DEFAULT 0",
+    )?;
     add_column_if_missing(conn, "trace_calls", "replay_source_id", "TEXT")?;
     add_column_if_missing(conn, "trace_calls", "replay_provider", "TEXT")?;
     conn.execute_batch(
