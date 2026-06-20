@@ -11,7 +11,6 @@ const GITHUB_RELEASE_HREF = "https://github.com/Hqzdev/Tether/releases/latest";
 
 type LandingIconName = IconName;
 
-// Renders a landing-page icon using the shared icon map.
 function LandingIcon({
   name,
   className = "",
@@ -21,34 +20,6 @@ function LandingIcon({
 }) {
   return <Icon className={`ic ${className}`.trim()} name={name} strokeWidth={1.7} />;
 }
-
-const PROOF_CARDS: {
-  icon: LandingIconName;
-  title: string;
-  copy: ReactNode;
-  meta: string;
-}[] = [
-  {
-    icon: "diagram-project",
-    title: "Trace every tool call",
-    copy: (
-      <>
-        Nested LLM calls, tools, retries, and sub-agents land in <span className="grad">one readable graph</span>.
-      </>
-    ),
-    meta: "Live DAG",
-  },
-  {
-    icon: "clock-rotate-left",
-    title: "Replay from the break",
-    copy: (
-      <>
-        Mock <span className="grad">one bad response</span> and rerun only the downstream chain instead of burning tokens.
-      </>
-    ),
-    meta: "Time travel",
-  },
-];
 
 const FEATURES: {
   view: InspectorView;
@@ -61,10 +32,10 @@ const FEATURES: {
     view: "graph",
     acc: "green",
     icon: "diagram-project",
-    title: "Call graph",
+    title: "Failure path",
     copy: (
       <>
-        See the <span className="grad">exact branch</span>, retry, and tool call path.
+        Follow the branch, retry, and tool call that produced the bad answer.
       </>
     ),
   },
@@ -75,7 +46,7 @@ const FEATURES: {
     title: "Cache ledger",
     copy: (
       <>
-        Verify <span className="grad">is_cached</span>, 0ms latency, and token savings.
+        See which calls were reused, how fast they returned, and what they saved.
       </>
     ),
   },
@@ -83,10 +54,10 @@ const FEATURES: {
     view: "time",
     acc: "amber",
     icon: "clock-rotate-left",
-    title: "Replay editor",
+    title: "Response surgery",
     copy: (
       <>
-        Patch a past response and <span className="grad">rerun downstream</span> steps.
+        Patch one model output and rerun the steps that depend on it.
       </>
     ),
   },
@@ -94,10 +65,10 @@ const FEATURES: {
     view: "privacy",
     acc: "violet",
     icon: "shield-halved",
-    title: "Local evidence",
+    title: "Local evidence vault",
     copy: (
       <>
-        Confirm keys, traces, and prompts <span className="grad">stay on-device</span>.
+        Check where keys, prompts, traces, and outbound calls live.
       </>
     ),
   },
@@ -125,7 +96,7 @@ const TREE_LAYOUT: {
 const FAQ_ITEMS: { q: string; a: ReactNode }[] = [
   {
     q: "We already use LangSmith or Langfuse. Why Tether?",
-    a: "Those tools are strong for hosted observability and team workflows. Tether is for local debugging when prompts, API keys, customer data, or unreleased agent behavior should not leave the Mac. It also focuses on replaying from a failed node, not just storing traces.",
+    a: "Those tools are strong hosted observability systems. Tether is a local workbench for the moment an agent breaks on your machine and you need the exact request, response, cache state, and downstream replay path without uploading the run.",
   },
   {
     q: "Does Tether send prompts, responses, or API keys anywhere?",
@@ -133,7 +104,7 @@ const FAQ_ITEMS: { q: string; a: ReactNode }[] = [
   },
   {
     q: "How does Tether intercept LLM calls without changing my app?",
-    a: "Tether runs a local HTTP proxy. You point your AI client's base_url at http://localhost:8080/v1 and keep the rest of your code the same. Tether forwards requests to the real provider and records the full request/response pair locally.",
+    a: "Tether runs a local HTTP proxy. You point your AI client's base_url at http://localhost:8080/v1 and keep the rest of your code the same. Tether forwards requests to the real provider and records the request and response locally.",
   },
   {
     q: "Can I use this with production code?",
@@ -149,7 +120,6 @@ type InspectorView = "graph" | "cache" | "time" | "privacy";
 type ReplayState = "idle" | "running" | "done";
 type FeedbackState = "idle" | "submitting" | "done" | "error";
 
-// Tracks the user's reduced-motion preference for demo animation controls.
 function usePrefersReducedMotion() {
   const [reduce, setReduce] = useState(false);
 
@@ -164,7 +134,6 @@ function usePrefersReducedMotion() {
   return reduce;
 }
 
-// Reveals marked sections when they enter the viewport, with a no-observer fallback.
 function useRevealOnScroll() {
   useEffect(() => {
     const els = Array.from(document.querySelectorAll<HTMLElement>(".reveal"));
@@ -191,7 +160,6 @@ function useRevealOnScroll() {
   }, []);
 }
 
-// Returns the icon shown for one demo trace node.
 function nodeIconName(node: TraceNode): LandingIconName {
   if (node.status === "cached") return "database";
   if (node.status === "error") return "circle-exclamation";
@@ -199,19 +167,16 @@ function nodeIconName(node: TraceNode): LandingIconName {
   return node.icon as LandingIconName;
 }
 
-// Returns the latency badge class for one demo trace status.
 function nodeLatencyClass(status: NodeStatus) {
   if (status === "cached") return "cy";
   if (status === "error") return "pk";
   return "ok";
 }
 
-// Returns the compact status label shown in the demo graph.
 function statusLabel(status: NodeStatus) {
   return status === "cached" ? "CACHED" : status === "error" ? "ERROR" : "SUCCESS";
 }
 
-// Renders one compact node inside the animated landing-page demo.
 function MiniNode({
   node,
   depth,
@@ -246,7 +211,6 @@ function MiniNode({
   );
 }
 
-// Renders the small graph preview used inside the landing-page inspector.
 function InspectorGraph() {
   return (
     <div className="graphview" id="graphView">
@@ -257,9 +221,6 @@ function InspectorGraph() {
   );
 }
 
-/**
- * Renders the public Tether landing page.
- */
 export default function TetherLanding() {
   const reduce = usePrefersReducedMotion();
   const treeRef = useRef<HTMLDivElement>(null);
@@ -269,6 +230,16 @@ export default function TetherLanding() {
     const el = treeSvgWrapRef.current;
     if (!el) return;
     el.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+  };
+
+  const replayFailurePath = () => {
+    fitTreeView();
+    setTreeStarted(false);
+    setTreeStep(3);
+    window.setTimeout(() => {
+      setTreeStep(TREE_LAYOUT.length);
+      setTreeStarted(true);
+    }, 180);
   };
   const [treeStarted, setTreeStarted] = useState(false);
   const [treeStep, setTreeStep] = useState(0);
@@ -340,7 +311,6 @@ export default function TetherLanding() {
     }, 1300);
   }
 
-  // Sends structured landing-page feedback through the API route without leaving the page.
   async function sendFeedback(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
@@ -393,26 +363,26 @@ export default function TetherLanding() {
       <header className="hero wrap" id="top">
         <div className="center-row sp-row">
           <div className="social-proof">
-            <div className="sp-avatars">
-              <span className="sp-av" style={{ background: "linear-gradient(135deg,#5fd49a,#74cfe0)" }} />
-              <span className="sp-av" style={{ background: "linear-gradient(135deg,#b39cf5,#ff8aa4)" }} />
-              <span className="sp-av" style={{ background: "linear-gradient(135deg,#f5cd7a,#5aa0ff)" }} />
-              <span className="sp-av" style={{ background: "linear-gradient(135deg,#74e0a8,#5aa0ff)" }} />
-              <span className="sp-av" style={{ background: "linear-gradient(135deg,#ff8aa4,#f5cd7a)" }} />
-            </div>
-            <span className="sp-text">
-              One base_url change. No code rewrites. Every LLM call, tool execution, and failure
-              mapped live on your Mac.
+            <span className="sp-evidence">
+              <LandingIcon name="database" />
+              Local trace recorder
+            </span>
+            <span className="sp-evidence">
+              <LandingIcon name="clock-rotate-left" />
+              Replay from one node
+            </span>
+            <span className="sp-evidence">
+              <LandingIcon name="shield-halved" />
+              No cloud workspace
             </span>
           </div>
         </div>
         <h1>
-          Your agent failed at step 3. <span className="grad">You have no idea why.</span>
+          Find the exact LLM call that <span className="grad">broke your agent</span>.
         </h1>
         <p className="lead">
-          Tether shows you the <span className="grad">exact call</span>, the exact response, and
-          lets you <span className="grad">replay from there</span>. One base_url change. No code
-          rewrites.
+          Tether records the run on your Mac, shows the failed node with its request and response,
+          then lets you patch that output and replay only what comes after it.
         </p>
         <div className="cta-row">
           <a
@@ -426,9 +396,21 @@ export default function TetherLanding() {
             }
           >
             <LandingIcon name="apple-finder" />
-            Download for macOS
+            Install macOS alpha
           </a>
-
+          <a
+            className="btn btn-secondary"
+            href="#demo"
+            onClick={() =>
+              trackEvent("cta_clicked", {
+                button_text: "Inspect demo trace",
+                location: "hero",
+              })
+            }
+          >
+            <LandingIcon name="diagram-project" />
+            Inspect demo trace
+          </a>
         </div>
         <a
           className="urgency-link"
@@ -440,12 +422,12 @@ export default function TetherLanding() {
             })
           }
         >
-          Security review asking where traces live? See the proof layer <span aria-hidden="true">-&gt;</span>
+          Security review asking where prompts live? Open the local storage proof <span aria-hidden="true">-&gt;</span>
         </a>
         <div className="meta-row">
           <span>
             <LandingIcon name="database" />
-            Local SQLite traces.
+            SQLite traces.
           </span>
           <span>
             <LandingIcon name="feather" />
@@ -458,7 +440,6 @@ export default function TetherLanding() {
         </div>
 
         <div className="product-shot reveal">
-          <div className="product-shot-glow" />
           <div className="cinematic-embed" aria-label="Tether cinematic product animation">
             <iframe
               aria-label="Tether cinematic animation"
@@ -470,32 +451,16 @@ export default function TetherLanding() {
         </div>
       </header>
 
-      <section className="proof-strip wrap reveal">
-        <div className="proof-grid">
-          {PROOF_CARDS.map((card) => (
-            <article className="proof-card" key={card.title}>
-              <span className="proof-icon">
-                <LandingIcon name={card.icon} />
-              </span>
-              <div>
-                <div className="proof-meta">{card.meta}</div>
-                <h2>{card.title}</h2>
-                <p>{card.copy}</p>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-
       <section className="section-pad wrap deferred-section" id="features">
         <div className="section-head reveal">
-          <div className="kicker">Product proof</div>
+          <div className="kicker">Failure replay</div>
           <h2 className="title">
-            Every agent run, drawn as <span className="grad">evidence you can read</span>.
+            Find the node that changed the outcome.
           </h2>
           <p className="section-sub">
-            Messy terminal logs become a hierarchical trace in real time. Each LLM request,
-            tool call, retry, cache hit, and failure is color-coded by <span className="grad">what actually happened</span>.
+            Tether turns one messy agent run into a replayable path: the request
+            that went in, the response that came back, the cache state, and the
+            downstream branch you can rerun.
           </p>
         </div>
 
@@ -503,7 +468,8 @@ export default function TetherLanding() {
           <div className="tree-stage reveal" id="treeStage" ref={treeRef}>
             <div className="ts-head">
               <LandingIcon name="diagram-project" />
-              <span className="ttl">Visual Tree Canvas</span> - live render
+              <span className="ttl">Failure path</span>
+              <span className="ts-meta">4 nodes / 1 failed / 1 cached</span>
             </div>
             <div className="tree-svg-wrap" ref={treeSvgWrapRef}>
               <svg id="treeSvg" width="100%" viewBox="0 0 300 470" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -551,16 +517,34 @@ export default function TetherLanding() {
               </div>
               <button
                 type="button"
-                className="fit-view-btn"
+                className="replay-path-btn"
                 onClick={() => {
-                  fitTreeView();
-                  trackEvent("control_clicked", { control: "fit_to_screen", location: "visual_tree_canvas" });
+                  replayFailurePath();
+                  trackEvent("control_clicked", { control: "replay_failed_path", location: "visual_tree_canvas" });
                 }}
-                aria-label="Fit to screen"
+                aria-label="Replay failed path"
               >
-                <LandingIcon name="layout" />
-                <span>Fit to screen</span>
+                <LandingIcon name="rotate" />
+                <span>Replay failed path</span>
               </button>
+            </div>
+            <div className="trace-evidence">
+              <span>
+                <b>request</b>
+                req_3f88ab
+              </span>
+              <span>
+                <b>cache</b>
+                hit
+              </span>
+              <span>
+                <b>saved</b>
+                2,096 tokens
+              </span>
+              <span>
+                <b>scope</b>
+                downstream only
+              </span>
             </div>
           </div>
 
@@ -569,12 +553,11 @@ export default function TetherLanding() {
               <div className="bico">
                 <LandingIcon name="diagram-project" />
               </div>
-              <h3>Visual trace canvas</h3>
+              <h3>Failure-first trace canvas</h3>
               <p>
-                Every LLM request becomes a node in a graph. Nested tool calls,
-                retries, and sub-agents nest automatically, so the shape of
-                your agent&apos;s behavior is finally <span className="grad">something you can inspect</span>,
-                not scroll past.
+                Every LLM request becomes a node with timing, payload, cache state,
+                and downstream impact. The graph is built for finding the broken
+                branch, not decorating a dashboard.
               </p>
               <div className="bstat">
                 <span className="metric-chip ok">success</span>
@@ -588,9 +571,9 @@ export default function TetherLanding() {
               </div>
               <h3>Local response cache</h3>
               <p>
-                Identical prompts return <span className="grad">instantly from local cache</span>. Iterate on
-                downstream logic without re-running or re-paying for upstream
-                calls. $0.0000 per cached hit.
+                Repeated prompts come back from local cache. You can test downstream
+                logic without paying for the same retrieval or classification step
+                again.
               </p>
               <div className="bstat">
                 <span className="metric-chip cy">&lt;1ms</span>
@@ -603,9 +586,8 @@ export default function TetherLanding() {
               </div>
               <h3>Time-travel mocking</h3>
               <p>
-                Your agent failed at step 4. Rewrite that node&apos;s output and
-                <span className="grad">replay from there</span>. No re-running the full chain, no wasted
-                tokens. Fix the exact break, not the whole pipeline.
+                Rewrite one response and replay the steps after it. This turns
+                debugging from a full rerun into a controlled experiment.
               </p>
               <div className="bstat">
                 <span className="metric-chip">replay from any node</span>
@@ -615,11 +597,11 @@ export default function TetherLanding() {
               <div className="bico">
                 <LandingIcon name="shield-halved" />
               </div>
-              <h3>Air-gapped privacy</h3>
+              <h3>Local evidence vault</h3>
               <p>
                 API keys live encrypted in the macOS Keychain. Prompts,
                 responses, and traces stay in a local SQLite database that never
-                <span className="grad">leaves the machine</span>. Nothing requires a hosted Tether workspace.
+                leaves the machine. Nothing requires a hosted Tether workspace.
               </p>
               <div className="bstat">
                 <span className="metric-chip ok">
@@ -633,13 +615,13 @@ export default function TetherLanding() {
         </div>
 
         <div className="section-head reveal feature-demo-head" id="demo">
-          <div className="kicker">Embedded sample trace</div>
+          <div className="kicker">Replay bench</div>
           <h2 className="title">
-            Try the debugger before you <span className="grad">wire it into your app</span>.
+            Inspect the interface before you wire it into your app.
           </h2>
           <p className="section-sub">
             The right pane mirrors the app inspector. Pick a capability on the left
-            and the trace evidence changes like <span className="grad">clicking a live node</span> in Tether.
+            and watch the evidence change the way it would when you click a live trace node.
           </p>
         </div>
 
@@ -800,12 +782,12 @@ export default function TetherLanding() {
 
       <section className="section-pad wrap deferred-section" id="how">
         <div className="section-head reveal">
-          <div className="kicker">From localhost to proof in three steps</div>
+          <div className="kicker">From localhost to replay</div>
           <h2 className="title">
-            No SDK rewrite. Just route the run <span className="grad">through Tether</span>.
+            Route one run through Tether and keep the rest of your stack.
           </h2>
           <p className="section-sub">
-            Tether is a <span className="grad">transparent proxy</span>. Point your client at localhost
+            Tether is a transparent proxy. Point your client at localhost
             and every call shows up in the canvas with request, response, latency,
             tokens, cache state, and replay controls.
           </p>
@@ -815,14 +797,14 @@ export default function TetherLanding() {
             <div className="num">01 / LOG</div>
             <h4>Point the base_url</h4>
             <p>
-              Swap your client&apos;s endpoint for the <span className="grad">local proxy</span>. Works with any OpenAI-compatible SDK.
+              Swap your client&apos;s endpoint for the local proxy. Works with any OpenAI-compatible SDK.
             </p>
           </div>
           <div className="step reveal">
             <div className="num">02 / REPLAY</div>
             <h4>Run your agent</h4>
             <p>
-              Run the same scenario. Every request is <span className="grad">intercepted, cached, and streamed</span> into the tree live.
+              Run the same scenario. Every request is intercepted, cached, and streamed into the tree live.
             </p>
           </div>
           <div className="step reveal">
@@ -830,7 +812,7 @@ export default function TetherLanding() {
             <h4>Inspect &amp; replay</h4>
             <p>
               Open the canvas, click the node that broke, rewrite its output,
-              and replay forward. See <span className="grad">exactly where your agent fails</span> - without
+              and replay forward. See exactly where your agent fails - without
               re-running the whole chain.
             </p>
           </div>
@@ -839,9 +821,9 @@ export default function TetherLanding() {
 
       <section className="section-pad wrap deferred-section" id="faq">
         <div className="section-head reveal">
-          <div className="kicker">Objections</div>
+          <div className="kicker">Buying objections</div>
           <h2 className="title">
-            Questions buyers and engineers <span className="grad">ask first</span>.
+            Questions engineers ask before installing a local proxy.
           </h2>
         </div>
         <div className="faq-list">
@@ -858,13 +840,13 @@ export default function TetherLanding() {
         <div className="feedback-download-card reveal">
           <div className="feedback-pane" id="feedback">
             <div className="section-head compact">
-              <div className="kicker">Feedback loop</div>
+              <div className="kicker">Alpha feedback</div>
               <h2 className="title">
-                Tell me which trace would <span className="grad">make this useful</span>.
+                Tell me where your agent actually breaks.
               </h2>
               <p className="section-sub">
-                Alpha users <span className="grad">shape the next build</span>. Send the bug, missing workflow, or security objection that would
-                stop you from using Tether.
+                Use this only if the alpha is missing a workflow you would need.
+                Specific traces beat vague feature requests.
               </p>
             </div>
             <form
@@ -942,13 +924,13 @@ export default function TetherLanding() {
           <div className="download-pane">
             <div className="kicker">Alpha access</div>
             <h2>
-              Get a replayable trace
+              Install the local trace workbench
               <br />
-              before the <span className="grad">next demo</span>.
+              before your next agent run.
             </h2>
             <p>
-              Free during alpha. Open the source on GitHub, <span className="grad">run it locally</span>, or send feedback about
-              the workflow that should ship next.
+              Free during alpha. Run Tether locally, point your SDK at the proxy,
+              and keep the whole debugging record on your Mac.
             </p>
             <p className="alpha-note">Release v1.5.0 is ready for local macOS testing.</p>
             <div className="download-actions">
@@ -966,7 +948,7 @@ export default function TetherLanding() {
                   target="_blank"
                 >
                   <LandingIcon name="apple-finder" />
-                  Install Tether
+                  Install macOS alpha
                 </a>
               </div>
               <p className="download-note">Opens the GitHub release page with the latest alpha build.</p>
@@ -983,7 +965,7 @@ export default function TetherLanding() {
                 }
               >
                 <LandingIcon name="arrow-right" />
-                Write feedback
+                Send trace feedback
               </a>
               <a
                 className="btn btn-ghost"
@@ -1009,7 +991,7 @@ export default function TetherLanding() {
                 }
               >
                 <LandingIcon name="play" />
-                See product
+                Inspect demo trace
               </a>
             </div>
             <div className="meta-row final-meta">
