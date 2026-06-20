@@ -52,12 +52,20 @@ struct NodeCardModel: Identifiable, Equatable {
     let isReplay: Bool
     let replayCostImproved: Bool
     let status: NodeStatus
+    let promptPreview: String
+    let changedFileCount: Int
+    let changedLineSummary: String?
 
     var hasBillableCost: Bool {
         cost != "$0.0000" && cost != "$0" && cost != "$0.00"
     }
 
-    init(node: AgentNode, replayCostImproved: Bool = false) {
+    init(
+        node: AgentNode,
+        replayCostImproved: Bool = false,
+        workSummary: AgentNodeWorkSummary? = nil
+    ) {
+        let workSummary = workSummary ?? AgentNodeWorkSummary(promptText: node.workPromptText)
         id = node.id
         agentName = node.agentName
         stepName = node.stepName
@@ -73,6 +81,9 @@ struct NodeCardModel: Identifiable, Equatable {
         isReplay = node.isReplay
         self.replayCostImproved = replayCostImproved
         status = node.status
+        promptPreview = workSummary.promptText
+        changedFileCount = workSummary.fileCount
+        changedLineSummary = workSummary.lineSummary
     }
 }
 

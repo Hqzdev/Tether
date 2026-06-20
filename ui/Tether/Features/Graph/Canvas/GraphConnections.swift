@@ -39,6 +39,10 @@ struct GraphConnections: View, Equatable {
         let current = nodes[index]
         let previous = replaySource(for: current) ?? nodes[index - 1]
 
+        guard previous.graphGroupId == current.graphGroupId else {
+            return
+        }
+
         guard scope.includes(previousId: previous.id, currentId: current.id) else {
             return
         }
@@ -171,31 +175,5 @@ struct LiveGraphConnections: View {
                 : positionStore.persistedPosition(for: node.id, defaultPosition: defaultPosition)
             return (node.id, position)
         })
-    }
-}
-
-/// Lightweight connection model that excludes inspector-only node payloads.
-struct GraphConnectionNode: Equatable {
-    let id: AgentNode.ID
-    let status: NodeStatus
-    let isReplay: Bool
-    let replaySourceId: AgentNode.ID?
-}
-
-/// Controls which edges a connection layer draws.
-enum GraphConnectionScope: Equatable {
-    case all
-    case excluding(nodeId: AgentNode.ID)
-    case only(nodeId: AgentNode.ID)
-
-    func includes(previousId: AgentNode.ID, currentId: AgentNode.ID) -> Bool {
-        switch self {
-        case .all:
-            return true
-        case let .excluding(nodeId):
-            return previousId != nodeId && currentId != nodeId
-        case let .only(nodeId):
-            return previousId == nodeId || currentId == nodeId
-        }
     }
 }

@@ -18,7 +18,6 @@ extension GraphViewport {
     private func beginInteractionIfNeeded(_ value: DragGesture.Value) {
         guard activeInteraction == nil else { return }
 
-        interactionContentSize = measuredContentSize
         let contentPt = contentPoint(for: value.startLocation)
         guard let hit = nodeAndIndex(at: contentPt) else {
             activeInteraction = .canvas(startOffset: panOffset)
@@ -58,7 +57,6 @@ extension GraphViewport {
     /// Commits the active interaction back into durable viewport state.
     private func finishInteraction(_ value: DragGesture.Value, viewportSize: CGSize) {
         defer {
-            interactionContentSize = nil
             onInteractionChanged(false)
         }
 

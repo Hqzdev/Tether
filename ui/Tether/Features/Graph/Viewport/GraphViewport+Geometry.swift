@@ -26,13 +26,12 @@ extension GraphViewport {
         )
     }
 
-    /// Clamps the canvas offset so users can pan around content without losing it.
     func clampedPan(_ offset: CGSize, viewportSize: CGSize) -> CGSize {
-        let scaledContentSize = CGSize(width: contentSize.width * zoomScale, height: contentSize.height * zoomScale)
-        let minimumX = min(0, viewportSize.width - scaledContentSize.width - panOverscrollPadding)
-        let minimumY = min(0, viewportSize.height - scaledContentSize.height - panOverscrollPadding)
-        let maximumX = panOverscrollPadding
-        let maximumY = panOverscrollPadding
+        let bounds = nodeBounds.isNull ? CGRect(origin: .zero, size: contentSize) : nodeBounds
+        let minimumX = min(0, viewportSize.width - bounds.maxX * zoomScale - panOverscrollPadding)
+        let minimumY = min(0, viewportSize.height - bounds.maxY * zoomScale - panOverscrollPadding)
+        let maximumX = max(panOverscrollPadding, -bounds.minX * zoomScale + panOverscrollPadding)
+        let maximumY = max(panOverscrollPadding, -bounds.minY * zoomScale + panOverscrollPadding)
 
         return CGSize(width: min(max(offset.width, minimumX), maximumX), height: min(max(offset.height, minimumY), maximumY))
     }
@@ -66,10 +65,25 @@ extension GraphViewport {
 
     /// Returns the automatic timeline position for a node, splitting the history
     /// cluster (left) from the offset live cluster (right).
-    func defaultPosition(for _: AgentNode, at index: Int) -> CGPoint {
-        GraphClusterLayout.defaultPosition(
-            index: index,
-            historyCount: historyCount,
+    func defaultPosition(for node: AgentNode, at index: Int) -> CGPoint {
+        if node.isReplay,
+           let sourceId = node.replaySourceId,
+           let sourceNode = nodes.first(where: { $0.id == sourceId }) {
+            let source = GraphClusterLayout.groupedPosition(
+                for: sourceNode,
+                in: nodes,
+                groupIds: GraphClusterLayout.groupIds(for: nodes),
+                nodeSize: nodeSize,
+                inset: nodeBoundaryInset,
+                spacing: verticalNodeSpacing
+            )
+            return CGPoint(x: source.x + 400, y: source.y)
+        }
+
+        return GraphClusterLayout.groupedPosition(
+            for: node,
+            in: nodes,
+            groupIds: GraphClusterLayout.groupIds(for: nodes),
             nodeSize: nodeSize,
             inset: nodeBoundaryInset,
             spacing: verticalNodeSpacing
@@ -82,22 +96,8 @@ extension GraphViewport {
         return CGSize(width: translation.width / safeZoomScale, height: translation.height / safeZoomScale)
     }
 
-    /// Clamps a dragged node so it remains reachable inside the expanded canvas.
     func movedNodeOffset(nodeId: AgentNode.ID, startOffset: CGSize, translation: CGSize) -> CGSize {
-        let proposedOffset = CGSize(width: startOffset.width + translation.width, height: startOffset.height + translation.height)
-        guard let indexedNode = nodes.enumerated().first(where: { $0.element.id == nodeId }) else { return proposedOffset }
-
-        let basePosition = defaultPosition(for: indexedNode.element, at: indexedNode.offset)
-        let size = nodeSizes[nodeId] ?? nodeSize
-        let maximumOriginX = contentSize.width + panOverscrollPadding - size.width - nodeBoundaryInset
-        let maximumOriginY = contentSize.height + panOverscrollPadding - size.height - nodeBoundaryInset
-        let proposedOrigin = CGPoint(x: basePosition.x + proposedOffset.width, y: basePosition.y + proposedOffset.height)
-        let clampedOrigin = CGPoint(
-            x: min(max(proposedOrigin.x, nodeBoundaryInset), maximumOriginX),
-            y: min(max(proposedOrigin.y, nodeBoundaryInset), maximumOriginY)
-        )
-
-        return CGSize(width: clampedOrigin.x - basePosition.x, height: clampedOrigin.y - basePosition.y)
+        CGSize(width: startOffset.width + translation.width, height: startOffset.height + translation.height)
     }
 
     /// Synchronizes the external position store with the current visible nodes.

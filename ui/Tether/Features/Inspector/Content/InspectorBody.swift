@@ -159,6 +159,7 @@ struct ContextBoundaryInspectorBody: View {
     let node: AgentNode
     let replayImpact: TraceInvalidationResult?
     let palette: AgentTracePalette
+    @EnvironmentObject private var traceStore: TraceStore
 
     var body: some View {
         EditorToolbar(
@@ -173,6 +174,10 @@ struct ContextBoundaryInspectorBody: View {
 
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
+                RequestWorkSection(
+                    summary: traceStore.nodeWorkSummaries[node.id] ?? AgentNodeWorkSummary(promptText: node.workPromptText),
+                    palette: palette
+                )
                 ContextHashSection(node: node, palette: palette)
                 ContextSourceSections(sources: node.contextInputs.sources, palette: palette)
                 WithheldContextSection(withheld: node.contextInputs.withheld, palette: palette)
@@ -180,6 +185,69 @@ struct ContextBoundaryInspectorBody: View {
             }
         }
         .background(palette.panel.opacity(0.52))
+    }
+}
+
+private struct RequestWorkSection: View {
+    let summary: AgentNodeWorkSummary
+    let palette: AgentTracePalette
+
+    var body: some View {
+        InspectorSection(title: "This Request", palette: palette) {
+            MetadataInlineRow(label: "Prompt", value: summary.promptText, palette: palette)
+
+            if summary.changedFiles.isEmpty {
+                EmptyContextLine(text: "No file changes attributed to this node.", palette: palette)
+            } else {
+                MetadataInlineRow(
+                    label: "Files",
+                    value: "\(summary.fileCount) files · +\(summary.additions) -\(summary.deletions)",
+                    palette: palette
+                )
+
+                ForEach(summary.changedFiles.prefix(12)) { file in
+                    WorkspaceChangeRow(file: file, palette: palette)
+                }
+
+                if summary.changedFiles.count > 12 {
+                    EmptyContextLine(text: "\(summary.changedFiles.count - 12) more files hidden", palette: palette)
+                }
+            }
+        }
+    }
+}
+
+private struct WorkspaceChangeRow: View {
+    let file: WorkspaceChangeFile
+    let palette: AgentTracePalette
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 10) {
+            Text(file.status)
+                .font(.system(size: 9.5, weight: .bold))
+                .foregroundStyle(palette.accent)
+                .frame(width: 58, alignment: .leading)
+
+            Text(file.path)
+                .font(.system(size: 11.5, design: .monospaced))
+                .foregroundStyle(palette.text)
+                .lineLimit(1)
+                .truncationMode(.middle)
+                .textSelection(.enabled)
+
+            Spacer(minLength: 0)
+
+            Text("+\(file.additions) -\(file.deletions)")
+                .font(.system(size: 10.5, weight: .semibold, design: .monospaced))
+                .foregroundStyle(palette.textTertiary)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
+        .overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(palette.borderSoft)
+                .frame(height: 1)
+        }
     }
 }
 

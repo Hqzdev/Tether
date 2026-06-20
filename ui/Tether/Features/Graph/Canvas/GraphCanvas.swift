@@ -25,6 +25,7 @@ struct GraphCanvas: View {
     let palette: AgentTracePalette
 
     @EnvironmentObject private var preferences: AppPreferences
+    @EnvironmentObject private var traceStore: TraceStore
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -39,7 +40,11 @@ struct GraphCanvas: View {
                 ForEach(Array(nodes.enumerated()), id: \.element.id) { index, node in
                     let source = NodeSource.of(index: index, historyCount: historyCount)
                     MovableNodeCard(
-                        node: NodeCardModel(node: node, replayCostImproved: replayCostImproved(for: node)),
+                        node: NodeCardModel(
+                            node: node,
+                            replayCostImproved: replayCostImproved(for: node),
+                            workSummary: traceStore.nodeWorkSummaries[node.id]
+                        ),
                         nodePosition: positionStore.positionState(for: node.id, defaultPosition: defaultPosition(for: index, node: node)),
                         selected: node.id == selectedNode?.id,
                         nodeSize: nodeSizes[node.id] ?? nodeSize,
@@ -101,11 +106,16 @@ struct GraphCanvas: View {
         nodes.map {
             GraphConnectionNode(
                 id: $0.id,
+                graphGroupId: graphGroupIds[$0.id] ?? $0.graphGroupId,
                 status: $0.status,
                 isReplay: $0.isReplay,
                 replaySourceId: $0.replaySourceId
             )
         }
+    }
+
+    private var graphGroupIds: [AgentNode.ID: String] {
+        GraphClusterLayout.groupIds(for: nodes)
     }
 
     private var defaultPositions: [AgentNode.ID: CGPoint] {
@@ -127,15 +137,27 @@ struct GraphCanvas: View {
         if let node,
            node.isReplay,
            let sourceId = node.replaySourceId,
-           let sourceIndex = nodes.firstIndex(where: { $0.id == sourceId }) {
-            let source = GraphClusterLayout.defaultPosition(
-                index: sourceIndex,
-                historyCount: historyCount,
+           let sourceNode = nodes.first(where: { $0.id == sourceId }) {
+            let source = GraphClusterLayout.groupedPosition(
+                for: sourceNode,
+                in: nodes,
+                groupIds: graphGroupIds,
                 nodeSize: nodeSize,
                 inset: nodeBoundaryInset,
                 spacing: verticalNodeSpacing
             )
             return CGPoint(x: source.x + 400, y: source.y)
+        }
+
+        if let node {
+            return GraphClusterLayout.groupedPosition(
+                for: node,
+                in: nodes,
+                groupIds: graphGroupIds,
+                nodeSize: nodeSize,
+                inset: nodeBoundaryInset,
+                spacing: verticalNodeSpacing
+            )
         }
 
         return GraphClusterLayout.defaultPosition(

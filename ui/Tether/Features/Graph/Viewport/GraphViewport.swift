@@ -30,14 +30,9 @@ struct GraphViewport: View {
     @State var panOffset: CGSize = .zero
     @State var activeDragNodeId: AgentNode.ID?
     @State var activeInteraction: ActiveCanvasInteraction?
-    @State var interactionContentSize: CGSize?
 
     var contentSize: CGSize {
-        if let interactionContentSize {
-            return interactionContentSize
-        }
-
-        return measuredContentSize
+        measuredContentSize
     }
 
     var measuredContentSize: CGSize {

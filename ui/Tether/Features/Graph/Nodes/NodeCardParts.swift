@@ -16,10 +16,22 @@ struct NodeCardHeader: View {
                 Text(node.stepName)
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(palette.text)
-                    .lineLimit(2)
+                    .lineLimit(1)
+
+                Text(node.promptPreview)
+                    .font(.system(size: 10.5))
+                    .foregroundStyle(palette.textTertiary)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
 
                 HStack(spacing: 6) {
                     AgentBadge(name: node.agentName, palette: palette)
+                    if node.changedFileCount > 0 {
+                        NodeInfoBadge(text: "Files \(node.changedFileCount)", palette: palette)
+                    }
+                    if let changedLineSummary = node.changedLineSummary {
+                        NodeInfoBadge(text: changedLineSummary, palette: palette)
+                    }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -35,6 +47,26 @@ struct NodeCardHeader: View {
                     .clipShape(RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous))
             }
         }
+    }
+}
+
+private struct NodeInfoBadge: View {
+    let text: String
+    let palette: AgentTracePalette
+
+    var body: some View {
+        Text(text)
+            .font(.system(size: 9.5, weight: .semibold, design: .monospaced))
+            .foregroundStyle(palette.textTertiary)
+            .lineLimit(1)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(palette.panelSecondary.opacity(0.72))
+            .clipShape(RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous)
+                    .stroke(palette.borderSoft, lineWidth: 1)
+            }
     }
 }
 

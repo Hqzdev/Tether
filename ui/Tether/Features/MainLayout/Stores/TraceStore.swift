@@ -12,6 +12,8 @@ final class TraceStore: ObservableObject {
     @Published var nodes: [AgentNode] = []
 
     @Published var proxyStatus: ProxyConnectionStatus = .connecting
+    @Published var workspaceChanges: WorkspaceChangeSummary = .empty
+    @Published var nodeWorkSummaries: [AgentNode.ID: AgentNodeWorkSummary] = [:]
 
     let client: TraceAPIClient
     let codexObserver: CodexLogObserver
@@ -22,6 +24,8 @@ final class TraceStore: ObservableObject {
     var deferredSnapshot: TraceSnapshot?
     var nodeDetails: [AgentNode.ID: AgentNode] = [:]
     var loadingNodeDetailIds: Set<AgentNode.ID> = []
+    var lastWorkspaceSnapshot: WorkspaceSnapshot?
+    var pendingAttributionNodeIds: [AgentNode.ID] = []
 
     /// Creates a store backed by the local proxy client and Codex log observer.
     init(
@@ -51,6 +55,7 @@ final class TraceStore: ObservableObject {
                 }
 
                 await refresh()
+                await refreshWorkspaceChanges()
 
                 do {
                     try await Task.sleep(for: .seconds(1.2))
@@ -59,6 +64,17 @@ final class TraceStore: ObservableObject {
                 }
             }
         }
+    }
+
+    func refreshWorkspaceChanges() async {
+        let snapshot = await WorkspaceChangeReader.snapshot()
+        let summary = snapshot.summary
+        if workspaceChanges != summary {
+            workspaceChanges = summary
+        }
+
+        attributePendingNodes(using: snapshot)
+        lastWorkspaceSnapshot = snapshot
     }
 
     /// Stops the periodic refresh loop.
@@ -165,7 +181,21 @@ final class TraceStore: ObservableObject {
 
     /// Commits a snapshot. Only writes when visible state changes.
     func commit(snapshot: TraceSnapshot) {
-        let liveCluster = snapshot.nodes.map(hydrated(_:))
+        let incomingNodes = snapshot.nodes.map(hydrated(_:))
+        guard !incomingNodes.isEmpty else {
+            if nodes.isEmpty {
+                return
+            }
+
+            return
+        }
+
+        let existingIds = Set(nodes.map(\.id))
+        let liveCluster = mergedVisibleNodes(with: incomingNodes)
+        let newNodeIds = liveCluster
+            .filter { !existingIds.contains($0.id) }
+            .map(\.id)
+        trackNewNodesForAttribution(newNodeIds, in: liveCluster)
 
         guard nodes != liveCluster else {
             return
@@ -176,6 +206,94 @@ final class TraceStore: ObservableObject {
         withTransaction(transaction) {
             nodes = liveCluster
         }
+    }
+
+    private func trackNewNodesForAttribution(_ nodeIds: [AgentNode.ID], in nodes: [AgentNode]) {
+        guard !nodeIds.isEmpty else { return }
+
+        for nodeId in nodeIds {
+            if let node = nodes.first(where: { $0.id == nodeId }) {
+                nodeWorkSummaries[nodeId] = AgentNodeWorkSummary(promptText: node.workPromptText)
+            }
+        }
+
+        pendingAttributionNodeIds.append(contentsOf: nodeIds)
+    }
+
+    private func attributePendingNodes(using snapshot: WorkspaceSnapshot) {
+        guard !pendingAttributionNodeIds.isEmpty else { return }
+
+        let changed = lastWorkspaceSnapshot.map { snapshot.changedSummary(since: $0) } ?? .empty
+        let targetNodeId = changed.hasChanges ? pendingAttributionNodeIds.last : nil
+
+        for nodeId in pendingAttributionNodeIds {
+            guard let node = nodes.first(where: { $0.id == nodeId }) else { continue }
+            let files = nodeId == targetNodeId ? changed.files : []
+            nodeWorkSummaries[nodeId] = AgentNodeWorkSummary(
+                promptText: node.workPromptText,
+                changedFiles: files
+            )
+        }
+
+        pendingAttributionNodeIds.removeAll()
+    }
+
+    private func mergedVisibleNodes(with incomingNodes: [AgentNode]) -> [AgentNode] {
+        var nodesById: [AgentNode.ID: AgentNode] = [:]
+        var orderedIds = nodes.map(\.id)
+
+        for node in nodes {
+            nodesById[node.id] = node
+        }
+
+        for node in incomingNodes {
+            if nodesById[node.id] == nil {
+                orderedIds.append(node.id)
+            }
+
+            nodesById[node.id] = node
+        }
+
+        let mergedNodes = orderedIds.compactMap { nodesById[$0] }
+        return relayoutGroupedNodes(mergedNodes)
+    }
+
+    private func relayoutGroupedNodes(_ mergedNodes: [AgentNode]) -> [AgentNode] {
+        var groupOrder: [String] = []
+        var nextDepthByGroup: [String: Int] = [:]
+        let groupByNodeId = resolvedGroupIds(for: mergedNodes)
+        let maxLatency = max(mergedNodes.map(\.latencyMs).max() ?? 0, 1)
+
+        return mergedNodes.map { node in
+            let groupId = groupByNodeId[node.id] ?? node.graphGroupId
+            if !groupOrder.contains(groupId) {
+                groupOrder.append(groupId)
+            }
+
+            let depth = nextDepthByGroup[groupId, default: 0]
+            nextDepthByGroup[groupId] = depth + 1
+
+            return node.withGraphLayout(
+                depth: depth,
+                barPercent: max(0.06, min(Double(node.latencyMs) / Double(maxLatency), 1.0))
+            )
+        }
+    }
+
+    private func resolvedGroupIds(for nodes: [AgentNode]) -> [AgentNode.ID: String] {
+        var groups: [AgentNode.ID: String] = [:]
+
+        for node in nodes {
+            groups[node.id] = node.graphGroupId
+        }
+
+        for node in nodes where node.isReplay {
+            if let sourceId = node.replaySourceId, let sourceGroupId = groups[sourceId] {
+                groups[node.id] = sourceGroupId
+            }
+        }
+
+        return groups
     }
 
     /// Attaches any lazily loaded inspector payload to a graph summary node.
@@ -190,6 +308,9 @@ final class TraceStore: ObservableObject {
         refreshAfterInteraction = false
         nodeDetails = [:]
         loadingNodeDetailIds = []
+        nodeWorkSummaries = [:]
+        pendingAttributionNodeIds = []
+        lastWorkspaceSnapshot = nil
     }
 
     /// Returns true when an in-flight refresh should yield to active graph input.
@@ -220,7 +341,6 @@ final class TraceStore: ObservableObject {
             nodeDetails[nodeId] = detail
             hydrateVisibleNode(nodeId, with: detail)
         } catch {
-            // Local Codex nodes and stale proxy selections may not have proxy-side details.
         }
     }
 
@@ -231,6 +351,12 @@ final class TraceStore: ObservableObject {
             if nodes[index] != hydratedNode {
                 nodes[index] = hydratedNode
             }
+
+            let existing = nodeWorkSummaries[nodeId]
+            nodeWorkSummaries[nodeId] = AgentNodeWorkSummary(
+                promptText: hydratedNode.workPromptText,
+                changedFiles: existing?.changedFiles ?? []
+            )
         }
 
     }
@@ -254,6 +380,15 @@ extension AgentNode {
             && prompt.system.isEmpty
             && prompt.user.isEmpty
             && response.text.isEmpty
+    }
+
+    var workPromptText: String {
+        let prompt = prompt.user.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !prompt.isEmpty {
+            return prompt
+        }
+
+        return stepName
     }
 
     /// Preserves fresh graph summary fields while attaching inspector payloads.
@@ -282,10 +417,246 @@ extension AgentNode {
             inputHash: detail.inputHash.isEmpty ? inputHash : detail.inputHash,
             outputHash: detail.outputHash.isEmpty ? outputHash : detail.outputHash,
             stale: stale || detail.stale,
+            isReplay: isReplay,
+            replaySourceId: replaySourceId,
+            replayProvider: replayProvider,
             status: status,
             prompt: detail.prompt,
             response: detail.response,
             error: detail.error
         )
+    }
+
+    func withGraphLayout(depth: Int, barPercent: Double) -> AgentNode {
+        AgentNode(
+            id: id,
+            agentName: agentName,
+            depth: depth,
+            stepName: stepName,
+            timestamp: timestamp,
+            provider: provider,
+            model: model,
+            cost: cost,
+            latency: latency,
+            latencyMs: latencyMs,
+            barPercent: barPercent,
+            tokensIn: tokensIn,
+            tokensOut: tokensOut,
+            requestId: requestId,
+            cacheStatus: cacheStatus,
+            temperature: temperature,
+            traceId: traceId,
+            parentSpanId: parentSpanId,
+            toolUseIds: toolUseIds,
+            contextInputs: contextInputs,
+            inputHash: inputHash,
+            outputHash: outputHash,
+            stale: stale,
+            isReplay: isReplay,
+            replaySourceId: replaySourceId,
+            replayProvider: replayProvider,
+            status: status,
+            prompt: prompt,
+            response: response,
+            error: error
+        )
+    }
+}
+
+struct WorkspaceChangeFile: Equatable, Identifiable, Sendable {
+    var id: String { path }
+
+    let path: String
+    let status: String
+    let additions: Int
+    let deletions: Int
+}
+
+struct WorkspaceChangeSummary: Equatable, Sendable {
+    let files: [WorkspaceChangeFile]
+
+    var fileCount: Int { files.count }
+    var additions: Int { files.reduce(0) { $0 + $1.additions } }
+    var deletions: Int { files.reduce(0) { $0 + $1.deletions } }
+    var hasChanges: Bool { !files.isEmpty }
+
+    static let empty = WorkspaceChangeSummary(files: [])
+}
+
+struct AgentNodeWorkSummary: Equatable, Sendable {
+    let promptText: String
+    let changedFiles: [WorkspaceChangeFile]
+
+    init(promptText: String, changedFiles: [WorkspaceChangeFile] = []) {
+        self.promptText = promptText
+        self.changedFiles = changedFiles
+    }
+
+    var fileCount: Int { changedFiles.count }
+    var additions: Int { changedFiles.reduce(0) { $0 + $1.additions } }
+    var deletions: Int { changedFiles.reduce(0) { $0 + $1.deletions } }
+    var hasChangedFiles: Bool { !changedFiles.isEmpty }
+    var lineSummary: String? {
+        hasChangedFiles ? "+\(additions) -\(deletions)" : nil
+    }
+
+    static let empty = AgentNodeWorkSummary(promptText: "Prompt not retained")
+}
+
+struct WorkspaceSnapshot: Equatable, Sendable {
+    let files: [String: WorkspaceSnapshotFile]
+
+    var summary: WorkspaceChangeSummary {
+        WorkspaceChangeSummary(files: files.values.map(\.change).sorted { $0.path < $1.path })
+    }
+
+    func changedSummary(since previous: WorkspaceSnapshot) -> WorkspaceChangeSummary {
+        let changed = Set(files.keys)
+            .union(previous.files.keys)
+            .compactMap { path -> WorkspaceChangeFile? in
+                let current = files[path]
+                let previousFile = previous.files[path]
+                guard current != previousFile else { return nil }
+
+                guard let current else {
+                    return WorkspaceChangeFile(
+                        path: path,
+                        status: "Deleted",
+                        additions: 0,
+                        deletions: previousFile?.change.additions ?? 0
+                    )
+                }
+
+                let additions = max(0, current.change.additions - (previousFile?.change.additions ?? 0))
+                let deletions = max(0, current.change.deletions - (previousFile?.change.deletions ?? 0))
+                return WorkspaceChangeFile(
+                    path: current.change.path,
+                    status: current.change.status,
+                    additions: additions,
+                    deletions: deletions
+                )
+            }
+            .sorted { $0.path < $1.path }
+
+        return WorkspaceChangeSummary(files: changed)
+    }
+}
+
+struct WorkspaceSnapshotFile: Equatable, Sendable {
+    let change: WorkspaceChangeFile
+    let fingerprint: String
+}
+
+enum WorkspaceChangeReader {
+    nonisolated static func read() async -> WorkspaceChangeSummary {
+        await snapshot().summary
+    }
+
+    nonisolated static func snapshot() async -> WorkspaceSnapshot {
+        await Task.detached(priority: .utility) {
+            let root = repoRoot()
+            let statuses = statusByPath(root: root)
+            let stats = statsByPath(root: root)
+            let paths = Array(Set(statuses.keys).union(stats.keys)).sorted()
+            let files = paths.map { path -> (String, WorkspaceSnapshotFile) in
+                let stat = stats[path] ?? addedFileStat(root: root, path: path, status: statuses[path])
+                let change = WorkspaceChangeFile(
+                    path: path,
+                    status: statuses[path] ?? "Modified",
+                    additions: stat.0,
+                    deletions: stat.1
+                )
+                return (path, WorkspaceSnapshotFile(change: change, fingerprint: fingerprint(root: root, path: path)))
+            }
+
+            return WorkspaceSnapshot(files: Dictionary(uniqueKeysWithValues: files))
+        }.value
+    }
+
+    private nonisolated static func repoRoot() -> URL {
+        URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+    }
+
+    private nonisolated static func statusByPath(root: URL) -> [String: String] {
+        let output = runGit(["-C", root.path, "status", "--porcelain=v1"])
+        var statuses: [String: String] = [:]
+
+        for line in output.split(separator: "\n") {
+            guard line.count >= 4 else { continue }
+            let code = String(line.prefix(2))
+            let pathStart = line.index(line.startIndex, offsetBy: 3)
+            let path = String(line[pathStart...])
+            statuses[path] = label(for: code)
+        }
+
+        return statuses
+    }
+
+    private nonisolated static func statsByPath(root: URL) -> [String: (Int, Int)] {
+        let output = runGit(["-C", root.path, "diff", "--numstat", "HEAD", "--"])
+        var stats: [String: (Int, Int)] = [:]
+
+        for line in output.split(separator: "\n") {
+            let parts = line.split(separator: "\t", maxSplits: 2).map(String.init)
+            guard parts.count == 3 else { continue }
+            stats[parts[2]] = (Int(parts[0]) ?? 0, Int(parts[1]) ?? 0)
+        }
+
+        return stats
+    }
+
+    private nonisolated static func addedFileStat(root: URL, path: String, status: String?) -> (Int, Int) {
+        guard status == "Added" else { return (0, 0) }
+        let fileURL = root.appendingPathComponent(path)
+        guard let data = try? Data(contentsOf: fileURL),
+              let text = String(data: data, encoding: .utf8) else {
+            return (0, 0)
+        }
+
+        let lineCount = text.isEmpty ? 0 : text.split(separator: "\n", omittingEmptySubsequences: false).count
+        return (lineCount, 0)
+    }
+
+    private nonisolated static func fingerprint(root: URL, path: String) -> String {
+        let fileURL = root.appendingPathComponent(path)
+        guard let attributes = try? FileManager.default.attributesOfItem(atPath: fileURL.path) else {
+            return "missing"
+        }
+
+        let size = attributes[.size] as? NSNumber
+        let modified = attributes[.modificationDate] as? Date
+        return "\(size?.intValue ?? 0):\(modified?.timeIntervalSince1970 ?? 0)"
+    }
+
+    private nonisolated static func runGit(_ arguments: [String]) -> String {
+        let process = Process()
+        let pipe = Pipe()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+        process.arguments = ["git"] + arguments
+        process.standardOutput = pipe
+        process.standardError = Pipe()
+
+        do {
+            try process.run()
+            process.waitUntilExit()
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            return String(data: data, encoding: .utf8) ?? ""
+        } catch {
+            return ""
+        }
+    }
+
+    private nonisolated static func label(for code: String) -> String {
+        if code.contains("A") || code.contains("?") { return "Added" }
+        if code.contains("D") { return "Deleted" }
+        if code.contains("R") { return "Renamed" }
+        if code.contains("M") { return "Modified" }
+        return "Changed"
     }
 }

@@ -91,6 +91,7 @@ extension CodexLogObserver {
             requestId: shortId(draft.id),
             cacheStatus: "codex-log",
             temperature: nil,
+            traceId: thread.id,
             status: draft.status,
             prompt: AgentPrompt(
                 system: "Observed from ~/.codex local logs. No proxy configuration is required for Terminal Codex runs.",

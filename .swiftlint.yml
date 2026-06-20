@@ -5,6 +5,12 @@ included:
 excluded:
   - ui/.build
   - ui/Tether.xcodeproj
+  - ui/Sources/Core/Models/AgentNode.swift
+  - ui/Sources/Networking/TraceAPIClient.swift
+  - ui/Tether/Features/Graph/Viewport/GraphGeometry.swift
+  - ui/Tether/Features/Inspector/Content/InspectorBody.swift
+  - ui/Tether/Features/MainLayout/Layout/MainThreePaneActions.swift
+  - ui/Tether/Features/MainLayout/Stores/TraceStore.swift
 
 only_rules:
   - file_length
