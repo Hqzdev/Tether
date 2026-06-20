@@ -100,9 +100,9 @@ export function SiteHeader() {
           <Link
             className="nav-cta"
             href="/#download"
-            onClick={() => trackEvent("cta_clicked", { button_text: "Install alpha", location: "header" })}
+            onClick={() => trackEvent("cta_clicked", { button_text: "Download", location: "header" })}
           >
-            Install alpha
+            Download
           </Link>
         </div>
       </div>

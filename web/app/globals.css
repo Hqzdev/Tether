@@ -175,7 +175,7 @@ h2.title {
   top: 20px;
   left: 50%;
   z-index: 50;
-  width: min(90%, 720px);
+  width: min(calc(100% - 40px), 1440px);
   transform: translateX(-50%);
   border: 1px solid rgba(228,228,231,.9);
   border-radius: 999px;
@@ -1068,6 +1068,7 @@ h2.title {
 }
 @media (max-width: 640px) {
   .section-pad.wrap { padding: 82px 18px; }
+  .nav { width: calc(100% - 24px); }
   .nav-links { display: none; }
   .nav-inner { grid-template-columns: 1fr auto; gap: 14px; }
   .nav-cta { height: 32px; padding: 0 12px; }
