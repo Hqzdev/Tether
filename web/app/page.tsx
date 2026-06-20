@@ -932,7 +932,7 @@ export default function TetherLanding() {
               Free during alpha. Run Tether locally, point your SDK at the proxy,
               and keep the whole debugging record on your Mac.
             </p>
-            <p className="alpha-note">Release v1.5.0 is ready for local macOS testing.</p>
+            <p className="alpha-note">Release v1.6.1 is ready for local macOS testing.</p>
             <div className="download-actions">
               <div className="download-direct">
                 <a
@@ -940,7 +940,7 @@ export default function TetherLanding() {
                   href={GITHUB_RELEASE_HREF}
                   onClick={() =>
                     trackEvent("download_clicked", {
-                      asset: "GitHub release v1.5.0",
+                      asset: "GitHub release v1.6.1",
                       location: "final_cta",
                     })
                   }
