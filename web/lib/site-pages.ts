@@ -14,6 +14,29 @@ export type SitePage = {
     evidence: string;
     proof: string;
   }[];
+  securityMetrics?: {
+    label: string;
+    value: string;
+    detail: string;
+    percent: number;
+    tone: "local" | "external" | "audit";
+  }[];
+  securityFlow?: {
+    label: string;
+    detail: string;
+  }[];
+  securityMatrix?: {
+    asset: string;
+    location: string;
+    leavesDevice: string;
+    control: string;
+  }[];
+  securityRisks?: {
+    area: string;
+    status: string;
+    owner: string;
+    nextStep: string;
+  }[];
   cta?: {
     label: string;
     href: string;
@@ -265,14 +288,126 @@ export const SITE_PAGES: SitePage[] = [
       "Tether reduces debugging risk by keeping the observability loop local, explicit, and inspectable.",
     sections: [
       {
-        title: "No hidden telemetry promise",
+        title: "Local evidence, not hosted observability theater",
         body:
-          "The product is designed so developers can verify what leaves the machine and what stays in local storage.",
+          "Tether is built for debugging sensitive agent runs without turning every prompt into another SaaS data copy. The core security claim is narrow: local traces, explicit provider calls, Keychain-backed secrets, and inspectable replay state.",
+        bullets: ["Trace database stays on the developer machine", "Provider traffic follows your configured endpoints", "No hosted Tether workspace is required for local debugging"],
       },
       {
-        title: "Provider boundaries",
+        title: "Threat model for the alpha",
         body:
-          "Requests are forwarded only to the providers you configure. Tether should be a debugging layer, not another place where secrets drift.",
+          "The alpha should be evaluated as a local debugging tool, not as a compliance platform. The important questions are whether prompts are copied elsewhere, whether secrets sit in project files, and whether replay changes can be traced back to a concrete node.",
+        bullets: ["No claim of SOC 2 or enterprise audit coverage yet", "Local machine compromise remains out of scope", "Provider-side data handling is governed by the provider you choose"],
+      },
+    ],
+    securityMetrics: [
+      {
+        label: "Local trace artifacts",
+        value: "100%",
+        detail: "Prompt, response, cache, replay, and metadata records are designed for local SQLite storage.",
+        percent: 100,
+        tone: "local",
+      },
+      {
+        label: "Required hosted Tether services",
+        value: "0",
+        detail: "Local debugging does not require a Tether account, cloud dashboard, or remote project sync.",
+        percent: 4,
+        tone: "local",
+      },
+      {
+        label: "External provider boundary",
+        value: "Explicit",
+        detail: "Only model-provider requests leave the device, and they follow the provider endpoints you configure.",
+        percent: 64,
+        tone: "external",
+      },
+      {
+        label: "Compliance posture",
+        value: "Alpha",
+        detail: "Security posture is architecture-led today; formal certifications are not claimed.",
+        percent: 38,
+        tone: "audit",
+      },
+    ],
+    securityFlow: [
+      {
+        label: "Your app",
+        detail: "Sends OpenAI-compatible requests to localhost.",
+      },
+      {
+        label: "Local proxy",
+        detail: "Captures request metadata and forwards the call.",
+      },
+      {
+        label: "Provider",
+        detail: "Receives only the configured model request.",
+      },
+      {
+        label: "Local SQLite",
+        detail: "Stores trace, cache, replay, and failure evidence.",
+      },
+      {
+        label: "Inspector",
+        detail: "Reads local records for debugging and replay.",
+      },
+    ],
+    securityMatrix: [
+      {
+        asset: "Prompts",
+        location: "Local trace database",
+        leavesDevice: "Only inside configured provider requests",
+        control: "Request-level inspection",
+      },
+      {
+        asset: "Model responses",
+        location: "Local trace database",
+        leavesDevice: "No Tether-hosted upload",
+        control: "Replay diff and node history",
+      },
+      {
+        asset: "API keys",
+        location: "macOS Keychain",
+        leavesDevice: "Used only to call chosen providers",
+        control: "Keychain-backed secret storage",
+      },
+      {
+        asset: "Cache entries",
+        location: "Local cache store",
+        leavesDevice: "No remote cache sync",
+        control: "Cache hit metadata",
+      },
+      {
+        asset: "Replay edits",
+        location: "Local replay state",
+        leavesDevice: "No background telemetry path",
+        control: "Invalidation and downstream scope",
+      },
+    ],
+    securityRisks: [
+      {
+        area: "Local data at rest",
+        status: "Owned by user machine",
+        owner: "Developer",
+        nextStep: "Use OS disk encryption and keep workspace access tight.",
+      },
+      {
+        area: "Provider retention",
+        status: "Provider-dependent",
+        owner: "Configured provider",
+        nextStep: "Choose provider settings and contracts that match the data sensitivity.",
+      },
+      {
+        area: "Formal compliance",
+        status: "Not claimed",
+        owner: "Tether roadmap",
+        nextStep: "Add published audit artifacts only when the product surface is stable.",
+      },
+      {
+        area: "Trace export",
+        status: "Requires deliberate action",
+        owner: "Developer",
+        nextStep: "Review exported files before sharing them outside the machine.",
       },
     ],
     reviewRows: [

@@ -49,6 +49,76 @@ export function InfoPage({ page }: { page: SitePage }) {
           </article>
         ))}
       </section>
+      {page.securityMetrics && page.securityFlow && page.securityMatrix && page.securityRisks ? (
+        <section className={`wrap ${styles.securityEvidence}`}>
+          <div className={styles.metricsGrid}>
+            {page.securityMetrics.map((metric) => (
+              <article className={`${styles.metricCard} ${styles[metric.tone]}`} key={metric.label}>
+                <span>{metric.label}</span>
+                <strong>{metric.value}</strong>
+                <p>{metric.detail}</p>
+                <div className={styles.metricTrack}>
+                  <div className={styles.metricBar} style={{ width: `${metric.percent}%` }} />
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className={styles.flowPanel}>
+            <div className={styles.blockHead}>
+              <span>Data flow</span>
+              <strong>What moves, where it lands, and where Tether stops</strong>
+            </div>
+            <div className={styles.flowGrid}>
+              {page.securityFlow.map((step, index) => (
+                <div className={styles.flowStep} key={step.label}>
+                  <span className={styles.flowIndex}>{String(index + 1).padStart(2, "0")}</span>
+                  <strong>{step.label}</strong>
+                  <p>{step.detail}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className={styles.securityTable}>
+            <div className={styles.blockHead}>
+              <span>Data boundary matrix</span>
+              <strong>Concrete storage and egress rules</strong>
+            </div>
+            <div className={`${styles.tableRow} ${styles.tableHead}`}>
+              <span>Asset</span>
+              <span>Stored at</span>
+              <span>Leaves device?</span>
+              <span>Control</span>
+            </div>
+            {page.securityMatrix.map((row) => (
+              <div className={styles.tableRow} key={row.asset}>
+                <strong>{row.asset}</strong>
+                <span>{row.location}</span>
+                <span>{row.leavesDevice}</span>
+                <code>{row.control}</code>
+              </div>
+            ))}
+          </div>
+
+          <div className={styles.riskPanel}>
+            <div className={styles.blockHead}>
+              <span>Risk register</span>
+              <strong>What is covered, what is not, and who owns it</strong>
+            </div>
+            <div className={styles.riskGrid}>
+              {page.securityRisks.map((risk) => (
+                <article className={styles.riskCard} key={risk.area}>
+                  <span>{risk.status}</span>
+                  <h3>{risk.area}</h3>
+                  <p>{risk.nextStep}</p>
+                  <code>{risk.owner}</code>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
       {page.reviewRows ? (
         <section className={`wrap ${styles.review}`}>
           <div className={styles.reviewTable}>

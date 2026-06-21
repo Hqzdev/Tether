@@ -488,6 +488,7 @@ function PageToc({
             return (
               <li key={section.title}>
                 <a
+                  aria-current={activeSectionId === id ? "true" : undefined}
                   className={activeSectionId === id ? styles.activeTocLink : undefined}
                   href={`#${id}`}
                   onClick={() => onSectionSelect(id)}
@@ -537,35 +538,68 @@ export function DocsPage({ page }: { page: DocsPageData }) {
       return;
     }
 
-    let frame = 0;
+    const visibleSections = new Map<string, number>();
+    const sections = sectionIds
+      .map((id) => document.getElementById(id))
+      .filter((element): element is HTMLElement => element !== null);
 
-    const updateActiveSection = () => {
-      window.cancelAnimationFrame(frame);
-      frame = window.requestAnimationFrame(() => {
-        const sectionTops = sectionIds
-          .map((id) => {
-            const element = document.getElementById(id);
-            return element ? { id, top: element.getBoundingClientRect().top } : null;
-          })
-          .filter((entry): entry is { id: string; top: number } => entry !== null);
+    const setNearestSection = () => {
+      const viewportAnchor = 136;
+      const lastSection = sections.at(-1);
 
-        const passedSection = sectionTops
-          .filter((entry) => entry.top <= 140)
-          .at(-1);
-        const nextActive = passedSection?.id ?? sectionTops[0]?.id ?? sectionIds[0];
+      if (lastSection && window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 8) {
+        setActiveSectionId(lastSection.id);
+        return;
+      }
 
-        setActiveSectionId(nextActive);
-      });
+      const visibleId = Array.from(visibleSections.entries())
+        .sort((first, second) => second[1] - first[1])
+        .at(0)?.[0];
+
+      if (visibleId) {
+        setActiveSectionId(visibleId);
+        return;
+      }
+
+      const nearestSection = sections
+        .map((element) => ({
+          id: element.id,
+          distance: Math.abs(element.getBoundingClientRect().top - viewportAnchor),
+        }))
+        .sort((first, second) => first.distance - second.distance)
+        .at(0);
+
+      setActiveSectionId(nearestSection?.id ?? sectionIds[0]);
     };
 
-    updateActiveSection();
-    window.addEventListener("scroll", updateActiveSection, { passive: true });
-    window.addEventListener("resize", updateActiveSection);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            visibleSections.set(entry.target.id, entry.intersectionRatio);
+          } else {
+            visibleSections.delete(entry.target.id);
+          }
+        });
+        setNearestSection();
+      },
+      {
+        rootMargin: "-112px 0px -58% 0px",
+        threshold: [0, 0.1, 0.25, 0.5, 0.75, 1],
+      },
+    );
+
+    sections.forEach((section) => observer.observe(section));
+
+    const handleScrollEnd = () => setNearestSection();
+    window.addEventListener("scroll", handleScrollEnd, { passive: true });
+    window.addEventListener("resize", handleScrollEnd);
+    setNearestSection();
 
     return () => {
-      window.cancelAnimationFrame(frame);
-      window.removeEventListener("scroll", updateActiveSection);
-      window.removeEventListener("resize", updateActiveSection);
+      observer.disconnect();
+      window.removeEventListener("scroll", handleScrollEnd);
+      window.removeEventListener("resize", handleScrollEnd);
     };
   }, [sectionIds]);
 

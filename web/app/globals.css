@@ -51,6 +51,8 @@ svg.ic.spin { animation: ic-spin 1s linear infinite; }
   --r-pill: 999px;
 
   --maxw: 1200px;
+  --page-left-gutter: clamp(56px, 7vw, 112px);
+  --page-right-gutter: 28px;
   --shadow-window: 0 24px 54px rgba(17,19,22,0.10), 0 8px 20px rgba(17,19,22,0.07);
   --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -71,7 +73,7 @@ a { color: inherit; text-decoration: none; }
 button { font: inherit; color: inherit; }
 ::selection { background: rgba(31,95,191,0.18); color: var(--text); }
 
-.wrap { width: 100%; max-width: var(--maxw); margin: 0 auto; padding: 0 28px; }
+.wrap { width: 100%; max-width: var(--maxw); margin: 0 auto; padding: 0 var(--page-right-gutter) 0 var(--page-left-gutter); }
 
 .eyebrow {
   display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
@@ -89,6 +91,7 @@ section { position: relative; }
 }
 .section-pad.wrap {
   margin-top: 16px;
+  padding: 104px 32px 104px var(--page-left-gutter);
   border: 1px solid var(--border-soft);
   border-radius: 22px;
   background: #f7f8f9;
@@ -301,8 +304,8 @@ h2.title {
   box-shadow: 0 10px 24px rgba(15,23,42,.12);
 }
 
-.hero { padding: 132px 0 80px; text-align: center; }
-.center-row { display: flex; justify-content: center; }
+.hero { padding: 132px 0 80px; text-align: left; }
+.center-row { display: flex; justify-content: flex-start; }
 .sp-row { margin-top: 18px; }
 .social-proof {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;
@@ -326,7 +329,7 @@ h2.title {
 .hero h1 {
   font-family: var(--font-display);
   font-size: clamp(40px, 6.6vw, 80px); line-height: 0.98; letter-spacing: -0.025em;
-  font-weight: 700; margin: 26px auto 0; max-width: 16ch; text-wrap: balance;
+  font-weight: 700; margin: 26px 0 0; max-width: 16ch; text-wrap: balance;
 }
 .landing-page .grad {
   background: none;
@@ -360,10 +363,10 @@ h2.title {
   }
 }
 .hero p.lead {
-  font-size: clamp(17px, 2vw, 20.5px); color: var(--text-2); margin: 26px auto 0;
+  font-size: clamp(17px, 2vw, 20.5px); color: var(--text-2); margin: 26px 0 0;
   max-width: 60ch; text-wrap: pretty;
 }
-.hero .cta-row { display: flex; gap: 14px; justify-content: center; margin-top: 36px; flex-wrap: wrap; }
+.hero .cta-row { display: flex; gap: 14px; justify-content: flex-start; margin-top: 36px; flex-wrap: wrap; }
 .urgency-link {
   display: inline-flex;
   align-items: center;
@@ -375,7 +378,7 @@ h2.title {
 }
 .urgency-link:hover { color: var(--accent-2); }
 .hero .meta-row {
-  display: flex; gap: 18px; justify-content: center; margin-top: 20px; flex-wrap: wrap;
+  display: flex; gap: 18px; justify-content: flex-start; margin-top: 20px; flex-wrap: wrap;
   font-family: var(--font-mono); font-size: 12px; color: var(--text-3);
 }
 .hero .meta-row span { display: inline-flex; align-items: center; gap: 6px; }
@@ -407,7 +410,7 @@ h2.title {
 .product-shot {
   width: 100%;
   max-width: 1440px;
-  margin: 56px auto 0;
+  margin: 56px 0 0;
   position: relative;
 }
 .cinematic-embed {
@@ -986,7 +989,7 @@ h2.title {
 .feedback-download-card.in .secondary-downloads { transition-delay: .26s; }
 .feedback-download-card.in .final-meta { transition-delay: .32s; }
 
-.faq-list { display: flex; flex-direction: column; gap: 8px; margin-top: 48px; max-width: 760px; margin-inline: auto; }
+.faq-list { display: flex; flex-direction: column; gap: 8px; margin-top: 48px; max-width: 760px; margin-inline: 0; }
 .faq-item {
   border: 1px solid var(--border-soft);
   border-radius: 10px;
@@ -1053,7 +1056,11 @@ h2.title {
 }
 
 @media (max-width: 980px) {
-  .section-pad.wrap { padding: 92px 24px; }
+  :root {
+    --page-left-gutter: 48px;
+    --page-right-gutter: 24px;
+  }
+  .section-pad.wrap { padding: 92px 24px 92px var(--page-left-gutter); }
   .feat-layout { grid-template-columns: 1fr; }
   .tree-stage { position: relative; top: 0; }
   .inspect-layout { grid-template-columns: 1fr; }
@@ -1067,7 +1074,11 @@ h2.title {
   .download-actions { max-width: 100%; }
 }
 @media (max-width: 640px) {
-  .section-pad.wrap { padding: 82px 18px; }
+  :root {
+    --page-left-gutter: 28px;
+    --page-right-gutter: 18px;
+  }
+  .section-pad.wrap { padding: 82px 18px 82px var(--page-left-gutter); }
   .nav { width: calc(100% - 24px); }
   .nav-links { display: none; }
   .nav-inner { grid-template-columns: 1fr auto; gap: 14px; }

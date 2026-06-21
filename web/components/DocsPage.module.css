@@ -1,6 +1,9 @@
 .docsShell {
+  --docs-chrome-bg: rgba(255, 255, 255, 0.9);
   min-height: 100vh;
-  background: #ffffff;
+  background:
+    linear-gradient(180deg, #f7f8fa 0, #ffffff 260px),
+    #ffffff;
   color: var(--text);
 }
 
@@ -27,8 +30,8 @@
   gap: 20px;
   min-height: 64px;
   padding: 0 24px;
-  border-bottom: 1px solid var(--border-soft);
-  background: rgba(255, 255, 255, 0.92);
+  border-bottom: 0;
+  background: var(--docs-chrome-bg);
   backdrop-filter: blur(16px) saturate(150%);
 }
 
@@ -109,11 +112,11 @@
 
 .layout {
   display: grid;
-  grid-template-columns: 286px minmax(0, 1fr) 204px;
+  grid-template-columns: 292px minmax(0, 1fr) 236px;
   min-height: calc(100vh - 64px);
   width: 100%;
-  max-width: 1358px;
-  margin: 0;
+  max-width: 1480px;
+  margin: 0 auto;
 }
 
 .sidebar {
@@ -124,8 +127,9 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
-  border-right: 1px solid var(--border-soft);
-  background: #fbfbfc;
+  border-right: 0;
+  border-top-left-radius: 18px;
+  background: var(--docs-chrome-bg);
   padding: 22px 16px 30px;
 }
 
@@ -178,6 +182,7 @@
   background: #ffffff;
   color: var(--text-3);
   padding: 0 8px 0 11px;
+  transition: border-color .18s, box-shadow .18s, background-color .18s;
 }
 
 .searchControl:focus-within {
@@ -222,10 +227,11 @@
 }
 
 .navGroup h2 {
-  margin: 0 8px 8px;
+  margin: 0 9px 9px;
   color: var(--text-3);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
@@ -238,6 +244,7 @@
 }
 
 .navGroup a {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -247,11 +254,24 @@
   color: var(--text-2);
   font-size: 14px;
   font-weight: 650;
-  padding: 8px 9px;
+  padding: 8px 9px 8px 14px;
+  transition: background-color .18s, color .18s, box-shadow .18s;
+}
+
+.navGroup a::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  width: 3px;
+  height: 18px;
+  border-radius: 4px;
+  background: transparent;
 }
 
 .navGroup a span {
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .navGroup a:hover {
@@ -262,6 +282,11 @@
 .activeLink {
   background: var(--accent-bg);
   color: var(--accent) !important;
+  box-shadow: inset 0 0 0 1px rgba(31, 95, 191, 0.12);
+}
+
+.activeLink::before {
+  background: var(--accent);
 }
 
 .emptySearch {
@@ -277,7 +302,8 @@
 
 .article {
   min-width: 0;
-  padding: 42px 48px 84px;
+  border-top: 1px solid rgba(223, 225, 228, 0.86);
+  padding: 36px 54px 92px;
 }
 
 .breadcrumb {
@@ -288,6 +314,7 @@
   color: var(--text-3);
   font-size: 13px;
   font-weight: 650;
+  margin-bottom: 2px;
 }
 
 .breadcrumb a:hover {
@@ -296,7 +323,7 @@
 
 .hero {
   border-bottom: 1px solid var(--border-soft);
-  padding: 34px 0 36px;
+  padding: 26px 0 30px;
 }
 
 .heroTopline {
@@ -459,7 +486,7 @@
   margin: 18px 0 0;
   color: var(--text);
   font-family: var(--font-display);
-  font-size: 48px;
+  font-size: clamp(38px, 4.6vw, 54px);
   font-weight: 780;
   letter-spacing: 0;
   line-height: 1.02;
@@ -467,10 +494,10 @@
 
 .hero p {
   max-width: 840px;
-  margin: 18px 0 0;
+  margin: 14px 0 0;
   color: var(--text-2);
-  font-size: 18px;
-  line-height: 1.7;
+  font-size: 17px;
+  line-height: 1.68;
 }
 
 .heroActions {
@@ -526,10 +553,10 @@
 .metaStrip {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin: 28px 0 0;
+  margin: 24px 0 0;
   border: 1px solid var(--border-soft);
   border-radius: 8px;
-  background: #fafafa;
+  background: rgba(255, 255, 255, 0.8);
 }
 
 .metaStrip div {
@@ -562,13 +589,13 @@
 
 .sections {
   display: grid;
-  gap: 44px;
-  padding-top: 40px;
+  gap: 52px;
+  padding-top: 44px;
 }
 
 .section {
   max-width: 840px;
-  scroll-margin-top: 88px;
+  scroll-margin-top: 116px;
   content-visibility: auto;
   contain-intrinsic-size: auto 420px;
 }
@@ -576,19 +603,38 @@
 .section h2 {
   margin: 0;
   color: var(--text);
-  font-size: 28px;
+  font-size: 30px;
   line-height: 1.18;
+}
+
+.section h2 a {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section h2 a::before {
+  content: "";
+  width: 5px;
+  height: 30px;
+  border-radius: 5px;
+  background: var(--accent);
+  opacity: 0.22;
 }
 
 .section h2 a:hover {
   color: var(--accent);
 }
 
+.section h2 a:hover::before {
+  opacity: 1;
+}
+
 .section p {
   margin: 16px 0 0;
   color: var(--text-2);
   font-size: 16px;
-  line-height: 1.8;
+  line-height: 1.78;
 }
 
 .bullets {
@@ -623,9 +669,9 @@
   margin: 20px 0 0;
   overflow: hidden;
   border: 1px solid #202329;
-  border-radius: 8px;
+  border-radius: 10px;
   background: #111318;
-  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 16px 38px rgba(15, 23, 42, 0.12);
 }
 
 .codeHeader {
@@ -680,7 +726,7 @@
   margin-top: 18px;
   overflow-x: auto;
   border: 1px solid var(--border-soft);
-  border-radius: 8px;
+  border-radius: 10px;
   background: #ffffff;
 }
 
@@ -699,7 +745,7 @@
 }
 
 .tableWrap th {
-  background: #fafafa;
+  background: #f6f7f8;
   color: var(--text);
   font-size: 13px;
   font-weight: 800;
@@ -727,14 +773,17 @@
   gap: 10px;
   min-height: 150px;
   border: 1px solid var(--border-soft);
-  border-radius: 8px;
-  background: #ffffff;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.86);
   padding: 18px;
+  transition: background-color .18s, border-color .18s, box-shadow .18s, transform .18s;
 }
 
 .docCard:hover {
   border-color: var(--border-strong);
   background: #fafafa;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+  transform: translateY(-1px);
 }
 
 .docCard strong {
@@ -770,14 +819,17 @@
   gap: 6px;
   min-height: 86px;
   border: 1px solid var(--border-soft);
-  border-radius: 8px;
-  background: #ffffff;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.86);
   padding: 16px;
+  transition: background-color .18s, border-color .18s, box-shadow .18s, transform .18s;
 }
 
 .adjacent a:hover {
   background: #fafafa;
   border-color: var(--border-strong);
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+  transform: translateY(-1px);
 }
 
 .adjacent span {
@@ -800,19 +852,20 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
-  border-left: 1px solid var(--border-soft);
-  background: #ffffff;
-  padding: 28px 12px;
+  border-left: 0;
+  border-top-right-radius: 18px;
+  background: var(--docs-chrome-bg);
+  padding: 28px 16px;
 }
 
 .toc h2 {
   display: flex;
   align-items: center;
   gap: 9px;
-  margin: 0 0 10px;
-  color: var(--text-2);
-  font-size: 14px;
-  font-weight: 720;
+  margin: 0 0 14px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 800;
   text-transform: none;
 }
 
@@ -831,7 +884,7 @@
 
 .toc ul {
   display: grid;
-  gap: 7px;
+  gap: 4px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -842,21 +895,24 @@
   display: flex;
   align-items: center;
   gap: 9px;
-  border-radius: var(--r-pill);
+  min-height: 32px;
+  border-radius: 8px;
   color: var(--text-3);
-  font-size: 12.5px;
-  font-weight: 560;
+  font-size: 13px;
+  font-weight: 620;
   line-height: 1.45;
-  padding: 5px 8px;
+  padding: 6px 9px 6px 14px;
+  transition: background-color .18s, color .18s, box-shadow .18s;
 }
 
 .toc li a::before {
   content: "";
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
+  position: absolute;
+  left: 6px;
+  width: 3px;
+  height: 18px;
+  border-radius: 4px;
   background: transparent;
-  flex: 0 0 6px;
 }
 
 .toc li a:hover {
@@ -866,6 +922,9 @@
 
 .activeTocLink {
   color: var(--accent) !important;
+  background: var(--accent-bg);
+  box-shadow: inset 0 0 0 1px rgba(31, 95, 191, 0.12);
+  font-weight: 760 !important;
 }
 
 .activeTocLink::before {
@@ -874,10 +933,12 @@
 
 .resourcePanel {
   display: grid;
-  gap: 7px;
+  gap: 8px;
   margin-top: 24px;
-  border-top: 1px solid var(--border-soft);
-  padding-top: 18px;
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  background: rgba(247, 248, 250, 0.7);
+  padding: 12px;
 }
 
 .resourcePanel span {
@@ -902,6 +963,7 @@
   font-weight: 700;
   padding: 7px 8px;
   text-align: left;
+  transition: background-color .18s, border-color .18s, color .18s;
 }
 
 .resourcePanel a:hover,
@@ -913,7 +975,7 @@
 
 @media (max-width: 1180px) {
   .layout {
-    grid-template-columns: 286px minmax(0, 1fr);
+    grid-template-columns: 292px minmax(0, 1fr);
   }
 
   .toc {

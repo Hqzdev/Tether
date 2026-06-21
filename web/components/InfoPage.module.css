@@ -111,6 +111,230 @@
   line-height: 1.8;
 }
 
+.securityEvidence {
+  display: grid;
+  gap: 22px;
+  padding-bottom: 82px;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.metricCard {
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.035)),
+    rgba(255, 255, 255, 0.035);
+  box-shadow: var(--shadow);
+  padding: 22px;
+}
+
+.metricCard span,
+.blockHead span,
+.riskCard span {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.metricCard strong {
+  display: block;
+  margin-top: 16px;
+  color: var(--text);
+  font-size: clamp(30px, 4vw, 44px);
+  line-height: 1;
+}
+
+.metricCard p {
+  min-height: 88px;
+  margin: 16px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.metricTrack {
+  height: 8px;
+  margin-top: 18px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.075);
+}
+
+.metricBar {
+  height: 100%;
+  min-width: 8px;
+  border-radius: inherit;
+  background: var(--cyan);
+}
+
+.local .metricBar {
+  background: var(--green);
+}
+
+.external .metricBar {
+  background: var(--cyan);
+}
+
+.audit .metricBar {
+  background: var(--amber);
+}
+
+.flowPanel,
+.securityTable,
+.riskPanel {
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.032)),
+    rgba(255, 255, 255, 0.035);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.blockHead {
+  display: grid;
+  gap: 8px;
+  padding: 24px 26px;
+  border-bottom: 1px solid var(--line);
+}
+
+.blockHead strong {
+  color: var(--text);
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.flowGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--line);
+}
+
+.flowStep {
+  position: relative;
+  display: grid;
+  gap: 10px;
+  min-height: 190px;
+  background: rgba(8, 13, 20, 0.7);
+  padding: 22px;
+}
+
+.flowStep:not(:last-child)::after {
+  content: ">";
+  position: absolute;
+  top: 24px;
+  right: 16px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 18px;
+}
+
+.flowIndex {
+  color: var(--cyan);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.flowStep strong {
+  color: var(--text);
+  font-size: 17px;
+}
+
+.flowStep p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.tableRow {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--line);
+}
+
+.tableRow:last-child {
+  border-bottom: 0;
+}
+
+.tableHead {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tableRow strong {
+  color: var(--text);
+  font-size: 13.5px;
+}
+
+.tableRow span {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.tableRow code,
+.riskCard code {
+  justify-self: start;
+  max-width: 100%;
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--soft);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.riskGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--line);
+}
+
+.riskCard {
+  display: flex;
+  min-height: 220px;
+  flex-direction: column;
+  align-items: flex-start;
+  background: rgba(8, 13, 20, 0.7);
+  padding: 22px;
+}
+
+.riskCard h3 {
+  margin: 18px 0 0;
+  color: var(--text);
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.riskCard p {
+  flex: 1;
+  margin: 14px 0 18px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
 .review {
   padding-bottom: 82px;
 }
@@ -187,6 +411,35 @@
     padding-bottom: 58px;
   }
 
+  .securityEvidence {
+    padding-bottom: 58px;
+  }
+
+  .metricsGrid,
+  .riskGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .flowGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .flowStep {
+    min-height: auto;
+  }
+
+  .flowStep:not(:last-child)::after {
+    top: auto;
+    right: 24px;
+    bottom: 18px;
+    transform: rotate(90deg);
+  }
+
+  .tableRow {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
   .panel {
     border-radius: 22px;
     padding: 22px;
@@ -199,5 +452,16 @@
   .reviewRow {
     grid-template-columns: 1fr;
     gap: 8px;
+  }
+}
+
+@media (max-width: 560px) {
+  .metricsGrid,
+  .riskGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .metricCard p {
+    min-height: auto;
   }
 }
