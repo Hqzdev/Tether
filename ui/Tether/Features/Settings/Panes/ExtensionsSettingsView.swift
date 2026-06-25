@@ -7,11 +7,12 @@ import UI
 struct ExtensionsSettingsView: View {
     let palette: AgentTracePalette
     @EnvironmentObject private var preferences: AppPreferences
+    @StateObject private var access = WorkspaceAccessStore.shared
 
     /// Local Codex state directory used by the Terminal Codex integration.
     private var codexDirectory: URL {
-        FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".codex", isDirectory: true)
+        access.codexPath.map(URL.init(fileURLWithPath:))
+            ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".codex", isDirectory: true)
     }
 
     private var codexLogsDetected: Bool {
@@ -47,18 +48,31 @@ struct ExtensionsSettingsView: View {
             SettingsValueRow(
                 "Local databases",
                 subtitle: codexDirectory.path,
-                value: codexLogsDetected ? "Detected" : "Not found",
+                value: access.hasCodexAccess ? (codexLogsDetected ? "Granted" : "Missing DB") : "Not granted",
                 palette: palette
             )
 
             SettingsButtonRow(
-                "Codex folder",
-                subtitle: "Open the ~/.codex directory Tether reads session logs from.",
-                buttonTitle: "Reveal in Finder",
-                systemImage: "folder",
+                "Codex log access",
+                subtitle: "Grant once so Tether can read Terminal Codex logs without repeated prompts.",
+                buttonTitle: access.hasCodexAccess ? "Change Folder" : "Grant Access",
+                systemImage: "folder.badge.gearshape",
                 palette: palette
             ) {
-                NSWorkspace.shared.activateFileViewerSelecting([codexDirectory])
+                access.requestCodexAccess()
+            }
+
+            if access.hasCodexAccess {
+                SettingsButtonRow(
+                    "Forget Codex access",
+                    subtitle: "Remove the saved permission and stop reading Codex logs.",
+                    buttonTitle: "Forget",
+                    systemImage: "xmark.circle",
+                    destructive: true,
+                    palette: palette
+                ) {
+                    access.forgetCodexAccess()
+                }
             }
         }
     }

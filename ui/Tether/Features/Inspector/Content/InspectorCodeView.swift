@@ -2,7 +2,6 @@ import Core
 import SwiftUI
 import UI
 
-/// Compact toolbar shown above prompt and response code panes.
 struct EditorToolbar: View {
     let title: String
     let chips: [String]
@@ -11,8 +10,8 @@ struct EditorToolbar: View {
     var body: some View {
         HStack(spacing: 8) {
             Text(title)
-                .font(.system(size: 10.5, design: .monospaced))
-                .foregroundStyle(palette.textQuaternary)
+                .font(.system(size: 11, weight: .medium, design: .monospaced))
+                .foregroundStyle(palette.textTertiary)
 
             Spacer(minLength: 0)
 
@@ -20,9 +19,9 @@ struct EditorToolbar: View {
                 ChipLabel(chip: chip, palette: palette)
             }
         }
-        .frame(height: 32)
+        .frame(height: 30)
         .padding(.horizontal, 12)
-        .background(palette.panelSecondary)
+        .background(palette.panel.opacity(0.86))
         .overlay(alignment: .bottom) {
             Rectangle()
                 .fill(palette.borderSoft)
@@ -54,7 +53,7 @@ private struct ChipLabel: View {
     }
 
     private var background: Color {
-        chip == "200 OK" ? palette.greenBackground : chip == "LIVE" ? palette.amber.opacity(0.10) : palette.panel
+        chip == "200 OK" ? palette.greenBackground : chip == "LIVE" ? palette.amber.opacity(0.10) : palette.panelSecondary.opacity(0.72)
     }
 
     private var stroke: Color {
@@ -62,13 +61,11 @@ private struct ChipLabel: View {
     }
 }
 
-/// One labeled or text row in the inspector code viewer.
 struct CodeSection: Hashable {
     let label: String?
     let text: String
 }
 
-/// Scrollable monospaced renderer for prompt and response text.
 struct CodeView: View {
     let sections: [CodeSection]
     let language: ResponseLanguage
@@ -95,7 +92,6 @@ struct CodeView: View {
         _cachedRows = State(initialValue: Self.makeRows(from: sections))
     }
 
-    /// Rows after applying the secret-redaction preference at render time.
     private var displayRows: [CodeRow] {
         guard preferences.redactSecrets else { return cachedRows }
         return cachedRows.map { row in
@@ -104,7 +100,6 @@ struct CodeView: View {
         }
     }
 
-    /// Masks common API key and bearer-token shapes in inspector text.
     private static func redactSecrets(in text: String) -> String {
         let patterns = [
             "sk-ant-[A-Za-z0-9\\-_]{6,}",
@@ -155,7 +150,7 @@ struct CodeView: View {
             }
             .frame(maxWidth: .infinity, alignment: .topLeading)
         }
-        .background(palette.panelSecondary.opacity(0.52))
+        .background(palette.window.opacity(0.66))
         .onChange(of: sections) { _, newSections in
             guard cachedSections != newSections else { return }
             cachedSections = newSections

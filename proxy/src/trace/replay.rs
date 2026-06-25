@@ -12,7 +12,7 @@ use super::replay_store::{
     downstream_result, edit_output_result, load_replay_spec, map_node_error, persist_replay_result,
 };
 use super::replay_types::{EditOutputRequest, ReplayResult, ReplayUpdate};
-use super::routes::response_request_id;
+use super::routes::{response_request_id, workspace_id_from_headers};
 use super::summarize::summarize_response;
 use super::text::now_millis;
 use crate::AppState;
@@ -21,14 +21,16 @@ use crate::AppState;
 pub(super) async fn edit_output(
     State(state): State<AppState>,
     Path(id): Path<String>,
+    headers: HeaderMap,
     Json(payload): Json<EditOutputRequest>,
 ) -> Result<Json<super::replay_types::InvalidationResult>, (StatusCode, String)> {
     let db = state.db.clone();
+    let workspace_id = workspace_id_from_headers(&headers)?;
     let result = tokio::task::spawn_blocking(move || {
         let conn = db
             .lock()
             .map_err(|_| "trace database lock poisoned".to_string())?;
-        edit_output_result(&conn, id, payload.output)
+        edit_output_result(&conn, &workspace_id, id, payload.output)
     })
     .await
     .map_err(worker_error)?
@@ -41,13 +43,15 @@ pub(super) async fn edit_output(
 pub(super) async fn list_downstream(
     State(state): State<AppState>,
     Path(id): Path<String>,
+    headers: HeaderMap,
 ) -> Result<Json<super::replay_types::DownstreamResult>, (StatusCode, String)> {
     let db = state.db.clone();
+    let workspace_id = workspace_id_from_headers(&headers)?;
     let result = tokio::task::spawn_blocking(move || {
         let conn = db
             .lock()
             .map_err(|_| "trace database lock poisoned".to_string())?;
-        downstream_result(&conn, id)
+        downstream_result(&conn, &workspace_id, id)
     })
     .await
     .map_err(worker_error)?
@@ -62,7 +66,8 @@ pub(super) async fn replay_node(
     Path(id): Path<String>,
     headers: HeaderMap,
 ) -> Result<Json<ReplayResult>, (StatusCode, String)> {
-    let spec = load_spec_for_node(&state, &id).await?;
+    let workspace_id = workspace_id_from_headers(&headers)?;
+    let spec = load_spec_for_node(&state, &workspace_id, &id).await?;
     if spec.body.is_empty() {
         return Err((
             StatusCode::CONFLICT,
@@ -113,6 +118,7 @@ pub(super) async fn replay_node(
     let result = persist_replay_update(
         &state,
         ReplayUpdate::from_summary(id, status_code, latency_ms, cost, request_id, summary),
+        workspace_id,
     )
     .await?;
 
@@ -122,15 +128,17 @@ pub(super) async fn replay_node(
 /// Loads replay metadata for a node on a blocking SQLite worker.
 async fn load_spec_for_node(
     state: &AppState,
+    workspace_id: &str,
     id: &str,
 ) -> Result<super::replay_types::ReplaySpec, (StatusCode, String)> {
     let db = state.db.clone();
     let lookup_id = id.to_string();
+    let workspace_id = workspace_id.to_string();
     tokio::task::spawn_blocking(move || {
         let conn = db
             .lock()
             .map_err(|_| "trace database lock poisoned".to_string())?;
-        load_replay_spec(&conn, &lookup_id)
+        load_replay_spec(&conn, &workspace_id, &lookup_id)
     })
     .await
     .map_err(worker_error)?
@@ -141,13 +149,14 @@ async fn load_spec_for_node(
 async fn persist_replay_update(
     state: &AppState,
     update: ReplayUpdate,
+    workspace_id: String,
 ) -> Result<ReplayResult, (StatusCode, String)> {
     let db = state.db.clone();
     tokio::task::spawn_blocking(move || {
         let conn = db
             .lock()
             .map_err(|_| "trace database lock poisoned".to_string())?;
-        persist_replay_result(&conn, update)
+        persist_replay_result(&conn, &workspace_id, update)
     })
     .await
     .map_err(worker_error)?

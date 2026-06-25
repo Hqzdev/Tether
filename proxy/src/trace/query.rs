@@ -13,19 +13,24 @@ use super::node::row_to_node;
 use super::store_row::TraceRow;
 
 /// Loads recent calls and lays them out as graph nodes, normalizing latency bars.
-pub(super) fn fetch_snapshot(db: &Arc<Mutex<Connection>>) -> rusqlite::Result<TraceSnapshot> {
-    fetch_snapshot_with_payload(db, true)
+pub(super) fn fetch_snapshot(
+    db: &Arc<Mutex<Connection>>,
+    workspace_id: &str,
+) -> rusqlite::Result<TraceSnapshot> {
+    fetch_snapshot_with_payload(db, workspace_id, true)
 }
 
 /// Loads a lightweight snapshot for graph polling without large prompt/response payloads.
 pub(super) fn fetch_snapshot_summary(
     db: &Arc<Mutex<Connection>>,
+    workspace_id: &str,
 ) -> rusqlite::Result<TraceSnapshot> {
-    fetch_snapshot_with_payload(db, false)
+    fetch_snapshot_with_payload(db, workspace_id, false)
 }
 
 fn fetch_snapshot_with_payload(
     db: &Arc<Mutex<Connection>>,
+    workspace_id: &str,
     include_payload: bool,
 ) -> rusqlite::Result<TraceSnapshot> {
     let conn = db.lock().expect("trace database lock poisoned");
@@ -33,7 +38,9 @@ fn fetch_snapshot_with_payload(
         "prompt_system, prompt_user, response_text, response_language,
          error_code, error_message, error_detail, tool_use_ids, context_inputs"
     } else {
-        "'' AS prompt_system, '' AS prompt_user, '' AS response_text, response_language,
+        "'' AS prompt_system,
+         CASE WHEN provider = 'tether' THEN prompt_user ELSE '' END AS prompt_user,
+         '' AS response_text, response_language,
          error_code, error_message, '' AS error_detail, '[]' AS tool_use_ids, '{}' AS context_inputs"
     };
     let sql = format!(
@@ -42,12 +49,13 @@ fn fetch_snapshot_with_payload(
                 cost, temperature, trace_id, parent_span_id, input_hash, stale,
                 is_replay, replay_source_id, replay_provider
          FROM trace_calls
+         WHERE workspace_id = ?1
          ORDER BY created_at ASC
          LIMIT 5000"
     );
     let mut stmt = conn.prepare(&sql)?;
     let rows = stmt
-        .query_map([], trace_row_from_query)?
+        .query_map([workspace_id], trace_row_from_query)?
         .collect::<rusqlite::Result<Vec<_>>>()?;
 
     let rows = collapse_rows_to_requests(rows);
@@ -77,6 +85,7 @@ fn fetch_snapshot_with_payload(
 /// Loads the full payload for a single node selected in the inspector.
 pub(super) fn fetch_node_detail(
     db: &Arc<Mutex<Connection>>,
+    workspace_id: &str,
     node_id: String,
 ) -> rusqlite::Result<Option<AgentNodeDto>> {
     let conn = db.lock().expect("trace database lock poisoned");
@@ -88,11 +97,11 @@ pub(super) fn fetch_node_detail(
                 parent_span_id, input_hash, stale, is_replay, replay_source_id,
                 replay_provider
          FROM trace_calls
-         WHERE id = ?1 OR trace_id = ?1
+         WHERE (id = ?1 OR trace_id = ?1) AND workspace_id = ?2
          ORDER BY created_at ASC",
     )?;
     let rows = stmt
-        .query_map([node_id.as_str()], trace_row_from_query)?
+        .query_map([node_id.as_str(), workspace_id], trace_row_from_query)?
         .collect::<rusqlite::Result<Vec<_>>>()?;
     let Some(trace_row) = collapse_rows_to_requests(rows).into_iter().next() else {
         return Ok(None);
@@ -140,6 +149,7 @@ fn trace_row_from_query(row: &rusqlite::Row<'_>) -> rusqlite::Result<TraceRow> {
         replay_provider: row.get(29)?,
         request_body: Vec::new(),
         request_target: String::new(),
+        workspace_id: String::new(),
         tool_result_ids: Vec::new(),
     })
 }

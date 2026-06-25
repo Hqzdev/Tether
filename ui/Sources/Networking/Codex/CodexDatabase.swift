@@ -14,18 +14,39 @@ enum CodexDatabase {
 
     /// Whether both local Codex databases exist.
     static var allDatabasesExist: Bool {
-        FileManager.default.fileExists(atPath: statePath)
-            && FileManager.default.fileExists(atPath: logsPath)
+        withCodexAccess {
+            FileManager.default.fileExists(atPath: statePath)
+                && FileManager.default.fileExists(atPath: logsPath)
+        } ?? false
     }
 
     /// Whether the response log database exists.
     static var logsExist: Bool {
-        FileManager.default.fileExists(atPath: logsPath)
+        withCodexAccess {
+            FileManager.default.fileExists(atPath: logsPath)
+        } ?? false
     }
 
     private static var codexDirectory: URL {
-        FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".codex", isDirectory: true)
+        codexBookmarkURL
+            ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".codex", isDirectory: true)
+    }
+
+    private static var codexBookmarkURL: URL? {
+        guard let data = UserDefaults.standard.data(forKey: "tether.access.codexBookmark") else { return nil }
+        var stale = false
+        return try? URL(resolvingBookmarkData: data, options: .withSecurityScope, relativeTo: nil, bookmarkDataIsStale: &stale)
+    }
+
+    private static func withCodexAccess<T>(_ body: () throws -> T) rethrows -> T? {
+        guard let url = codexBookmarkURL else { return nil }
+        let accessing = url.startAccessingSecurityScopedResource()
+        defer {
+            if accessing {
+                url.stopAccessingSecurityScopedResource()
+            }
+        }
+        return try body()
     }
 
     /// Runs a readonly SQLite query and decodes the JSON output into rows.
@@ -34,6 +55,16 @@ enum CodexDatabase {
         query: String,
         as _: [Row].Type
     ) throws -> [Row] {
+        guard let accessURL = codexBookmarkURL else {
+            throw CodexLogObserverError.sqlite("Codex log access has not been granted")
+        }
+        let accessing = accessURL.startAccessingSecurityScopedResource()
+        defer {
+            if accessing {
+                accessURL.stopAccessingSecurityScopedResource()
+            }
+        }
+
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/sqlite3")
         process.arguments = ["-readonly", "-json", databasePath, query]

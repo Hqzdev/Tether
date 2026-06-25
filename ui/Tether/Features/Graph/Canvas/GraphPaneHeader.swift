@@ -1,7 +1,6 @@
 import SwiftUI
 import UI
 
-/// Header row for graph context and aggregate trace metrics.
 struct GraphPaneHeader: View {
     let context: String
     let title: String
@@ -10,19 +9,20 @@ struct GraphPaneHeader: View {
     let agentCount: String
     let statusText: String
     let statusColor: Color
+    let onCopyFailureAnalysisPrompt: () -> Void
     let palette: AgentTracePalette
 
     var body: some View {
-        HStack(alignment: .center, spacing: 18) {
+        HStack(alignment: .center, spacing: 16) {
             VStack(alignment: .leading, spacing: 5) {
                 Text(context)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(palette.textTertiary)
                     .lineLimit(1)
                     .truncationMode(.tail)
 
                 Text(title)
-                    .font(.headline)
+                    .font(.system(size: 14.5, weight: .semibold))
                     .foregroundStyle(palette.text)
                     .lineLimit(1)
                     .truncationMode(.tail)
@@ -31,49 +31,47 @@ struct GraphPaneHeader: View {
             .fixedSize(horizontal: false, vertical: true)
 
             HStack(spacing: 10) {
-                MetricBox(
+                HeaderMetric(
                     label: "Total Time",
                     value: totalLatency,
                     valueColor: palette.text,
-                    valueFontSize: 24,
-                    valueWeight: .bold,
-                    width: 104,
                     palette: palette
                 )
-                MetricBox(
+                HeaderMetric(
                     label: "Steps",
                     value: "\(stepCount)",
                     valueColor: palette.text,
-                    valueFontSize: 18,
-                    valueWeight: .semibold,
                     palette: palette
                 )
-                MetricBox(
+                HeaderMetric(
                     label: "Agents",
                     value: agentCount,
                     valueColor: palette.accent,
-                    valueFontSize: 18,
-                    valueWeight: .semibold,
                     palette: palette
                 )
-                MetricBox(
+                HeaderMetric(
                     label: "Status",
                     value: statusText,
                     valueColor: statusColor,
-                    valueFontSize: 13,
-                    valueWeight: .semibold,
-                    labelFontSize: 9,
-                    width: 68,
                     palette: palette
                 )
             }
             .fixedSize(horizontal: true, vertical: false)
 
             Spacer(minLength: 0)
+
+            Button(action: onCopyFailureAnalysisPrompt) {
+                Label("Analyze Failure", systemImage: "doc.on.clipboard")
+                    .font(.system(size: 12, weight: .semibold))
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .disabled(stepCount == 0)
+            .help("Copy a JSON-only failure analysis prompt for the full trace")
         }
         .padding(.horizontal, 20)
-        .padding(.vertical, 14)
-        .background(palette.panelSecondary.opacity(0.48))
+        .padding(.vertical, 11)
+        .background(palette.panel.opacity(0.72))
         .overlay(alignment: .bottom) {
             Rectangle()
                 .fill(palette.border)
@@ -82,56 +80,31 @@ struct GraphPaneHeader: View {
     }
 }
 
-private struct MetricBox: View {
+private struct HeaderMetric: View {
     let label: String
     let value: String
     let valueColor: Color
-    let valueFontSize: CGFloat
-    let valueWeight: Font.Weight
-    let labelFontSize: CGFloat
-    let width: CGFloat
     let palette: AgentTracePalette
 
-    init(
-        label: String,
-        value: String,
-        valueColor: Color,
-        valueFontSize: CGFloat = 18,
-        valueWeight: Font.Weight = .semibold,
-        labelFontSize: CGFloat = 11,
-        width: CGFloat = 82,
-        palette: AgentTracePalette
-    ) {
-        self.label = label
-        self.value = value
-        self.valueColor = valueColor
-        self.valueFontSize = valueFontSize
-        self.valueWeight = valueWeight
-        self.labelFontSize = labelFontSize
-        self.width = width
-        self.palette = palette
-    }
-
     var body: some View {
-        VStack(alignment: .trailing, spacing: 2) {
+        HStack(alignment: .firstTextBaseline, spacing: 5) {
+            Text(label.uppercased())
+                .font(.system(size: 9.5, weight: .medium))
+                .foregroundStyle(palette.textQuaternary)
+                .lineLimit(1)
+
             Text(value)
-                .font(.system(size: valueFontSize, weight: valueWeight, design: .monospaced))
+                .font(.system(size: 12, weight: .semibold, design: .monospaced))
                 .foregroundStyle(valueColor)
                 .lineLimit(1)
-                .minimumScaleFactor(0.8)
-
-            Text(label.uppercased())
-                .font(.system(size: labelFontSize))
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
+                .minimumScaleFactor(0.82)
         }
-        .frame(width: width, height: 52, alignment: .trailing)
-        .padding(.horizontal, 12)
-        .liquidGlass(
-            palette: palette,
-            cornerRadius: palette.controlRadius,
-            tint: palette.glassTint,
-            strokeOpacity: 0.84
-        )
+        .padding(.horizontal, 8)
+        .padding(.vertical, 5)
+        .background(palette.panelSecondary.opacity(0.72), in: RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous)
+                .stroke(palette.borderSoft, lineWidth: 1)
+        }
     }
 }

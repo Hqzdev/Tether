@@ -383,6 +383,10 @@ extension AgentNode {
     }
 
     var workPromptText: String {
+        if let execution = contextInputs.execution {
+            return execution.commandLine.isEmpty ? execution.eventType : execution.commandLine
+        }
+
         let prompt = prompt.user.trimmingCharacters(in: .whitespacesAndNewlines)
         if !prompt.isEmpty {
             return prompt
@@ -413,7 +417,7 @@ extension AgentNode {
             traceId: detail.traceId.isEmpty ? traceId : detail.traceId,
             parentSpanId: detail.parentSpanId ?? parentSpanId,
             toolUseIds: detail.toolUseIds.isEmpty ? toolUseIds : detail.toolUseIds,
-            contextInputs: detail.contextInputs.sources.isEmpty && detail.contextInputs.withheld.isEmpty ? contextInputs : detail.contextInputs,
+            contextInputs: detail.contextInputs.sources.isEmpty && detail.contextInputs.withheld.isEmpty && detail.contextInputs.execution == nil ? contextInputs : detail.contextInputs,
             inputHash: detail.inputHash.isEmpty ? inputHash : detail.inputHash,
             outputHash: detail.outputHash.isEmpty ? outputHash : detail.outputHash,
             stale: stale || detail.stale,
@@ -540,6 +544,8 @@ struct WorkspaceSnapshot: Equatable, Sendable {
 
         return WorkspaceChangeSummary(files: changed)
     }
+
+    nonisolated static let empty = WorkspaceSnapshot(files: [:])
 }
 
 struct WorkspaceSnapshotFile: Equatable, Sendable {
@@ -554,7 +560,16 @@ enum WorkspaceChangeReader {
 
     nonisolated static func snapshot() async -> WorkspaceSnapshot {
         await Task.detached(priority: .utility) {
-            let root = repoRoot()
+            guard let snapshot = WorkspaceAccessStore.withWorkspaceAccess({ root in
+                snapshot(root: root)
+            }) else {
+                return .empty
+            }
+            return snapshot
+        }.value
+    }
+
+    private nonisolated static func snapshot(root: URL) -> WorkspaceSnapshot {
             let statuses = statusByPath(root: root)
             let stats = statsByPath(root: root)
             let paths = Array(Set(statuses.keys).union(stats.keys)).sorted()
@@ -570,7 +585,6 @@ enum WorkspaceChangeReader {
             }
 
             return WorkspaceSnapshot(files: Dictionary(uniqueKeysWithValues: files))
-        }.value
     }
 
     private nonisolated static func repoRoot() -> URL {

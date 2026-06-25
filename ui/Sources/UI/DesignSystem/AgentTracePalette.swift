@@ -1,47 +1,44 @@
 import Core
 import SwiftUI
 
-/// Shared color and radius tokens for the Tether desktop trace interface.
 public struct AgentTracePalette: Equatable {
-    /// Whether the palette should render in the light theme variant.
     public let light: Bool
 
-    /// Creates a palette for the current trace surface theme.
     public init(light: Bool) {
-        self.light = light
+        self.light = true
     }
 
-    public var stage: Color { Color.white }
+    public var stage: Color { Color(hex: 0xf7f7f8) }
     public var stageGlowOne: Color { Color(hex: 0xfafafa) }
-    public var stageGlowTwo: Color { Color(hex: 0xf4f4f5) }
-    public var gridLine: Color { Color(hex: 0xf0f0f0) }
+    public var stageGlowTwo: Color { Color(hex: 0xf1f1f3) }
+    public var gridLine: Color { Color(hex: 0xe8e8eb) }
 
-    public var paperRadius: CGFloat { 28 }
-    public var panelRadius: CGFloat { 18 }
-    public var controlRadius: CGFloat { panelRadius }
+    public var paperRadius: CGFloat { 14 }
+    public var panelRadius: CGFloat { 10 }
+    public var controlRadius: CGFloat { 7 }
 
-    public var window: Color { Color.white }
-    public var panel: Color { Color(hex: 0xfafafa) }
-    public var panelSecondary: Color { Color(hex: 0xf4f4f5) }
-    public var elevated: Color { Color.white }
-    public var active: Color { Color(hex: 0xe4e4e7) }
-    public var border: Color { Color(hex: 0xe4e4e7) }
-    public var borderSoft: Color { Color(hex: 0xeeeeef) }
-    public var borderStrong: Color { Color(hex: 0xd4d4d8) }
+    public var window: Color { Color(hex: 0xffffff) }
+    public var panel: Color { Color(hex: 0xf8f8f9) }
+    public var panelSecondary: Color { Color(hex: 0xefeff1) }
+    public var elevated: Color { Color(hex: 0xffffff) }
+    public var active: Color { Color(hex: 0xe5e7eb) }
+    public var border: Color { Color(hex: 0xd9d9de) }
+    public var borderSoft: Color { Color(hex: 0xe9e9ed) }
+    public var borderStrong: Color { Color(hex: 0xc9c9d0) }
 
-    public var titleTop: Color { Color.white.opacity(0.88) }
-    public var titleBottom: Color { Color(hex: 0xf8fafc).opacity(0.76) }
+    public var titleTop: Color { Color.white.opacity(0.82) }
+    public var titleBottom: Color { Color(hex: 0xf6f7f9).opacity(0.74) }
     public var paperTop: Color { Color(hex: 0xfafafa).opacity(0.94) }
-    public var paperBottom: Color { Color(hex: 0xf4f4f5).opacity(0.86) }
-    public var nodeTop: Color { Color.white }
-    public var nodeBottom: Color { Color(hex: 0xfafafa) }
-    public var gridDot: Color { Color.black.opacity(0.055) }
-    public var glassTint: Color { Color.white.opacity(0.74) }
-    public var glassTintStrong: Color { Color.white.opacity(0.88) }
-    public var glassStroke: Color { Color.white.opacity(0.90) }
-    public var glassStrokeSoft: Color { Color.black.opacity(0.08) }
-    public var glassHighlight: Color { Color.white.opacity(0.96) }
-    public var liquidShade: Color { Color(hex: 0x0f172a).opacity(0.10) }
+    public var paperBottom: Color { Color(hex: 0xf1f1f3).opacity(0.86) }
+    public var nodeTop: Color { Color(hex: 0xffffff) }
+    public var nodeBottom: Color { Color(hex: 0xf7f7f8) }
+    public var gridDot: Color { Color.black.opacity(0.05) }
+    public var glassTint: Color { Color.white.opacity(0.58) }
+    public var glassTintStrong: Color { Color.white.opacity(0.82) }
+    public var glassStroke: Color { Color.white.opacity(0.70) }
+    public var glassStrokeSoft: Color { Color.black.opacity(0.07) }
+    public var glassHighlight: Color { Color.white.opacity(0.82) }
+    public var liquidShade: Color { Color(hex: 0x0f172a).opacity(0.08) }
 
     public var text: Color { Color(hex: 0x18181b) }
     public var textSecondary: Color { Color(hex: 0x3f3f46) }
@@ -66,7 +63,6 @@ public struct AgentTracePalette: Equatable {
     public var accentThree: Color { Color(hex: 0xec4899) }
     public var accentBackground: Color { accent.opacity(0.10) }
 
-    /// Returns the primary accent color for a node status.
     public func color(for status: NodeStatus) -> Color {
         switch status {
         case .success:
@@ -80,7 +76,6 @@ public struct AgentTracePalette: Equatable {
         }
     }
 
-    /// Returns a softer status color used for fills and gradients.
     public func dimColor(for status: NodeStatus) -> Color {
         switch status {
         case .success:
@@ -94,7 +89,6 @@ public struct AgentTracePalette: Equatable {
         }
     }
 
-    /// Returns the status background color used by compact badges.
     public func background(for status: NodeStatus) -> Color {
         switch status {
         case .success:

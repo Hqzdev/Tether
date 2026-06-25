@@ -40,6 +40,7 @@ struct InspectorPane: View {
 
     @State private var editing = false
     @State private var draft = ""
+    @State private var pendingActionPlan: ActionPlan?
 
     private var responseText: String {
         guard let node else { return "" }
@@ -66,6 +67,12 @@ struct InspectorPane: View {
             }
 
             if let node {
+                if node.isRepairCandidate {
+                    RepairCandidatePanel(node: node, palette: palette) {
+                        pendingActionPlan = ActionEngine.shared.plan(for: node)
+                    }
+                }
+
                 InspectorReplayFooter(
                     editing: $editing,
                     draft: $draft,
@@ -85,10 +92,199 @@ struct InspectorPane: View {
         .onChange(of: node?.id) {
             editing = false
             draft = ""
+            pendingActionPlan = nil
         }
         .onChange(of: tab) {
             editing = false
         }
+        .sheet(item: $pendingActionPlan) { plan in
+            ConfirmActionSheet(plan: plan, palette: palette)
+        }
+    }
+}
+
+private struct RepairCandidatePanel: View {
+    let node: AgentNode
+    let palette: AgentTracePalette
+    let onPlan: () -> Void
+
+    private var commandLine: String {
+        if let commandLine = node.contextInputs.execution?.commandLine, !commandLine.isEmpty {
+            return commandLine
+        }
+        return node.prompt.user
+    }
+
+    private var exitLabel: String {
+        if let exitCode = node.contextInputs.execution?.exitCode {
+            return "exit \(exitCode)"
+        }
+        return node.error.map { "exit \($0.code)" } ?? "failed"
+    }
+
+    private var planRows: [String] {
+        [
+            "Inspect stdout/stderr and git diff",
+            "Classify failure as dependency, test, auth, or command error",
+            "Build a confirmed repair plan before executing anything"
+        ]
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .top, spacing: 10) {
+                Image(systemName: "wrench.and.screwdriver.fill")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(palette.amber)
+                    .frame(width: 18, height: 18)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Repair candidate")
+                        .font(.system(size: 12.5, weight: .semibold))
+                        .foregroundStyle(palette.text)
+
+                    Text("\(exitLabel) · \(commandLine)")
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundStyle(palette.textTertiary)
+                        .lineLimit(2)
+                        .textSelection(.enabled)
+                }
+
+                Spacer(minLength: 0)
+            }
+
+            VStack(alignment: .leading, spacing: 5) {
+                ForEach(planRows, id: \.self) { row in
+                    HStack(alignment: .firstTextBaseline, spacing: 7) {
+                        Text("→")
+                            .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                            .foregroundStyle(palette.textQuaternary)
+                        Text(row)
+                            .font(.system(size: 11))
+                            .foregroundStyle(palette.textSecondary)
+                    }
+                }
+            }
+
+            Button {
+                onPlan()
+            } label: {
+                Text("Review repair plan")
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 30)
+            }
+            .buttonStyle(TimeTravelButtonStyle(role: .secondary, palette: palette))
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .background(palette.amber.opacity(0.08))
+        .overlay(alignment: .top) {
+            Rectangle()
+                .fill(palette.amber.opacity(0.24))
+                .frame(height: 1)
+        }
+        .overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(palette.border)
+                .frame(height: 1)
+        }
+    }
+}
+
+private struct ConfirmActionSheet: View {
+    let plan: ActionPlan
+    let palette: AgentTracePalette
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: "checklist.checked")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(palette.accent)
+                    .frame(width: 28, height: 28)
+
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(plan.title)
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(palette.text)
+
+                    Text(plan.summary)
+                        .font(.system(size: 12, design: .monospaced))
+                        .foregroundStyle(palette.textTertiary)
+                        .textSelection(.enabled)
+                }
+
+                Spacer(minLength: 0)
+            }
+            .padding(18)
+
+            VStack(alignment: .leading, spacing: 0) {
+                MetadataInlineRow(label: "Action", value: plan.actionType, palette: palette)
+                MetadataInlineRow(label: "Caused By", value: plan.causedBy, palette: palette)
+                MetadataInlineRow(label: "Credential", value: plan.credentialUse, palette: palette)
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Will execute after backend is available")
+                    .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                    .foregroundStyle(palette.textTertiary)
+                    .padding(.horizontal, 18)
+                    .padding(.top, 14)
+
+                ForEach(plan.steps) { step in
+                    HStack(alignment: .top, spacing: 10) {
+                        Image(systemName: "circle")
+                            .font(.system(size: 8, weight: .semibold))
+                            .foregroundStyle(palette.textQuaternary)
+                            .frame(width: 14, height: 18)
+
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(step.title)
+                                .font(.system(size: 12.5, weight: .semibold))
+                                .foregroundStyle(palette.text)
+                            Text(step.detail)
+                                .font(.system(size: 11.5))
+                                .foregroundStyle(palette.textTertiary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    .padding(.horizontal, 18)
+                }
+            }
+            .padding(.bottom, 14)
+
+            Spacer(minLength: 0)
+
+            HStack(spacing: 10) {
+                Button {
+                    dismiss()
+                } label: {
+                    Text("Close")
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 34)
+                }
+                .buttonStyle(TimeTravelButtonStyle(role: .secondary, palette: palette))
+
+                Button {
+                } label: {
+                    Text("Confirm execution unavailable")
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 34)
+                }
+                .buttonStyle(TimeTravelButtonStyle(role: .primary, palette: palette))
+                .disabled(!plan.executionAvailable)
+            }
+            .padding(18)
+            .background(palette.panelSecondary.opacity(0.60))
+            .overlay(alignment: .top) {
+                Rectangle()
+                    .fill(palette.border)
+                    .frame(height: 1)
+            }
+        }
+        .frame(width: 520, height: 520)
+        .background(palette.panel)
     }
 }
 

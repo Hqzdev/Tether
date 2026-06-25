@@ -28,6 +28,7 @@ mod replay_headers;
 mod replay_store;
 mod replay_types;
 mod replay_with;
+mod retention;
 mod routes;
 mod schema;
 mod store;
@@ -42,5 +43,6 @@ pub(crate) use capture::{MAX_CAPTURE_BYTES, TraceCapture};
 pub(crate) use ingest::{
     DEFAULT_TRACE_CHANNEL_CAPACITY, TraceResponse, TraceSink, spawn_ingest_worker,
 };
+pub(crate) use retention::{TraceRetention, spawn_retention_worker};
 pub(crate) use routes::{response_request_id, router};
 pub(crate) use schema::init_schema;

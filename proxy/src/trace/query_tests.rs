@@ -9,6 +9,7 @@ use super::{
     schema, store_insert,
     store_row::TraceRow,
 };
+use crate::workspace::DEFAULT_WORKSPACE_ID;
 
 /// Verifies snapshot readback order and latency bar normalization.
 #[test]
@@ -21,7 +22,7 @@ fn fetch_snapshot_orders_nodes_and_normalizes_latency() {
         insert_row(&conn, "b", 2_000, 200, "hit");
     };
 
-    let snapshot = fetch_snapshot(&db).unwrap();
+    let snapshot = fetch_snapshot(&db, DEFAULT_WORKSPACE_ID).unwrap();
 
     assert_eq!(snapshot.nodes.len(), 2);
     assert_eq!(snapshot.nodes[0].id, "a");
@@ -41,7 +42,7 @@ fn fetch_snapshot_summary_omits_prompt_and_response_payloads() {
         insert_row(&conn, "a", 1_000, 100, "miss");
     }
 
-    let snapshot = fetch_snapshot_summary(&db).unwrap();
+    let snapshot = fetch_snapshot_summary(&db, DEFAULT_WORKSPACE_ID).unwrap();
 
     assert_eq!(snapshot.nodes.len(), 1);
     assert_eq!(snapshot.nodes[0].id, "a");
@@ -59,10 +60,33 @@ fn fetch_node_detail_returns_full_payload_for_selected_node() {
         insert_row(&conn, "a", 1_000, 100, "miss");
     }
 
-    let node = fetch_node_detail(&db, "a".to_string()).unwrap().unwrap();
+    let node = fetch_node_detail(&db, DEFAULT_WORKSPACE_ID, "a".to_string())
+        .unwrap()
+        .unwrap();
 
     assert_eq!(node.prompt.user, "hello");
     assert_eq!(node.response.text, "world");
+}
+
+#[test]
+fn fetch_snapshot_and_detail_filter_by_workspace() {
+    let db = Arc::new(Mutex::new(Connection::open_in_memory().unwrap()));
+    {
+        let conn = db.lock().unwrap();
+        schema::init_schema(&conn).unwrap();
+        insert_row(&conn, "a", 1_000, 100, "miss");
+        insert_row_in_workspace(&conn, "b", "workspace-b");
+    }
+
+    let default_snapshot = fetch_snapshot(&db, DEFAULT_WORKSPACE_ID).unwrap();
+    let other_snapshot = fetch_snapshot(&db, "workspace-b").unwrap();
+    let hidden_node = fetch_node_detail(&db, DEFAULT_WORKSPACE_ID, "b".to_string()).unwrap();
+
+    assert_eq!(default_snapshot.nodes.len(), 1);
+    assert_eq!(default_snapshot.nodes[0].id, "a");
+    assert_eq!(other_snapshot.nodes.len(), 1);
+    assert_eq!(other_snapshot.nodes[0].id, "b");
+    assert!(hidden_node.is_none());
 }
 
 /// Verifies multi-call agent traces collapse to one user-request node.
@@ -104,7 +128,7 @@ fn fetch_snapshot_collapses_trace_steps_into_one_request_node() {
         );
     }
 
-    let snapshot = fetch_snapshot(&db).unwrap();
+    let snapshot = fetch_snapshot(&db, DEFAULT_WORKSPACE_ID).unwrap();
 
     assert_eq!(snapshot.nodes.len(), 1);
     assert_eq!(snapshot.nodes[0].id, "root");
@@ -156,7 +180,9 @@ fn fetch_node_detail_collapses_trace_steps_into_one_request_node() {
         );
     }
 
-    let node = fetch_node_detail(&db, "root".to_string()).unwrap().unwrap();
+    let node = fetch_node_detail(&db, DEFAULT_WORKSPACE_ID, "root".to_string())
+        .unwrap()
+        .unwrap();
 
     assert_eq!(node.id, "root");
     assert_eq!(node.response.text, "done");
@@ -211,6 +237,19 @@ fn insert_row(conn: &Connection, id: &str, created_at: i64, latency_ms: i64, cac
          VALUES (?1, ?2, 'openai', 'POST', '/v1/responses', 'gpt-5.5', 200,
                  ?3, ?4, 'req', '', 'hello', 'world', 'text', 3, 4, '$0.0001')",
         (id, created_at, cache_status, latency_ms),
+    )
+    .unwrap();
+}
+
+fn insert_row_in_workspace(conn: &Connection, id: &str, workspace_id: &str) {
+    conn.execute(
+        "INSERT INTO trace_calls
+            (id, created_at, provider, method, path, model, status_code,
+             cache_status, latency_ms, request_id, prompt_system, prompt_user,
+             response_text, response_language, tokens_in, tokens_out, cost, workspace_id)
+         VALUES (?1, 2_000, 'openai', 'POST', '/v1/responses', 'gpt-5.5', 200,
+                 'miss', 200, 'req', '', 'hello', 'world', 'text', 3, 4, '$0.0001', ?2)",
+        (id, workspace_id),
     )
     .unwrap();
 }
@@ -289,6 +328,7 @@ fn trace_row(id: &str, prompt_user: &str) -> TraceRow {
         replay_provider: None,
         request_body: Vec::new(),
         request_target: "https://api.openai.com/v1/responses".to_string(),
+        workspace_id: DEFAULT_WORKSPACE_ID.to_string(),
         tool_result_ids: Vec::new(),
     }
 }

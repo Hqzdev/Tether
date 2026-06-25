@@ -2,18 +2,17 @@ import Core
 import SwiftUI
 import UI
 
-/// Center pane that renders the draggable trace graph and its summary metrics.
 struct GraphPane: View {
     private let nodeSize = CGSize(width: 336, height: 136)
     private let depthSpacing: CGFloat = 380
     private let zoomRange: ClosedRange<CGFloat> = 0.5...1.8
 
     let nodes: [AgentNode]
-    /// Leading history nodes within `nodes`; the rest are the live cluster.
     let historyCount: Int
     let selectedNode: AgentNode?
     let totalLatencyMs: Int
     let onSelect: (AgentNode) -> Void
+    let onCopyFailureAnalysisPrompt: () -> Void
     let onInteractionChanged: (Bool) -> Void
     let palette: AgentTracePalette
 
@@ -49,6 +48,7 @@ struct GraphPane: View {
                 agentCount: agentCountText,
                 statusText: statusText,
                 statusColor: statusColor,
+                onCopyFailureAnalysisPrompt: onCopyFailureAnalysisPrompt,
                 palette: palette
             )
 
@@ -67,14 +67,16 @@ struct GraphPane: View {
                 palette: palette
             )
             .overlay(alignment: .bottomTrailing) {
-                ZoomControls(
-                    zoomScale: $zoomScale,
-                    zoomRange: zoomRange,
-                    onReset: { setZoom(1) },
-                    palette: palette
-                )
-                .padding(.trailing, 16)
-                .padding(.bottom, 16)
+                if !nodes.isEmpty {
+                    ZoomControls(
+                        zoomScale: $zoomScale,
+                        zoomRange: zoomRange,
+                        onReset: { setZoom(1) },
+                        palette: palette
+                    )
+                    .padding(.trailing, 16)
+                    .padding(.bottom, 16)
+                }
             }
         }
         .background(palette.window.opacity(0.48))
@@ -91,7 +93,6 @@ struct GraphPane: View {
         }
     }
 
-    /// Formats latency for the graph header metric.
     private func formatLatency(_ milliseconds: Int) -> String {
         if milliseconds >= 1000 {
             return String(format: "%.2fs", Double(milliseconds) / 1000.0)
@@ -100,7 +101,6 @@ struct GraphPane: View {
         return "\(milliseconds)ms"
     }
 
-    /// Updates graph zoom while clamping it to the supported range.
     private func setZoom(_ value: CGFloat, animated: Bool = true) {
         let clampedValue = min(max(value, zoomRange.lowerBound), zoomRange.upperBound)
 

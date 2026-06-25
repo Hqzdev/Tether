@@ -77,6 +77,8 @@
 		C0D900000000000000000034 /* Tether/Features/Welcome/WelcomeFooter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000034 /* Tether/Features/Welcome/WelcomeFooter.swift */; };
 		C0D900000000000000000035 /* Tether/Features/Welcome/WelcomeRevealModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D800000000000000000035 /* Tether/Features/Welcome/WelcomeRevealModifier.swift */; };
 		C0E200000000000000000001 /* Tether/Shared/AppPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0E100000000000000000001 /* Tether/Shared/AppPreferences.swift */; };
+		C0E20000000000000000000A /* Tether/Shared/WorkspaceAccessStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0E10000000000000000000A /* Tether/Shared/WorkspaceAccessStore.swift */; };
+		C0E20000000000000000000B /* Tether/Shared/ActionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0E10000000000000000000B /* Tether/Shared/ActionEngine.swift */; };
 		C0E200000000000000000002 /* Tether/Features/Settings/Components/SettingsForms.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0E100000000000000000002 /* Tether/Features/Settings/Components/SettingsForms.swift */; };
 		C0E200000000000000000003 /* Tether/Features/Settings/Panes/GeneralSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0E100000000000000000003 /* Tether/Features/Settings/Panes/GeneralSettingsView.swift */; };
 		C0E200000000000000000004 /* Tether/Features/Settings/Panes/AgentSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0E100000000000000000004 /* Tether/Features/Settings/Panes/AgentSettingsView.swift */; };
@@ -162,6 +164,8 @@
 		C0D800000000000000000034 /* Tether/Features/Welcome/WelcomeFooter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tether/Features/Welcome/WelcomeFooter.swift; sourceTree = SOURCE_ROOT; };
 		C0D800000000000000000035 /* Tether/Features/Welcome/WelcomeRevealModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tether/Features/Welcome/WelcomeRevealModifier.swift; sourceTree = SOURCE_ROOT; };
 		C0E100000000000000000001 /* Tether/Shared/AppPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tether/Shared/AppPreferences.swift; sourceTree = SOURCE_ROOT; };
+		C0E10000000000000000000A /* Tether/Shared/WorkspaceAccessStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tether/Shared/WorkspaceAccessStore.swift; sourceTree = SOURCE_ROOT; };
+		C0E10000000000000000000B /* Tether/Shared/ActionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tether/Shared/ActionEngine.swift; sourceTree = SOURCE_ROOT; };
 		C0E100000000000000000002 /* Tether/Features/Settings/Components/SettingsForms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tether/Features/Settings/Components/SettingsForms.swift; sourceTree = SOURCE_ROOT; };
 		C0E100000000000000000003 /* Tether/Features/Settings/Panes/GeneralSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tether/Features/Settings/Panes/GeneralSettingsView.swift; sourceTree = SOURCE_ROOT; };
 		C0E100000000000000000004 /* Tether/Features/Settings/Panes/AgentSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tether/Features/Settings/Panes/AgentSettingsView.swift; sourceTree = SOURCE_ROOT; };
@@ -295,6 +299,8 @@
 				C0D800000000000000000034 /* Tether/Features/Welcome/WelcomeFooter.swift */,
 				C0D800000000000000000035 /* Tether/Features/Welcome/WelcomeRevealModifier.swift */,
 				C0E100000000000000000001 /* Tether/Shared/AppPreferences.swift */,
+				C0E10000000000000000000A /* Tether/Shared/WorkspaceAccessStore.swift */,
+				C0E10000000000000000000B /* Tether/Shared/ActionEngine.swift */,
 				C0E100000000000000000002 /* Tether/Features/Settings/Components/SettingsForms.swift */,
 				C0E100000000000000000003 /* Tether/Features/Settings/Panes/GeneralSettingsView.swift */,
 				C0E100000000000000000004 /* Tether/Features/Settings/Panes/AgentSettingsView.swift */,
@@ -387,6 +393,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				C0E200000000000000000001 /* Tether/Shared/AppPreferences.swift in Sources */,
+				C0E20000000000000000000A /* Tether/Shared/WorkspaceAccessStore.swift in Sources */,
+				C0E20000000000000000000B /* Tether/Shared/ActionEngine.swift in Sources */,
 				C0E200000000000000000002 /* Tether/Features/Settings/Components/SettingsForms.swift in Sources */,
 				C0E200000000000000000003 /* Tether/Features/Settings/Panes/GeneralSettingsView.swift in Sources */,
 				C0E200000000000000000004 /* Tether/Features/Settings/Panes/AgentSettingsView.swift in Sources */,

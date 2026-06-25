@@ -115,3 +115,96 @@ a `TraceRefreshCoordinator` (polling/refresh), a `SessionsController`, and a pur
 (`/openapi.json`). The Swift `Codable` models are documented as *generated/derived* from that
 spec (see [05-documentation-strategy](./05-documentation-strategy.md)), eliminating the
 hand-maintained drift between Rust and Swift model definitions.
+
+## 2.6 Auto-fix execution layer
+
+Auto-fix is a confirmed execution layer on top of the trace graph, not part of
+capture. The capture path records what happened. The action path proposes and
+executes a recovery only after the user confirms the exact plan.
+
+```
+failed trace node
+      │
+      ▼
+Tether.app ActionEngine builds ActionPlan
+      │
+      ▼
+ConfirmActionSheet shows exact commands/API calls and credential use
+      │
+      ▼
+KeychainStore reads token after confirmation
+      │
+      ▼
+POST /internal/actions/execute
+      │
+      ▼
+Rust executor runs localhost-only action
+      │
+      ▼
+repair action row + repair graph node
+```
+
+### App components
+
+```
+Tether.app
+├── FailedNodeView        failed node + Auto-fix entry point
+├── ConfirmActionSheet    exact action list, credential use, and risk summary
+├── RepairResultView      graph node/result view after execution
+├── ActionEngine.swift    builds plans and sends confirmed execution requests
+└── KeychainStore.swift   reads credentials only after confirmation
+```
+
+### Proxy components
+
+```
+Rust proxy
+├── action_router.rs      /internal/actions/execute
+├── trace_db.rs           repair action persistence and repair graph nodes
+└── executors/
+    ├── github.rs         GitHub API calls and gh-backed flows
+    ├── llm_retry.rs      replay/retry with a patched prompt
+    └── shell.rs          sandboxed local shell commands
+```
+
+### Repair action storage
+
+Repair actions are stored separately from raw captured calls, then rendered into
+the graph as repair nodes linked back to the failed node.
+
+```sql
+CREATE TABLE repair_actions (
+  id          TEXT PRIMARY KEY,
+  session_id  TEXT NOT NULL,
+  caused_by   TEXT NOT NULL,
+  action_type TEXT NOT NULL,
+  payload     TEXT NOT NULL,
+  status      TEXT NOT NULL,
+  result      TEXT,
+  created_at  INTEGER NOT NULL
+);
+```
+
+### Security boundary
+
+Credentials remain app-owned. Tokens live in macOS Keychain, are read only after
+the user confirms the action plan, and are sent to the proxy only for that one
+localhost request. The proxy must not persist tokens, echo them into logs, or
+write them into trace/repair rows.
+
+### V1 scope
+
+Priority order:
+
+1. GitHub executor: `git push`, PR creation, and retrying failed GitHub API calls
+   with a confirmed token.
+2. LLM retry executor: confirmed prompt patch and downstream replay only.
+3. Shell executor: sandboxed commands such as dependency install or validation.
+
+Non-goals for v1:
+
+- no autonomous mode
+- no token storage in proxy or SQLite
+- no custom credential manager beyond Keychain
+- no remote execution
+- no shell execution without an explicit sandbox and confirmation step

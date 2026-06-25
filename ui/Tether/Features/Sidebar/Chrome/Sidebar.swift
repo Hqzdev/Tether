@@ -2,7 +2,6 @@ import Core
 import SwiftUI
 import UI
 
-/// Left pane listing proxy status, filters, and captured calls.
 struct Sidebar: View {
     let nodes: [AgentNode]
     let filteredNodes: [AgentNode]
@@ -22,6 +21,6 @@ struct Sidebar: View {
             SidebarCallList(filteredNodes: filteredNodes, selectedNodeId: selectedNodeId, onSelect: onSelect, palette: palette)
             SidebarFooter(onShowSettings: onShowSettings, palette: palette)
         }
-        .background(palette.panel.opacity(0.56))
+        .background(palette.panel.opacity(0.86))
     }
 }

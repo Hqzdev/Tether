@@ -2,14 +2,9 @@ import Core
 import SwiftUI
 import UI
 
-/// Scaled canvas containing connection paths and draggable node cards.
-///
-/// Nodes arrive history-first: the first `historyCount` entries form the
-/// read-only history cluster (left column, muted), the rest are live calls
-/// (offset to the right). No edge is drawn across the two clusters.
 struct GraphCanvas: View {
     private let verticalNodeSpacing: CGFloat = 156
-    private let nodeBoundaryInset: CGFloat = 96
+    private let nodeBoundaryInset: CGFloat = 240
     private let historyOpacity: CGFloat = 0.7
 
     let nodes: [AgentNode]
@@ -30,7 +25,7 @@ struct GraphCanvas: View {
     var body: some View {
         ZStack(alignment: .topLeading) {
             if nodes.isEmpty {
-                GraphEmptyState()
+                GraphEmptyState(palette: palette)
                     .frame(width: contentSize.width, height: contentSize.height)
             } else {
                 if preferences.showConnections {
@@ -95,8 +90,6 @@ struct GraphCanvas: View {
         }
     }
 
-    /// Index of the first live node, where the history→live edge is suppressed.
-    /// `nil` when either cluster is empty (there is no boundary to break).
     private var clusterBoundaryIndex: Int? {
         guard historyCount > 0, historyCount < nodes.count else { return nil }
         return historyCount
@@ -131,8 +124,6 @@ struct GraphCanvas: View {
         })
     }
 
-    /// Returns the automatic canvas position for a node index, accounting for the
-    /// history (left) and live (right-offset) clusters.
     private func defaultPosition(for index: Int, node: AgentNode?) -> CGPoint {
         if let node,
            node.isReplay,
@@ -184,11 +175,38 @@ struct GraphCanvas: View {
 }
 
 private struct GraphEmptyState: View {
+    let palette: AgentTracePalette
+
     var body: some View {
-        ContentUnavailableView(
-            "No Traces Yet",
-            systemImage: "network",
-            description: Text("Run codex in Terminal or send traffic through the proxy")
-        )
+        VStack(alignment: .leading, spacing: 9) {
+            Text("No traces yet")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(palette.text)
+
+            Text("Run Codex in Terminal. Calls will appear here as nodes.")
+                .font(.system(size: 12))
+                .foregroundStyle(palette.textTertiary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Text("codex")
+                .font(.system(size: 12, weight: .medium, design: .monospaced))
+                .foregroundStyle(palette.textSecondary)
+                .padding(.horizontal, 10)
+                .frame(height: 28)
+                .background(palette.panelSecondary.opacity(0.86), in: RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous)
+                        .stroke(palette.borderSoft, lineWidth: 1)
+                }
+        }
+        .padding(14)
+        .frame(width: 278, alignment: .leading)
+        .background(palette.elevated.opacity(0.72), in: RoundedRectangle(cornerRadius: palette.panelRadius, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: palette.panelRadius, style: .continuous)
+                .stroke(palette.borderSoft, lineWidth: 1)
+        }
+        .shadow(color: palette.liquidShade.opacity(0.10), radius: 10, x: 0, y: 6)
+        .position(x: 420, y: 280)
     }
 }

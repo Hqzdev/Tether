@@ -68,7 +68,19 @@ Each backend service crate, its single responsibility, the interface it exposes 
 - **Responsibility:** assemble the Axum `Router` by mounting each service's `routes()`, plus
   the gateway fallback and `/openapi.json`. No business logic.
 
-## 3.12 `src/main.rs` (composition root)
+## 3.12 `tether-actions`
+- **Responsibility:** execute confirmed repair actions derived from failed trace nodes.
+- **Owns:** action routing, executor dispatch, repair result persistence, and repair node
+  creation.
+- **Executors:** GitHub, LLM retry, and sandboxed shell. GitHub is the v1 priority because
+  it maps cleanly to common agent failures such as missing auth, failed push, or PR creation.
+- **Data:** `repair_actions` table via storage repositories.
+- **Boundary:** accepts credentials only in-memory for one confirmed localhost request. It must
+  never persist tokens, log tokens, or read credentials directly from disk.
+- **Does not replace:** `tether capture`. The CLI stays capture-only and does not execute
+  recovery actions.
+
+## 3.13 `src/main.rs` (composition root)
 - **Responsibility:** read env/config, build `Db`, construct each concrete service, inject
   traits, spawn the trace ingestion worker, hand the router to the listener. Thin (~80 lines).
 
@@ -80,6 +92,8 @@ Each backend service crate, its single responsibility, the interface it exposes 
 |--------|----------------|-------------------|
 | `Networking/ProxyAPI` | typed client for `/api/*` | `TraceAPIClient.swift` → grouped by endpoint |
 | `Networking/Codex` | local Codex log → `TraceSnapshot` ingestion adapter | `CodexLogObserver.swift` (495) → Database / Query / Mapper / SnapshotBuilder |
+| `Networking/Actions` | confirmed calls to `/internal/actions/execute` | new action client used only after confirmation |
 | `Core/State/TraceStore` | observable UI state | `TraceStore.swift` (356) → Store / Status / RefreshCoordinator / SessionsController / SnapshotCombiner |
+| `Core/Actions/ActionEngine` | failed-node analysis, plan building, and confirmed execution | new orchestration layer above trace state |
 | `Core/Models` | domain types (mirror of `tether-contracts` DTOs) | one type per file under `ui/Sources/Core/Models/` |
 | `UI/DesignSystem` | palette + glass + theme | `AgentTracePalette.swift` (187) → Palette / LiquidGlass / Color+Hex |

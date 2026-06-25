@@ -72,7 +72,7 @@ export const DOCS_PAGES: DocsPage[] = [
     title: "Tether documentation",
     category: "Docs",
     description:
-      "Install Tether, route local LLM traffic through the proxy, inspect traces, replay failed branches, and understand the architecture behind the desktop app.",
+      "Install Tether, route local LLM traffic through the proxy, inspect execution steps, replay failed branches, and understand the architecture behind the desktop app.",
     sections: [
       {
         title: "What Tether does",
@@ -80,14 +80,14 @@ export const DOCS_PAGES: DocsPage[] = [
           {
             kind: "paragraph",
             text:
-              "Tether is a local-first observability tool for agent builders. It runs a Rust proxy on the developer machine, stores captured calls in SQLite, and renders the run inside a native macOS SwiftUI app.",
+              "Tether is a local-first execution debugger for agent builders. It runs a Rust proxy on the developer machine, stores captured execution traces in SQLite, and renders the run inside a native macOS SwiftUI app.",
           },
           {
             kind: "list",
             items: [
               "Capture OpenAI-compatible and Anthropic calls through a local proxy.",
-              "Inspect prompt, response, latency, tokens, cost, cache state, and errors.",
-              "Replay from a selected trace node with edited or mocked model output.",
+              "Inspect prompt, command output, file changes, latency, tokens, cost, cache state, and errors.",
+              "Replay from a selected execution node with edited or corrected output.",
               "Keep API keys in macOS Keychain and trace data on the local machine.",
             ],
           },
@@ -181,7 +181,7 @@ export const DOCS_PAGES: DocsPage[] = [
           {
             kind: "paragraph",
             text:
-              "Use the local proxy as the SDK base URL. Tether forwards the request upstream, records the response, and exposes the captured trace through the local UI API.",
+              "Use the local proxy as the SDK base URL. Tether forwards the request upstream, records execution context, and exposes the captured path through the local UI API.",
           },
           {
             kind: "code",
@@ -212,7 +212,7 @@ export const DOCS_PAGES: DocsPage[] = [
     title: "Connect CometAPI",
     category: "Getting Started",
     description:
-      "Save a CometAPI key in the local proxy and use cross-model replay from the macOS inspector.",
+      "Save a CometAPI key in the local proxy and use recovery replay from the macOS inspector.",
     sections: [
       {
         title: "What CometAPI enables",
@@ -286,7 +286,7 @@ export const DOCS_PAGES: DocsPage[] = [
     title: "Reading traces",
     category: "Using Tether",
     description:
-      "Understand the graph, sidebar, inspector, and status metadata shown by the desktop app.",
+      "Understand the graph, sidebar, inspector, and status metadata for each execution step shown by the desktop app.",
     sections: [
       {
         title: "Trace node model",
@@ -302,7 +302,7 @@ export const DOCS_PAGES: DocsPage[] = [
               "success: upstream returned a 2xx response.",
               "cached: the proxy served a local cache hit.",
               "running: reserved UI state for active work.",
-              "error: upstream or network failure captured as a trace node.",
+              "error: upstream or command failure captured as a trace node.",
             ],
           },
         ],
@@ -316,7 +316,7 @@ export const DOCS_PAGES: DocsPage[] = [
             rows: [
               ["Prompt", "Read system and user input that reached the model."],
               ["Response", "Inspect or edit model output for replay workflows."],
-              ["Metadata", "Review latency, tokens, cost, cache, provider, and request ids."],
+              ["Metadata", "Review latency, tokens, cost, cache, file diffs, provider, and request ids."],
             ],
           },
         ],
@@ -328,7 +328,7 @@ export const DOCS_PAGES: DocsPage[] = [
     title: "Replay and cache",
     category: "Using Tether",
     description:
-      "Use cached responses to keep local iteration cheap and replay a downstream branch from a selected node.",
+      "Use cached execution state to keep local iteration cheap and replay a downstream branch from a selected node.",
     sections: [
       {
         title: "Cache loop",

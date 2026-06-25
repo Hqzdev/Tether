@@ -3,7 +3,6 @@ import ServiceManagement
 import SwiftUI
 import UI
 
-/// General application settings: appearance, startup, and confirmation behavior.
 struct GeneralSettingsView: View {
     let palette: AgentTracePalette
     @EnvironmentObject private var preferences: AppPreferences
@@ -15,7 +14,7 @@ struct GeneralSettingsView: View {
     var body: some View {
         SettingsPaneScaffold(
             title: "General",
-            subtitle: "Appearance, startup behavior, and confirmations for the Tether desktop app.",
+            subtitle: "Startup behavior and confirmations for the Tether desktop app.",
             palette: palette
         ) {
             appearanceSection
@@ -33,16 +32,12 @@ struct GeneralSettingsView: View {
 
     private var appearanceSection: some View {
         SettingsSection("Appearance", palette: palette) {
-            SettingsPickerRow(
-                title: "Theme",
-                subtitle: "Appearance controls are temporarily unavailable.",
-                selection: $preferences.appearance,
-                options: AgentTraceThemeMode.allCases,
-                label: { $0.title },
+            SettingsValueRow(
+                "Theme",
+                subtitle: "Tether currently ships with a focused light workspace.",
+                value: "Light",
                 palette: palette
             )
-            .disabled(true)
-            .opacity(0.54)
         }
     }
 
@@ -71,7 +66,6 @@ struct GeneralSettingsView: View {
         }
     }
 
-    /// Registers or unregisters the login item, surfacing any failure inline.
     private func applyLaunchAtLogin(_ enabled: Bool) {
         do {
             if enabled {

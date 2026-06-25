@@ -1,20 +1,17 @@
 import SwiftUI
 import UI
 
-/// Visual hierarchy for replay controls.
 enum TimeTravelButtonRole {
     case primary
     case secondary
 }
 
-/// Native macOS-style button treatment used for time-travel replay controls.
 struct TimeTravelButtonStyle: ButtonStyle {
     let role: TimeTravelButtonRole
     let palette: AgentTracePalette
 
     @Environment(\.isEnabled) private var isEnabled
 
-    /// Renders the replay button with active and inactive color treatments.
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 13, weight: .semibold))
@@ -32,7 +29,7 @@ struct TimeTravelButtonStyle: ButtonStyle {
     private var foregroundColor: Color {
         switch role {
         case .primary:
-            return Color.white
+            return palette.light ? Color.white : Color(hex: 0x111113)
         case .secondary:
             return palette.text
         }

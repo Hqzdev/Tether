@@ -40,7 +40,8 @@ pub(crate) fn init_schema(conn: &Connection) -> rusqlite::Result<()> {
             request_target    TEXT,
             is_replay         INTEGER NOT NULL DEFAULT 0,
             replay_source_id  TEXT,
-            replay_provider   TEXT
+            replay_provider   TEXT,
+            workspace_id      TEXT NOT NULL DEFAULT 'local-default'
         );
 
         CREATE INDEX IF NOT EXISTS idx_trace_calls_created_at
@@ -49,7 +50,24 @@ pub(crate) fn init_schema(conn: &Connection) -> rusqlite::Result<()> {
         CREATE TABLE IF NOT EXISTS provider_settings (
             key   TEXT PRIMARY KEY,
             value TEXT NOT NULL
-        );",
+        );
+
+        CREATE TABLE IF NOT EXISTS repair_actions (
+            id          TEXT PRIMARY KEY,
+            session_id  TEXT NOT NULL,
+            caused_by   TEXT NOT NULL,
+            action_type TEXT NOT NULL,
+            payload     TEXT NOT NULL,
+            status      TEXT NOT NULL,
+            result      TEXT,
+            created_at  INTEGER NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_repair_actions_session_id
+            ON repair_actions(session_id);
+
+        CREATE INDEX IF NOT EXISTS idx_repair_actions_caused_by
+            ON repair_actions(caused_by);",
     )?;
     add_column_if_missing(conn, "trace_calls", "trace_id", "TEXT")?;
     add_column_if_missing(conn, "trace_calls", "parent_span_id", "TEXT")?;
@@ -67,6 +85,12 @@ pub(crate) fn init_schema(conn: &Connection) -> rusqlite::Result<()> {
     )?;
     add_column_if_missing(conn, "trace_calls", "replay_source_id", "TEXT")?;
     add_column_if_missing(conn, "trace_calls", "replay_provider", "TEXT")?;
+    add_column_if_missing(
+        conn,
+        "trace_calls",
+        "workspace_id",
+        "TEXT NOT NULL DEFAULT 'local-default'",
+    )?;
     conn.execute_batch(
         "CREATE INDEX IF NOT EXISTS idx_trace_calls_trace_id
              ON trace_calls(trace_id);",

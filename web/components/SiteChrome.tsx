@@ -81,7 +81,6 @@ export function SiteHeader() {
           Tether
         </Link>
         <div className="nav-links">
-
           <Link href="/#demo" onClick={() => trackEvent("navigation_clicked", { label: "Replay bench", location: "header" })}>
             Replay bench
           </Link>
@@ -126,8 +125,8 @@ export function SiteFooter() {
             Tether
           </Link>
           <p>
-            Local-first trace debugging, replay, and mocking for LLM agents. Built for teams that need proof
-            without sending prompts to another cloud.
+            Local execution debugger for AI coding agents. Built for teams that need proof
+            of what broke the repo without sending prompts to another cloud.
           </p>
         </div>
         <div className="foot-col">

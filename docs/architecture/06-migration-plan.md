@@ -71,6 +71,39 @@ Incremental and **always-shippable**. Every phase ends with the app building and
   200-line file-size gate. Tag pushes matching `v*` publish `dist/Tether.dmg` through the
   release workflow. CI/CD and release operations are documented in `docs/runbooks/`.
 
+## Phase 7 — Capture wrapper execution events  · M
+- Add `tether capture -- <command>` as the first local execution source.
+- Persist `shell.command` nodes with command line, cwd, duration, exit code, stdout/stderr,
+  git base revision, and git diff before/after.
+- Keep the CLI capture-only. It starts or uses the local proxy and writes events, but it does
+  not execute repair actions.
+- **Exit:** running `tether capture -- npm test` creates a visible execution node in the
+  macOS app.
+
+## Phase 8 — Auto-fix action planning  · M
+- Add app-side `ActionEngine` that analyzes failed nodes and builds an `ActionPlan`.
+- Add `FailedNodeView`, `ConfirmActionSheet`, and `RepairResultView`.
+- Confirmation must show the exact commands/API calls, credential use, and expected side
+  effects before execution.
+- Read credentials from Keychain only after the user confirms.
+- **Exit:** failed GitHub-style nodes can produce a non-executed plan with clear confirmation UI.
+
+## Phase 9 — Confirmed repair execution  · L
+- Add Rust `/internal/actions/execute` and a `repair_actions` table.
+- Implement GitHub executor first: push, PR creation, and retrying failed GitHub API calls
+  with a confirmed token.
+- Add LLM retry executor for prompt patch and downstream replay.
+- Add shell executor only behind sandboxed execution and explicit confirmation.
+- Persist repair nodes linked with `caused_by` so the graph shows `failed node -> repair node`.
+- **Exit:** confirming a GitHub repair writes a repair node into the graph without persisting
+  tokens in proxy logs or SQLite.
+
+## Phase 10 — Auto-fix guardrails  · M
+- Add audit tests for token redaction, repair row payloads, and proxy logs.
+- Add deny-by-default shell policy and allow only scoped local commands.
+- Add UI copy and state for pending, confirmed, done, and failed repair actions.
+- **Exit:** auto-fix is local-only, confirm-only, token-safe, and mechanically tested.
+
 ## Sequencing diagram
 
 ```
@@ -79,6 +112,10 @@ P0 safety net ─► P1 workspace+shared ─► P2 split into services ─► P3
                                             P4 backend docs ◄──────────┘
                                                    │
                                             P5 Swift refactor+DocC ─► P6 CI guardrails
+                                                   │
+                                            P7 capture events ─► P8 action planning
+                                                   │                    │
+                                                   └──────────────► P9 confirmed execution ─► P10 guardrails
 ```
 
 ## Risks & mitigations
@@ -90,3 +127,6 @@ P0 safety net ─► P1 workspace+shared ─► P2 split into services ─► P3
 | Hot-path latency creep | Phase 3 measures forward latency before/after; channel is bounded |
 | DTO drift between Rust & Swift | OpenAPI as source of truth (Phase 4) + optional drift check (Phase 6) |
 | Over-fragmentation (too many tiny files) | the seam must be a real concern boundary, not a line count hack |
+| Auto-fix executes the wrong action | confirm-only flow with exact command/API plan before `/internal/actions/execute` |
+| Token leakage through proxy or DB | Keychain-owned credentials, one-request in-memory handoff, redaction tests |
+| Shell executor expands blast radius | Phase 3 priority is GitHub first; shell waits for sandbox and allowlist policy |

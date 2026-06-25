@@ -34,6 +34,7 @@ pub(crate) struct TraceCapture {
     pub(super) input_hash: String,
     pub(super) request_body: Vec<u8>,
     pub(super) request_target: String,
+    pub(super) workspace_id: String,
 }
 
 impl TraceCapture {
@@ -45,6 +46,7 @@ impl TraceCapture {
         path: &str,
         target: &str,
         provider: &str,
+        workspace_id: &str,
         body: &[u8],
     ) -> Self {
         let parsed = serde_json::from_slice::<Value>(body).ok();
@@ -108,6 +110,7 @@ impl TraceCapture {
             input_hash,
             request_body,
             request_target: target.to_string(),
+            workspace_id: workspace_id.to_string(),
         }
     }
 }

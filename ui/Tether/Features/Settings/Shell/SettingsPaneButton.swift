@@ -1,7 +1,6 @@
 import SwiftUI
 import UI
 
-/// Button row for one settings pane.
 struct SettingsPaneButton: View {
     let pane: SettingsPane
     let selected: Bool
@@ -27,9 +26,9 @@ struct SettingsPaneButton: View {
             .frame(height: 34)
             .background(
                 selected ? palette.active.opacity(0.86) : Color.clear,
-                in: RoundedRectangle(cornerRadius: 9, style: .continuous)
+                in: RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous)
             )
-            .contentShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous))
         }
         .buttonStyle(.plain)
     }

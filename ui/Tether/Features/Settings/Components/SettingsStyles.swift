@@ -1,11 +1,9 @@
 import SwiftUI
 import UI
 
-/// Text-field styling for compact settings controls.
 struct SettingsFieldModifier: ViewModifier {
     let palette: AgentTracePalette
 
-    /// Applies monospaced field styling and a light bordered background.
     func body(content: Content) -> some View {
         content
             .textFieldStyle(.plain)
@@ -13,7 +11,7 @@ struct SettingsFieldModifier: ViewModifier {
             .foregroundStyle(palette.text)
             .padding(.horizontal, 10)
             .frame(height: 30)
-            .background(Color.white.opacity(0.88), in: RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous))
+            .background(palette.elevated.opacity(0.88), in: RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous)
                     .stroke(palette.border, lineWidth: 1)
@@ -22,33 +20,28 @@ struct SettingsFieldModifier: ViewModifier {
 }
 
 extension View {
-    /// Applies the shared settings text-field styling.
     func settingsField(palette: AgentTracePalette) -> some View {
         modifier(SettingsFieldModifier(palette: palette))
     }
 }
 
-/// Primary filled settings button style.
 struct SettingsPrimaryButtonStyle: ButtonStyle {
     let palette: AgentTracePalette
 
-    /// Renders primary settings actions.
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 13, weight: .semibold))
-            .foregroundStyle(.white)
+            .foregroundStyle(palette.light ? Color.white : Color(hex: 0x111113))
             .background(palette.text)
             .clipShape(RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous))
             .opacity(configuration.isPressed ? 0.86 : 1)
     }
 }
 
-/// Secondary bordered settings button style.
 struct SettingsSecondaryButtonStyle: ButtonStyle {
     let palette: AgentTracePalette
     var destructive = false
 
-    /// Renders secondary and destructive settings actions.
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 12, weight: .semibold))
@@ -66,7 +59,6 @@ struct SettingsSecondaryButtonStyle: ButtonStyle {
     }
 }
 
-/// Close button used by the settings overlay.
 struct SettingsCloseButton: View {
     let palette: AgentTracePalette
     let onClose: () -> Void

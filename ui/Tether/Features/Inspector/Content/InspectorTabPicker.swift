@@ -2,7 +2,6 @@ import Core
 import SwiftUI
 import UI
 
-/// Liquid-glass segmented control for inspector sections.
 struct InspectorTabPicker: View {
     @Binding var tab: InspectorTab
     let palette: AgentTracePalette

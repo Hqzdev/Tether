@@ -2,7 +2,6 @@ import Core
 import SwiftUI
 import UI
 
-/// Header row for a graph node card.
 struct NodeCardHeader: View {
     let node: NodeCardModel
     let palette: AgentTracePalette
@@ -25,7 +24,10 @@ struct NodeCardHeader: View {
                     .truncationMode(.tail)
 
                 HStack(spacing: 6) {
-                    AgentBadge(name: node.agentName, palette: palette)
+                    AgentBadge(name: node.isExecutionEvent ? "Execution" : node.agentName, palette: palette)
+                    if node.isExecutionEvent {
+                        NodeInfoBadge(text: node.executionStatus, palette: palette)
+                    }
                     if node.changedFileCount > 0 {
                         NodeInfoBadge(text: "Files \(node.changedFileCount)", palette: palette)
                     }
@@ -39,7 +41,6 @@ struct NodeCardHeader: View {
             if node.stale {
                 Text("STALE")
                     .font(.system(size: 9.5, weight: .bold))
-                    .tracking(0.4)
                     .foregroundStyle(palette.amber)
                     .padding(.horizontal, 7)
                     .padding(.vertical, 3)
@@ -70,7 +71,6 @@ private struct NodeInfoBadge: View {
     }
 }
 
-/// Footer row for latency, cost, and token counts.
 struct NodeCardFooter: View {
     let node: NodeCardModel
     let palette: AgentTracePalette
@@ -79,12 +79,16 @@ struct NodeCardFooter: View {
         VStack(spacing: 7) {
             HStack(alignment: .top, spacing: 12) {
                 NodeMetric(symbol: "clock", label: "Latency", value: node.latency, palette: palette)
-                NodeMetric(
-                    symbol: "number",
-                    label: "Tokens",
-                    value: "\(node.tokensIn) in / \(node.tokensOut) out",
-                    palette: palette
-                )
+                if node.isExecutionEvent {
+                    NodeMetric(symbol: "terminal", label: "Result", value: node.executionStatus, palette: palette)
+                } else {
+                    NodeMetric(
+                        symbol: "number",
+                        label: "Tokens",
+                        value: "\(node.tokensIn) in / \(node.tokensOut) out",
+                        palette: palette
+                    )
+                }
             }
 
             if node.hasBillableCost {
@@ -135,7 +139,6 @@ private struct NodeMetric: View {
     }
 }
 
-/// Background fill for a node card.
 struct NodeCardBackground: View {
     let selected: Bool
     let isPerformanceMode: Bool
@@ -165,7 +168,6 @@ struct NodeCardBackground: View {
     }
 }
 
-/// Border treatment for selected and inactive node cards.
 struct NodeCardBorder: View {
     let selected: Bool
     let isReplay: Bool

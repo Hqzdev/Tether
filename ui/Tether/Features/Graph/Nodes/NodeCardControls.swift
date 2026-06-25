@@ -2,7 +2,6 @@ import Core
 import SwiftUI
 import UI
 
-/// Small anchor markers that hint where graph edges connect.
 struct NodeAnchorMarkers: View {
     let palette: AgentTracePalette
 
@@ -23,7 +22,6 @@ struct NodeAnchorMarkers: View {
     }
 }
 
-/// Thin status-colored progress bar inside a node card.
 struct ProgressBar: View {
     let value: Double
     let status: NodeStatus
@@ -33,7 +31,7 @@ struct ProgressBar: View {
         GeometryReader { geometry in
             ZStack(alignment: .leading) {
                 RoundedRectangle(cornerRadius: 2, style: .continuous)
-                    .fill(palette.panelSecondary)
+                    .fill(palette.panelSecondary.opacity(0.86))
 
                 RoundedRectangle(cornerRadius: 2, style: .continuous)
                     .fill(

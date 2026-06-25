@@ -5,6 +5,7 @@ import UI
 struct WorkspaceSettingsView: View {
     let palette: AgentTracePalette
     @EnvironmentObject private var preferences: AppPreferences
+    @StateObject private var access = WorkspaceAccessStore.shared
 
     var body: some View {
         SettingsPaneScaffold(
@@ -12,9 +13,44 @@ struct WorkspaceSettingsView: View {
             subtitle: "Tune the trace graph canvas and how nodes are laid out.",
             palette: palette
         ) {
+            accessSection
             graphSection
             navigationSection
             layoutSection
+        }
+    }
+
+    private var accessSection: some View {
+        SettingsSection("Access", palette: palette) {
+            SettingsValueRow(
+                "Workspace folder",
+                subtitle: access.workspacePath ?? "Required for file and git diff attribution.",
+                value: access.hasWorkspaceAccess ? "Granted" : "Not granted",
+                palette: palette
+            )
+
+            SettingsButtonRow(
+                "Workspace access",
+                subtitle: "Grant once so Tether can read this repo without repeated macOS prompts.",
+                buttonTitle: access.hasWorkspaceAccess ? "Change Folder" : "Grant Access",
+                systemImage: "folder.badge.gearshape",
+                palette: palette
+            ) {
+                access.requestWorkspaceAccess()
+            }
+
+            if access.hasWorkspaceAccess {
+                SettingsButtonRow(
+                    "Forget workspace access",
+                    subtitle: "Remove the saved permission and stop reading this folder.",
+                    buttonTitle: "Forget",
+                    systemImage: "xmark.circle",
+                    destructive: true,
+                    palette: palette
+                ) {
+                    access.forgetWorkspaceAccess()
+                }
+            }
         }
     }
 

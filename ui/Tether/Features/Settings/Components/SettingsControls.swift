@@ -1,7 +1,6 @@
 import SwiftUI
 import UI
 
-/// Vertical one-pixel divider used in settings split views.
 struct VerticalDividerLine: View {
     let palette: AgentTracePalette
 
@@ -12,13 +11,11 @@ struct VerticalDividerLine: View {
     }
 }
 
-/// Reusable grouped settings section.
 struct SettingsSection<Content: View>: View {
     private let title: String
     private let palette: AgentTracePalette
     private let content: Content
 
-    /// Creates a titled settings section around custom row content.
     init(_ title: String, palette: AgentTracePalette, @ViewBuilder content: () -> Content) {
         self.title = title
         self.palette = palette
@@ -36,23 +33,21 @@ struct SettingsSection<Content: View>: View {
                 content
             }
             .padding(.horizontal, 16)
-            .background(Color.white.opacity(0.82), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .background(palette.elevated.opacity(0.82), in: RoundedRectangle(cornerRadius: palette.panelRadius, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                RoundedRectangle(cornerRadius: palette.panelRadius, style: .continuous)
                     .stroke(palette.border, lineWidth: 1)
             )
         }
     }
 }
 
-/// Reusable row layout for a settings control.
 struct SettingsRow<Content: View>: View {
     private let title: String
     private let subtitle: String?
     private let palette: AgentTracePalette
     private let content: Content
 
-    /// Creates a settings row with optional subtitle and trailing control.
     init(_ title: String, subtitle: String? = nil, palette: AgentTracePalette, @ViewBuilder content: () -> Content) {
         self.title = title
         self.subtitle = subtitle

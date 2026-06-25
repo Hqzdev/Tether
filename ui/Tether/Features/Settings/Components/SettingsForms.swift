@@ -1,7 +1,6 @@
 import SwiftUI
 import UI
 
-/// Standard header (title + subtitle) shown at the top of a settings detail pane.
 struct SettingsPaneHeader: View {
     let title: String
     let subtitle: String
@@ -21,7 +20,6 @@ struct SettingsPaneHeader: View {
     }
 }
 
-/// Scrollable container that lays out a settings pane's header and sections consistently.
 struct SettingsPaneScaffold<Content: View>: View {
     let title: String
     let subtitle: String
@@ -42,7 +40,6 @@ struct SettingsPaneScaffold<Content: View>: View {
     }
 }
 
-/// Settings row carrying a trailing toggle bound to a Boolean preference.
 struct SettingsToggleRow: View {
     let title: String
     let subtitle: String?
@@ -65,7 +62,6 @@ struct SettingsToggleRow: View {
     }
 }
 
-/// Settings row carrying a segmented picker over a set of `CaseIterable` options.
 struct SettingsPickerRow<Option: Hashable & Identifiable>: View {
     let title: String
     let subtitle: String?
@@ -88,7 +84,6 @@ struct SettingsPickerRow<Option: Hashable & Identifiable>: View {
     }
 }
 
-/// Settings row carrying a stepper that edits an integer preference within bounds.
 struct SettingsStepperRow: View {
     let title: String
     let subtitle: String?
@@ -113,7 +108,6 @@ struct SettingsStepperRow: View {
     }
 }
 
-/// Settings row carrying a trailing action button.
 struct SettingsButtonRow: View {
     let title: String
     let subtitle: String?
@@ -152,7 +146,6 @@ struct SettingsButtonRow: View {
     }
 }
 
-/// Read-only settings row showing a static value, used by the usage dashboard.
 struct SettingsValueRow: View {
     let title: String
     let subtitle: String?
