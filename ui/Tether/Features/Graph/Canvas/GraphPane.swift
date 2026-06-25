@@ -11,6 +11,7 @@ struct GraphPane: View {
     let historyCount: Int
     let selectedNode: AgentNode?
     let totalLatencyMs: Int
+    let focusRequest: Int
     let onSelect: (AgentNode) -> Void
     let onCopyFailureAnalysisPrompt: () -> Void
     let onInteractionChanged: (Bool) -> Void
@@ -61,6 +62,7 @@ struct GraphPane: View {
                 positionStore: nodePositionStore,
                 nodeSizes: $nodeSizes,
                 zoomScale: zoomScale,
+                focusRequest: focusRequest,
                 onSelect: onSelect,
                 onZoom: { value, animated in setZoom(value, animated: animated) },
                 onInteractionChanged: onInteractionChanged,

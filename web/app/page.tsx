@@ -32,10 +32,10 @@ const FEATURES: {
     view: "graph",
     acc: "green",
     icon: "diagram-project",
-    title: "Failure path",
+    title: "Execution graph",
     copy: (
       <>
-        Follow the branch, retry, and tool call that produced the bad answer.
+        Follow the request, action, file diff, command, and failed test in one run.
       </>
     ),
   },
@@ -43,10 +43,10 @@ const FEATURES: {
     view: "cache",
     acc: "cyan",
     icon: "bolt",
-    title: "Cache ledger",
+    title: "File impact",
     copy: (
       <>
-        See which calls were reused, how fast they returned, and what they saved.
+        See what changed, how many lines moved, and which step caused it.
       </>
     ),
   },
@@ -54,10 +54,10 @@ const FEATURES: {
     view: "time",
     acc: "amber",
     icon: "clock-rotate-left",
-    title: "Response surgery",
+    title: "Recovery point",
     copy: (
       <>
-        Patch one model output and rerun the steps that depend on it.
+        Replay supported branches or roll back from the exact broken node.
       </>
     ),
   },
@@ -75,9 +75,9 @@ const FEATURES: {
 ];
 
 const VIEW_META: Record<InspectorView, { dot: string; title: string; model: string }> = {
-  graph: { dot: "green", title: "Customer Support Agent", model: "5 nodes" },
-  cache: { dot: "cyan", title: "2. Vector DB Retrieval", model: "text-embedding-3-lg" },
-  time: { dot: "amber", title: "1. Intent Classification", model: "gpt-4o" },
+  graph: { dot: "green", title: "Agent execution graph", model: "8 events" },
+  cache: { dot: "cyan", title: "File diff and command evidence", model: "+42 / -11 lines" },
+  time: { dot: "amber", title: "Replay and rollback boundary", model: "supported request" },
   privacy: { dot: "violet", title: "Secrets & Storage", model: "local" },
 };
 
@@ -87,24 +87,24 @@ const TREE_LAYOUT: {
   label: string;
   sub: string;
 }[] = [
-  { status: "success", icon: "check-circle", label: "Intent Classification", sub: "gpt-4o" },
-  { status: "cached", icon: "database", label: "Vector DB Retrieval", sub: "cached - 0ms" },
-  { status: "success", icon: "check-circle", label: "Context Synthesis", sub: "claude-3.5-sonnet" },
-  { status: "error", icon: "circle-exclamation", label: "Response Generation", sub: "timeout - 4.10s" },
+  { status: "success", icon: "check-circle", label: "User request", sub: "fix failing checkout test" },
+  { status: "cached", icon: "database", label: "File diff", sub: "+42 / -11 lines" },
+  { status: "success", icon: "check-circle", label: "Shell command", sub: "npm test" },
+  { status: "error", icon: "circle-exclamation", label: "Failed test", sub: "exit 1 - 4.10s" },
 ];
 
 const FAQ_ITEMS: { q: string; a: ReactNode }[] = [
   {
     q: "We already use LangSmith or Langfuse. Why Tether?",
-    a: "Hosted tools still help teams discuss traces, but Tether is a local execution debugger for one question: which step broke the project and how to recover from there.",
+    a: "Hosted trace tools are useful for team observability. Tether is narrower: a local execution debugger for coding agents that shows the request, actions, file diffs, failed commands, and recovery point on the developer machine.",
   },
   {
     q: "Does Tether send prompts, responses, or API keys anywhere?",
     a: "No. Tether is local-first. Prompts, responses, and traces stay in local storage, while API keys are stored through macOS Keychain. The proxy only talks to the providers you configure.",
   },
   {
-    q: "How does Tether intercept LLM calls without changing my app?",
-    a: "Tether runs a local HTTP proxy. You point your AI client's base_url at http://localhost:8080/v1 and keep the rest of your code the same. Tether forwards requests to the real provider and records the request and response locally.",
+    q: "How does Tether capture agent runs?",
+    a: "Use tether capture -- <agent command> or route OpenAI-compatible traffic through the local proxy. Source adapters normalize Codex, Claude Code, LangChain, LangGraph, OpenAI/OpenGPT-style agents, and custom CLI events into one execution graph.",
   },
   {
     q: "Can I use this with production code?",
@@ -354,7 +354,7 @@ export default function TetherLanding() {
       ? "Replaying chain..."
       : replayState === "done"
         ? "Replayed - 4 nodes re-ran"
-        : "Replay chain from this node";
+        : "Replay supported branch";
 
   return (
     <main className="landing-page">
@@ -378,11 +378,11 @@ export default function TetherLanding() {
           </div>
         </div>
         <h1>
-          Find the exact LLM call that <span className="grad">broke your agent</span>.
+          Debug what your AI coding agent <span className="grad">actually did</span>.
         </h1>
         <p className="lead">
-          Tether records the run on your Mac, shows the failed node with its request and response,
-          then lets you patch that step and replay only what comes after it.
+          Tether is a local execution debugger for AI coding agents. It captures the prompt,
+          action, file diff, failed command or test, and recovery point in a macOS execution graph.
         </p>
         <div className="cta-row">
           <a
@@ -422,7 +422,7 @@ export default function TetherLanding() {
             })
           }
         >
-          Security review asking where prompts live? Open the local storage proof <span aria-hidden="true">-&gt;</span>
+          Security review asking where prompts live? Prompts and traces stay local <span aria-hidden="true">-&gt;</span>
         </a>
         <div className="meta-row">
           <span>
@@ -431,7 +431,7 @@ export default function TetherLanding() {
           </span>
           <span>
             <LandingIcon name="feather" />
-            One base_url change.
+            Source adapters.
           </span>
           <span>
             <LandingIcon name="shield-halved" />
@@ -453,14 +453,14 @@ export default function TetherLanding() {
 
       <section className="section-pad wrap deferred-section" id="features">
         <div className="section-head reveal">
-          <div className="kicker">Recovery replay</div>
+          <div className="kicker">Prompt to recovery</div>
           <h2 className="title">
-            Find the node that changed the outcome.
+            See the request, the actions, the diff, and the breakage.
           </h2>
           <p className="section-sub">
-            Tether turns one messy agent run into a replayable path: the request
-            that went in, the response that came back, the cache state, and the
-            downstream branch you can rerun.
+            Tether turns one messy agent run into an execution graph: user request,
+            tool calls, file reads and writes, shell commands, test results, git diff,
+            errors, replay, and rollback evidence.
           </p>
         </div>
 
@@ -468,8 +468,8 @@ export default function TetherLanding() {
           <div className="tree-stage reveal" id="treeStage" ref={treeRef}>
             <div className="ts-head">
               <LandingIcon name="diagram-project" />
-              <span className="ttl">Failure path</span>
-              <span className="ts-meta">4 nodes / 1 failed / 1 cached</span>
+              <span className="ttl">Execution path</span>
+              <span className="ts-meta">4 events / 1 failed / 1 diff</span>
             </div>
             <div className="tree-svg-wrap" ref={treeSvgWrapRef}>
               <svg id="treeSvg" width="100%" viewBox="0 0 300 470" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -525,25 +525,25 @@ export default function TetherLanding() {
                 aria-label="Replay failed path"
               >
                 <LandingIcon name="rotate" />
-                <span>Replay failed path</span>
+                <span>Open recovery point</span>
               </button>
             </div>
             <div className="trace-evidence">
               <span>
                 <b>request</b>
-                req_3f88ab
+                fix checkout test
               </span>
               <span>
-                <b>cache</b>
-                hit
+                <b>diff</b>
+                +42 / -11
               </span>
               <span>
-                <b>saved</b>
-                2,096 tokens
+                <b>command</b>
+                npm test
               </span>
               <span>
-                <b>scope</b>
-                downstream only
+                <b>status</b>
+                exit 1
               </span>
             </div>
           </div>
@@ -553,11 +553,10 @@ export default function TetherLanding() {
               <div className="bico">
                 <LandingIcon name="diagram-project" />
               </div>
-              <h3>Failure-first trace canvas</h3>
+              <h3>Execution graph, not an LLM tree</h3>
               <p>
-                Every LLM request becomes a node with timing, payload, cache state,
-                and downstream impact. The graph is built for finding the broken
-                branch, not decorating a dashboard.
+                Nodes represent the agent run: LLM requests, tool calls, file reads,
+                file writes, shell commands, tests, diffs, errors, replay, and rollback.
               </p>
               <div className="bstat">
                 <span className="metric-chip ok">success</span>
@@ -569,11 +568,10 @@ export default function TetherLanding() {
               <div className="bico">
                 <LandingIcon name="bolt" />
               </div>
-              <h3>Local response cache</h3>
+              <h3>File and command evidence</h3>
               <p>
-                Repeated prompts come back from local cache. You can test downstream
-                logic without paying for the same retrieval or classification step
-                again.
+                Node cards keep changed files, line counts, command output, exit status,
+                timing, tokens, model, and source metadata together.
               </p>
               <div className="bstat">
                 <span className="metric-chip cy">&lt;1ms</span>
@@ -584,13 +582,13 @@ export default function TetherLanding() {
               <div className="bico">
                 <LandingIcon name="clock-rotate-left" />
               </div>
-              <h3>Time-travel mocking</h3>
+              <h3>Replay where supported</h3>
               <p>
-                Rewrite one response and replay the steps after it. This turns
-                debugging from a full rerun into a controlled experiment.
+                Proxy-captured requests can be replayed from a selected node. Local log
+                sources stay inspectable and route clearly to supported recovery flows.
               </p>
               <div className="bstat">
-                <span className="metric-chip">replay from any node</span>
+                <span className="metric-chip">replay boundary</span>
               </div>
             </div>
             <div className="bcard p span2 reveal">
@@ -615,13 +613,13 @@ export default function TetherLanding() {
         </div>
 
         <div className="section-head reveal feature-demo-head" id="demo">
-          <div className="kicker">Replay bench</div>
+          <div className="kicker">Debugger inspector</div>
           <h2 className="title">
-            Inspect the interface before you wire it into your app.
+            Inspect the debugger before you wire it into your agent.
           </h2>
           <p className="section-sub">
-            The right pane mirrors the app inspector. Pick a capability on the left
-            and watch the evidence change the way it would when you click a live trace node.
+            The right pane mirrors the app inspector. Pick an evidence type and watch
+            the node details change the way they do in a live execution graph.
           </p>
         </div>
 
@@ -673,21 +671,20 @@ export default function TetherLanding() {
                 <div className={`insp-view ${activeView === "cache" ? "on" : ""}`} data-view="cache">
                   <div className="ctrlhead codeview">
                     <LandingIcon name="database" />
-                    response.meta
+                    diff.meta
                     <span className="grow" />
                     <span className="chip cy">CACHE HIT</span>
                     <span className="chip ok">200 OK</span>
                   </div>
                   {[
                     ["request_id", "req_3f88ab", ""],
-                    ["is_cached", "true", "cyan"],
-                    ["latency", "0ms", "cyan"],
-                    ["cost", "$0.0000", "green"],
-                    ["tokens_saved", "1,840 in - 256 out", "green"],
-                    ["embedding_hash", "e3b0c44298fc1c14", ""],
-                    ["retrieved_from", "local_cache", "cyan"],
-                    ["store", "~/.Tether/cache.sqlite", ""],
-                    ["hit_rate (session)", "62%", "green"],
+                    ["changed_files", "3", "cyan"],
+                    ["line_delta", "+42 / -11", "green"],
+                    ["command", "npm test", ""],
+                    ["exit_code", "1", "cyan"],
+                    ["source", "custom-cli", ""],
+                    ["store", "~/.Tether/traces.sqlite", ""],
+                    ["recovery", "rollback or replay boundary", "green"],
                   ].map(([key, value, tone]) => (
                     <div className="kv" key={key}>
                       <span className="k">{key}</span>
@@ -700,7 +697,7 @@ export default function TetherLanding() {
                   <div className="ttedit">
                     <div className="ctrlhead codeview">
                       <LandingIcon name="clock-rotate-left" />
-                      editing response.json
+                      recovery.patch
                       <span className="grow" />
                       <span className="chip warn">UNSAVED</span>
                     </div>
@@ -782,40 +779,52 @@ export default function TetherLanding() {
 
       <section className="section-pad wrap deferred-section" id="how">
         <div className="section-head reveal">
-          <div className="kicker">From localhost to replay</div>
+          <div className="kicker">From capture to graph</div>
           <h2 className="title">
-            Route one run through Tether and keep the rest of your stack.
+            Wrap one run and keep the rest of your stack.
           </h2>
           <p className="section-sub">
-            Tether is a transparent proxy. Point your client at localhost
-            and every call shows up in the canvas with request, response, latency,
-            tokens, cache state, and replay controls.
+            Run tether capture -- &lt;agent command&gt;. The wrapper starts or uses
+            the local proxy, captures agent traffic plus tool, file, shell, test,
+            and diff events, then stores the trace for the macOS graph.
           </p>
         </div>
         <div className="steps">
           <div className="step reveal">
-            <div className="num">01 / LOG</div>
-            <h4>Point the base_url</h4>
+            <div className="num">01 / CAPTURE</div>
+            <h4>Wrap the agent command</h4>
             <p>
-              Swap your client&apos;s endpoint for the local proxy. Works with any OpenAI-compatible SDK.
+              Use tether capture -- with Codex, Claude Code, custom CLIs, or an adapter-backed framework run.
             </p>
           </div>
           <div className="step reveal">
-            <div className="num">02 / REPLAY</div>
+            <div className="num">02 / NORMALIZE</div>
             <h4>Run your agent</h4>
             <p>
-              Run the same scenario. Every request is intercepted, cached, and streamed into the tree live.
+              Tether normalizes LLM requests, tool calls, file changes, shell commands, tests, and errors.
             </p>
           </div>
           <div className="step reveal">
-            <div className="num">03 / PROVE</div>
+            <div className="num">03 / RECOVER</div>
             <h4>Inspect and recover</h4>
             <p>
-              Open the canvas, click the node that broke, rewrite its output,
-              and replay forward. See exactly where your agent fails - without
-              re-running the whole chain.
+              Open the macOS graph, click the broken node, inspect file impact and output,
+              then replay supported requests or roll back from local evidence.
             </p>
           </div>
+        </div>
+      </section>
+
+      <section className="section-pad wrap deferred-section" id="sources">
+        <div className="section-head reveal">
+          <div className="kicker">Supported sources</div>
+          <h2 className="title">Adapters for the agents engineers already run.</h2>
+          <p className="section-sub">
+            Tether supports Codex local logs, Claude Code and local agent logs,
+            LangChain callbacks or proxy, LangGraph callbacks or proxy,
+            OpenAI/OpenGPT-style base_url proxying, and custom CLI agents through
+            tether capture --.
+          </p>
         </div>
       </section>
 

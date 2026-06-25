@@ -61,8 +61,12 @@ extension MainThreePaneLayoutView {
             filteredNodes: filteredNodes,
             selectedNodeId: selectedNode?.id,
             searchText: $searchText,
+            searchFocused: $searchFocused,
             proxyStatus: traceStore.proxyStatus,
-            onSelect: { selectedNodeId = $0.id },
+            onSelect: {
+                selectedNodeId = $0.id
+                graphFocusRequest += 1
+            },
             onShowSettings: {
                 withAnimation(.smooth(duration: 0.16)) {
                     showingSettings = true
@@ -78,7 +82,11 @@ extension MainThreePaneLayoutView {
             historyCount: historyCount,
             selectedNode: selectedNode,
             totalLatencyMs: totalLatencyMs,
-            onSelect: { selectedNodeId = $0.id },
+            focusRequest: graphFocusRequest,
+            onSelect: {
+                selectedNodeId = $0.id
+                graphFocusRequest += 1
+            },
             onCopyFailureAnalysisPrompt: copyFailureAnalysisPrompt,
             onInteractionChanged: traceStore.setGraphInteractionActive,
             palette: palette

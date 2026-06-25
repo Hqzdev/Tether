@@ -183,12 +183,12 @@ private struct GraphEmptyState: View {
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(palette.text)
 
-            Text("Run Codex in Terminal. Calls will appear here as nodes.")
+            Text("Run an agent through a source adapter. Execution events will appear here as nodes.")
                 .font(.system(size: 12))
                 .foregroundStyle(palette.textTertiary)
                 .fixedSize(horizontal: false, vertical: true)
 
-            Text("codex")
+            Text("tether capture -- <agent command>")
                 .font(.system(size: 12, weight: .medium, design: .monospaced))
                 .foregroundStyle(palette.textSecondary)
                 .padding(.horizontal, 10)

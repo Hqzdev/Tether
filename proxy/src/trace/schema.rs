@@ -127,3 +127,55 @@ fn table_has_column(conn: &Connection, table: &str, column: &str) -> rusqlite::R
 
     Ok(false)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn init_schema_creates_repair_actions_storage() {
+        let conn = Connection::open_in_memory().unwrap();
+
+        init_schema(&conn).unwrap();
+        init_schema(&conn).unwrap();
+
+        let columns = table_columns(&conn, "repair_actions");
+        let indexes = table_indexes(&conn, "repair_actions");
+
+        assert_eq!(
+            columns,
+            vec![
+                "id",
+                "session_id",
+                "caused_by",
+                "action_type",
+                "payload",
+                "status",
+                "result",
+                "created_at"
+            ]
+        );
+        assert!(indexes.contains(&"idx_repair_actions_session_id".to_string()));
+        assert!(indexes.contains(&"idx_repair_actions_caused_by".to_string()));
+    }
+
+    fn table_columns(conn: &Connection, table: &str) -> Vec<String> {
+        let mut stmt = conn
+            .prepare(&format!("PRAGMA table_info({table})"))
+            .unwrap();
+        stmt.query_map([], |row| row.get::<_, String>(1))
+            .unwrap()
+            .map(Result::unwrap)
+            .collect()
+    }
+
+    fn table_indexes(conn: &Connection, table: &str) -> Vec<String> {
+        let mut stmt = conn
+            .prepare("SELECT name FROM sqlite_master WHERE type = 'index' AND tbl_name = ?1")
+            .unwrap();
+        stmt.query_map([table], |row| row.get::<_, String>(0))
+            .unwrap()
+            .map(Result::unwrap)
+            .collect()
+    }
+}

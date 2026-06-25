@@ -178,7 +178,7 @@ h2.title {
   top: 20px;
   left: 50%;
   z-index: 50;
-  width: min(calc(100% - 40px), 1440px);
+  width: min(calc(100% - 56px), 1120px);
   transform: translateX(-50%);
   border: 1px solid rgba(228,228,231,.9);
   border-radius: 999px;
@@ -1101,4 +1101,3 @@ h2.title {
   *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
   html { scroll-behavior: auto; }
 }
-

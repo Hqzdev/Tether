@@ -2,7 +2,6 @@ import Core
 import Foundation
 
 extension CodexLogObserver {
-    /// Folds Codex response events into graph nodes for the visible timeline.
     nonisolated static func makeNodes(
         from events: [CodexResponseEventRow],
         thread: CodexThreadRow
@@ -28,6 +27,7 @@ extension CodexLogObserver {
                     tokensIn: 0,
                     tokensOut: 0,
                     outputText: pendingOutputText,
+                    promptUser: event.promptUser,
                     toolSummaries: pendingToolSummaries,
                     errorMessage: nil
                 )
@@ -56,7 +56,6 @@ extension CodexLogObserver {
             responses.append(active)
         }
 
-        // Surface every observed Codex response, not just the most recent ones.
         let maxLatency = max(responses.map(\.latencyMs).max() ?? 0, 1)
 
         return responses.enumerated().map { index, draft in
@@ -64,7 +63,6 @@ extension CodexLogObserver {
         }
     }
 
-    /// Builds the final graph node from a folded Codex response draft.
     nonisolated static func makeNode(
         from draft: CodexResponseDraft,
         index: Int,
@@ -74,12 +72,14 @@ extension CodexLogObserver {
         let latencyMs = draft.latencyMs
         let responseText = responseText(for: draft)
         let error = errorPayload(for: draft)
+        let responseTitle = truncate(firstLine(responseText).trimmingCharacters(in: .whitespacesAndNewlines), limit: 54)
+        let promptUser = draft.promptUser?.trimmingCharacters(in: .whitespacesAndNewlines)
 
         return AgentNode(
             id: draft.id,
             agentName: "Codex",
             depth: index,
-            stepName: draft.status == .running ? "Codex response streaming" : "Codex response \(index + 1)",
+            stepName: draft.status == .running ? "Codex response streaming" : responseTitle,
             timestamp: formatClock(seconds: draft.startedAt),
             model: draft.model,
             cost: "$0.0000",
@@ -95,7 +95,7 @@ extension CodexLogObserver {
             status: draft.status,
             prompt: AgentPrompt(
                 system: "Observed from ~/.codex local logs. No proxy configuration is required for Terminal Codex runs.",
-                user: promptText(for: thread)
+                user: promptUser?.isEmpty == false ? promptUser ?? "" : "No turn request was recorded for this local log event."
             ),
             response: AgentResponse(language: .text, text: responseText),
             error: error

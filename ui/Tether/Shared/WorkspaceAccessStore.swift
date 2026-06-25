@@ -23,23 +23,33 @@ final class WorkspaceAccessStore: ObservableObject {
     }
 
     func restorePersistedAccess() {
-        workspaceURL = Self.resolveBookmark(key: Self.workspaceBookmarkKey)
-        codexURL = Self.resolveBookmark(key: Self.codexBookmarkKey)
+        workspaceURL = Self.resolveBookmark(key: Self.workspaceBookmarkKey) ?? Self.resolveStoredURL(key: Self.workspacePathKey)
+        codexURL = Self.resolveBookmark(key: Self.codexBookmarkKey) ?? Self.resolveStoredURL(key: Self.codexPathKey)
         workspacePath = workspaceURL?.path
         codexPath = codexURL?.path
 
-        if !workspaceAccessing, workspaceURL?.startAccessingSecurityScopedResource() == true {
+        if workspaceURL != nil {
+            defaults.set(true, forKey: Self.workspacePromptedKey)
+        }
+        if codexURL != nil {
+            defaults.set(true, forKey: Self.codexPromptedKey)
+        }
+
+        if !workspaceAccessing, Self.hasBookmark(key: Self.workspaceBookmarkKey), workspaceURL?.startAccessingSecurityScopedResource() == true {
             workspaceAccessing = true
         }
-        if !codexAccessing, codexURL?.startAccessingSecurityScopedResource() == true {
+        if !codexAccessing, Self.hasBookmark(key: Self.codexBookmarkKey), codexURL?.startAccessingSecurityScopedResource() == true {
             codexAccessing = true
         }
     }
 
-    func ensureStartupAccess() {
+    func ensureStartupAccess(codexIntegrationEnabled: Bool) {
         restorePersistedAccess()
         if workspaceURL == nil && !defaults.bool(forKey: Self.workspacePromptedKey) {
             requestWorkspaceAccess()
+        }
+        if codexIntegrationEnabled && codexURL == nil && !defaults.bool(forKey: Self.codexPromptedKey) {
+            requestCodexAccess()
         }
     }
 
@@ -49,11 +59,12 @@ final class WorkspaceAccessStore: ObservableObject {
             title: "Grant Tether workspace access",
             message: "Choose the repository folder Tether should inspect for file changes.",
             defaultURL: Self.defaultWorkspaceURL(),
-            bookmarkKey: Self.workspaceBookmarkKey
+            bookmarkKey: Self.workspaceBookmarkKey,
+            pathKey: Self.workspacePathKey
         ) { [weak self] url in
             self?.workspaceURL = url
             self?.workspacePath = url.path
-            if self?.workspaceAccessing != true, url.startAccessingSecurityScopedResource() {
+            if self?.workspaceAccessing != true, Self.hasBookmark(key: Self.workspaceBookmarkKey), url.startAccessingSecurityScopedResource() {
                 self?.workspaceAccessing = true
             }
         }
@@ -65,11 +76,12 @@ final class WorkspaceAccessStore: ObservableObject {
             title: "Grant Tether Codex log access",
             message: "Choose your .codex folder so Tether can observe Terminal Codex runs.",
             defaultURL: FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".codex", isDirectory: true),
-            bookmarkKey: Self.codexBookmarkKey
+            bookmarkKey: Self.codexBookmarkKey,
+            pathKey: Self.codexPathKey
         ) { [weak self] url in
             self?.codexURL = url
             self?.codexPath = url.path
-            if self?.codexAccessing != true, url.startAccessingSecurityScopedResource() {
+            if self?.codexAccessing != true, Self.hasBookmark(key: Self.codexBookmarkKey), url.startAccessingSecurityScopedResource() {
                 self?.codexAccessing = true
             }
         }
@@ -83,6 +95,7 @@ final class WorkspaceAccessStore: ObservableObject {
         workspaceURL = nil
         workspacePath = nil
         defaults.removeObject(forKey: Self.workspaceBookmarkKey)
+        defaults.removeObject(forKey: Self.workspacePathKey)
         defaults.removeObject(forKey: Self.workspacePromptedKey)
     }
 
@@ -94,12 +107,14 @@ final class WorkspaceAccessStore: ObservableObject {
         codexURL = nil
         codexPath = nil
         defaults.removeObject(forKey: Self.codexBookmarkKey)
+        defaults.removeObject(forKey: Self.codexPathKey)
         defaults.removeObject(forKey: Self.codexPromptedKey)
     }
 
     nonisolated static func withWorkspaceAccess<T>(_ body: (URL) -> T) -> T? {
-        guard let url = resolveBookmark(key: workspaceBookmarkKey) ?? defaultWorkspaceURL() else { return nil }
-        let accessing = url.startAccessingSecurityScopedResource()
+        let bookmarkURL = resolveBookmark(key: workspaceBookmarkKey)
+        guard let url = bookmarkURL ?? resolveStoredURL(key: workspacePathKey) ?? defaultWorkspaceURL() else { return nil }
+        let accessing = bookmarkURL != nil && url.startAccessingSecurityScopedResource()
         defer {
             if accessing {
                 url.stopAccessingSecurityScopedResource()
@@ -109,8 +124,9 @@ final class WorkspaceAccessStore: ObservableObject {
     }
 
     nonisolated static func withCodexAccess<T>(_ body: (URL) -> T) -> T? {
-        guard let url = resolveBookmark(key: codexBookmarkKey) else { return nil }
-        let accessing = url.startAccessingSecurityScopedResource()
+        let bookmarkURL = resolveBookmark(key: codexBookmarkKey)
+        guard let url = bookmarkURL ?? resolveStoredURL(key: codexPathKey) else { return nil }
+        let accessing = bookmarkURL != nil && url.startAccessingSecurityScopedResource()
         defer {
             if accessing {
                 url.stopAccessingSecurityScopedResource()
@@ -124,6 +140,7 @@ final class WorkspaceAccessStore: ObservableObject {
         message: String,
         defaultURL: URL?,
         bookmarkKey: String,
+        pathKey: String,
         onGrant: @escaping (URL) -> Void
     ) {
         let panel = NSOpenPanel()
@@ -136,13 +153,19 @@ final class WorkspaceAccessStore: ObservableObject {
         panel.directoryURL = defaultURL
 
         guard panel.runModal() == .OK, let url = panel.url else { return }
+        defaults.set(url.path, forKey: pathKey)
         do {
             let data = try url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
             defaults.set(data, forKey: bookmarkKey)
             onGrant(url)
         } catch {
             defaults.removeObject(forKey: bookmarkKey)
+            onGrant(url)
         }
+    }
+
+    nonisolated private static func hasBookmark(key: String) -> Bool {
+        UserDefaults.standard.data(forKey: key) != nil
     }
 
     nonisolated private static func resolveBookmark(key: String) -> URL? {
@@ -161,6 +184,11 @@ final class WorkspaceAccessStore: ObservableObject {
         }
     }
 
+    nonisolated private static func resolveStoredURL(key: String) -> URL? {
+        guard let path = UserDefaults.standard.string(forKey: key), !path.isEmpty else { return nil }
+        return URL(fileURLWithPath: path, isDirectory: true)
+    }
+
     nonisolated private static func defaultWorkspaceURL() -> URL? {
         URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
@@ -169,6 +197,8 @@ final class WorkspaceAccessStore: ObservableObject {
 
     nonisolated private static let workspaceBookmarkKey = "tether.access.workspaceBookmark"
     nonisolated private static let codexBookmarkKey = "tether.access.codexBookmark"
+    nonisolated private static let workspacePathKey = "tether.access.workspacePath"
+    nonisolated private static let codexPathKey = "tether.access.codexPath"
     nonisolated private static let workspacePromptedKey = "tether.access.workspacePrompted"
     nonisolated private static let codexPromptedKey = "tether.access.codexPrompted"
 }

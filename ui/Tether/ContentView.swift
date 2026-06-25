@@ -22,7 +22,7 @@ struct ContentView: View {
         .animation(.smooth(duration: 0.2), value: updateChecker.updateAvailable)
         .transition(.opacity)
         .task {
-            WorkspaceAccessStore.shared.ensureStartupAccess()
+            WorkspaceAccessStore.shared.ensureStartupAccess(codexIntegrationEnabled: preferences.codexIntegrationEnabled)
             await updateChecker.check()
         }
     }
@@ -113,12 +113,18 @@ final class QuickviewPanelCoordinator {
                 self?.refreshPanel()
             }
             .store(in: &cancellables)
+
+        NotificationCenter.default.publisher(for: .agentTraceToggleQuickview)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.togglePanel()
+            }
+            .store(in: &cancellables)
     }
 
     private static func handles(_ event: NSEvent) -> Bool {
         let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
         return flags.contains(.command)
-            && flags.contains(.shift)
             && event.charactersIgnoringModifiers?.lowercased() == "t"
     }
 

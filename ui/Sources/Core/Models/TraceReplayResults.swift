@@ -34,6 +34,28 @@ public struct TraceReplayResult: Codable, Hashable, Sendable {
     public let tokensIn: Int
     public let tokensOut: Int
     public let invalidated: [AgentNode.ID]
+
+    public init(
+        nodeId: AgentNode.ID,
+        reason: String,
+        previousOutputHash: String,
+        outputHash: String,
+        statusCode: Int,
+        cost: String,
+        tokensIn: Int,
+        tokensOut: Int,
+        invalidated: [AgentNode.ID]
+    ) {
+        self.nodeId = nodeId
+        self.reason = reason
+        self.previousOutputHash = previousOutputHash
+        self.outputHash = outputHash
+        self.statusCode = statusCode
+        self.cost = cost
+        self.tokensIn = tokensIn
+        self.tokensOut = tokensOut
+        self.invalidated = invalidated
+    }
 }
 
 /// Downstream node preview for a potential replay boundary.

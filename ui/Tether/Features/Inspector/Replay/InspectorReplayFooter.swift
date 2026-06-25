@@ -3,7 +3,6 @@ import Networking
 import SwiftUI
 import UI
 
-/// Footer controls for editing a node response before replay.
 struct InspectorReplayFooter: View {
     @Binding var editing: Bool
     @Binding var draft: String
@@ -25,9 +24,21 @@ struct InspectorReplayFooter: View {
 
     private let runCount = 3
 
+    private var replayUnsupportedReason: String? {
+        node.replayUnsupportedReason
+    }
+
     var body: some View {
         VStack(spacing: 12) {
-            if editing {
+            if let replayUnsupportedReason {
+                Text(replayUnsupportedReason)
+                    .font(.system(size: 11.5))
+                    .foregroundStyle(palette.textTertiary)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(3)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 4)
+            } else if editing {
                 Button {
                     saveDraft()
                 } label: {
@@ -74,11 +85,13 @@ struct InspectorReplayFooter: View {
                 )
             }
 
-            CometReplaySection(
-                node: node,
-                onReplayWithModel: onReplayWithModel,
-                palette: palette
-            )
+            if replayUnsupportedReason == nil {
+                CometReplaySection(
+                    node: node,
+                    onReplayWithModel: onReplayWithModel,
+                    palette: palette
+                )
+            }
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 14)
@@ -137,5 +150,15 @@ struct InspectorReplayFooter: View {
                 }
             }
         }
+    }
+}
+
+private extension AgentNode {
+    var replayUnsupportedReason: String? {
+        let source = provider.lowercased()
+        if source == "codex-log" || cacheStatus == "codex-log" {
+            return "This node came from a local source log. Replay needs a proxy-captured request, so inspect the local evidence here or capture the run through the Tether proxy."
+        }
+        return nil
     }
 }

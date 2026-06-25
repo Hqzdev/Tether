@@ -1,14 +1,13 @@
 import SwiftUI
 import UI
 
-/// Footer copy and launch action for the welcome window.
 struct WelcomeFooter: View {
     let palette: AgentTracePalette
     let launchAction: () -> Void
 
     var body: some View {
         VStack(spacing: 0) {
-            Text("Tested with Claude Code and Codex · 100% local · Your keys never leave this Mac")
+            Text("Source adapters for AI coding agents · local traces · keys stay in macOS Keychain")
                 .font(.caption)
                 .foregroundStyle(palette.textQuaternary)
                 .multilineTextAlignment(.center)
@@ -33,7 +32,6 @@ struct WelcomeFooter: View {
 private struct WelcomePrimaryButtonStyle: ButtonStyle {
     let palette: AgentTracePalette
 
-    /// Renders the primary welcome action.
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 14, weight: .semibold))

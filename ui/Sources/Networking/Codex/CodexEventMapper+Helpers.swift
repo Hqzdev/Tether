@@ -48,7 +48,8 @@ extension CodexLogObserver {
             status: .success,
             tokensIn: 0,
             tokensOut: 0,
-            outputText: pendingOutputText,
+            outputText: pendingOutputText.isEmpty ? event.outputText ?? "" : pendingOutputText,
+            promptUser: event.promptUser,
             toolSummaries: pendingToolSummaries,
             errorMessage: nil
         )
@@ -59,6 +60,7 @@ extension CodexLogObserver {
         draft.tokensIn = event.inputTokens ?? draft.tokensIn
         draft.tokensOut = event.outputTokens ?? draft.tokensOut
         draft.errorMessage = event.errorMessage
+        draft.promptUser = event.promptUser ?? draft.promptUser
         draft.status = event.responseStatus == "completed" ? .success : .error
         return draft
     }

@@ -3,13 +3,11 @@ import Networking
 import SwiftUI
 import UI
 
-/// Integrations Tether can observe alongside the local proxy.
 struct ExtensionsSettingsView: View {
     let palette: AgentTracePalette
     @EnvironmentObject private var preferences: AppPreferences
     @StateObject private var access = WorkspaceAccessStore.shared
 
-    /// Local Codex state directory used by the Terminal Codex integration.
     private var codexDirectory: URL {
         access.codexPath.map(URL.init(fileURLWithPath:))
             ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".codex", isDirectory: true)
@@ -22,7 +20,7 @@ struct ExtensionsSettingsView: View {
     var body: some View {
         SettingsPaneScaffold(
             title: "Extensions",
-            subtitle: "Connect Tether to other local agent tools running on your Mac.",
+            subtitle: "Connect source adapters for local agent runs on your Mac.",
             palette: palette
         ) {
             cometSection
@@ -39,8 +37,8 @@ struct ExtensionsSettingsView: View {
     private var codexSection: some View {
         SettingsSection("Terminal Codex", palette: palette) {
             SettingsToggleRow(
-                "Enable Codex integration",
-                subtitle: "Automatically observe Codex CLI runs from your local databases.",
+                "Enable Codex source adapter",
+                subtitle: "Observe Codex CLI runs from local databases.",
                 isOn: $preferences.codexIntegrationEnabled,
                 palette: palette
             )
@@ -53,8 +51,8 @@ struct ExtensionsSettingsView: View {
             )
 
             SettingsButtonRow(
-                "Codex log access",
-                subtitle: "Grant once so Tether can read Terminal Codex logs without repeated prompts.",
+                "Codex local log access",
+                subtitle: "Grant once so this source adapter can read Terminal Codex logs.",
                 buttonTitle: access.hasCodexAccess ? "Change Folder" : "Grant Access",
                 systemImage: "folder.badge.gearshape",
                 palette: palette
@@ -65,7 +63,7 @@ struct ExtensionsSettingsView: View {
             if access.hasCodexAccess {
                 SettingsButtonRow(
                     "Forget Codex access",
-                    subtitle: "Remove the saved permission and stop reading Codex logs.",
+                    subtitle: "Remove the saved permission and stop reading this source.",
                     buttonTitle: "Forget",
                     systemImage: "xmark.circle",
                     destructive: true,

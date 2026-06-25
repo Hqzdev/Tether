@@ -1,4 +1,3 @@
-/** Structured block types supported by the documentation renderer. */
 export type DocsBlock =
   | { kind: "paragraph"; text: string }
   | { kind: "list"; items: string[] }
@@ -6,13 +5,11 @@ export type DocsBlock =
   | { kind: "table"; headers: string[]; rows: string[][] }
   | { kind: "cards"; cards: { title: string; text: string; href: string }[] };
 
-/** One titled section in a documentation article. */
 export type DocsSection = {
   title: string;
   blocks: DocsBlock[];
 };
 
-/** Data model for one generated documentation page. */
 export type DocsPage = {
   slug: string;
   title: string;
@@ -21,13 +18,11 @@ export type DocsPage = {
   sections: DocsSection[];
 };
 
-/** Sidebar group used to render the documentation navigation. */
 export type DocsNavGroup = {
   title: string;
   links: { slug: string; label: string }[];
 };
 
-/** Stable sidebar hierarchy for the documentation section. */
 export const DOCS_NAV_GROUPS: DocsNavGroup[] = [
   {
     title: "Getting Started",
@@ -47,9 +42,16 @@ export const DOCS_NAV_GROUPS: DocsNavGroup[] = [
     ],
   },
   {
+    title: "Supported agents and frameworks",
+    links: [
+      { slug: "supported-agents-and-frameworks", label: "Supported agents" },
+    ],
+  },
+  {
     title: "Architecture",
     links: [
       { slug: "architecture-overview", label: "System overview" },
+      { slug: "architecture-execution-graph", label: "Execution graph" },
       { slug: "architecture-proxy", label: "Rust proxy" },
       { slug: "architecture-app", label: "macOS app" },
       { slug: "architecture-ci-cd", label: "CI/CD and releases" },
@@ -65,14 +67,13 @@ export const DOCS_NAV_GROUPS: DocsNavGroup[] = [
   },
 ];
 
-/** Generated documentation pages shown under /docs. */
 export const DOCS_PAGES: DocsPage[] = [
   {
     slug: "overview",
     title: "Tether documentation",
     category: "Docs",
     description:
-      "Install Tether, route local LLM traffic through the proxy, inspect execution steps, replay failed branches, and understand the architecture behind the desktop app.",
+      "Install Tether, capture local agent runs, inspect execution steps, recover failed branches, and understand the architecture behind the desktop app.",
     sections: [
       {
         title: "What Tether does",
@@ -85,9 +86,9 @@ export const DOCS_PAGES: DocsPage[] = [
           {
             kind: "list",
             items: [
-              "Capture OpenAI-compatible and Anthropic calls through a local proxy.",
-              "Inspect prompt, command output, file changes, latency, tokens, cost, cache state, and errors.",
-              "Replay from a selected execution node with edited or corrected output.",
+              "Capture Codex, Claude Code, LangChain, LangGraph, OpenAI/OpenGPT-style, and custom CLI runs through adapters or proxy ingestion.",
+              "Inspect prompt, action, command output, file changes, latency, tokens, cost, cache state, and errors.",
+              "Replay supported proxy-captured requests or use local rollback evidence when replay is unavailable.",
               "Keep API keys in macOS Keychain and trace data on the local machine.",
             ],
           },
@@ -101,8 +102,13 @@ export const DOCS_PAGES: DocsPage[] = [
             cards: [
               {
                 title: "System overview",
-                text: "The desktop app, Rust proxy, SQLite stores, provider upstreams, and release pipeline in one map.",
+                text: "The capture wrapper, desktop app, Rust proxy, SQLite stores, provider upstreams, and release pipeline in one map.",
                 href: "/docs/architecture-overview",
+              },
+              {
+                title: "Execution graph",
+                text: "Why the graph is an agent execution graph, not an LLM request tree.",
+                href: "/docs/architecture-execution-graph",
               },
               {
                 title: "Rust proxy",
@@ -395,6 +401,62 @@ export const DOCS_PAGES: DocsPage[] = [
     ],
   },
   {
+    slug: "supported-agents-and-frameworks",
+    title: "Supported agents and frameworks",
+    category: "Supported agents and frameworks",
+    description:
+      "Connect Codex, Claude Code, LangChain, LangGraph, OpenAI/OpenGPT-style agents, and custom CLI agents to Tether through source adapters and normalized event ingestion.",
+    sections: [
+      {
+        title: "Source model",
+        blocks: [
+          {
+            kind: "paragraph",
+            text:
+              "Tether is source-adapter based. A source can be local logs, callback events, OpenAI-compatible proxy traffic, or a wrapped CLI process. Each source is normalized into the same local execution graph.",
+          },
+          {
+            kind: "code",
+            language: "text",
+            code:
+              "tether capture -- <agent command>\n  -> wrapper starts or uses local proxy\n  -> agent traffic plus tool, file, shell, and test events are captured\n  -> local trace DB\n  -> macOS app execution graph",
+          },
+        ],
+      },
+      {
+        title: "Connection paths",
+        blocks: [
+          {
+            kind: "table",
+            headers: ["Source", "How it connects"],
+            rows: [
+              ["Codex", "Local Codex logs are read from the user's .codex databases when the Codex source adapter is enabled."],
+              ["Claude Code and local agent logs", "Local logs can be ingested by a source adapter and normalized into execution events."],
+              ["LangChain", "Use callbacks for tool and chain events, or route OpenAI-compatible model traffic through the local proxy."],
+              ["LangGraph", "Use graph callbacks for node transitions, or proxy model traffic through Tether when the model client supports base_url."],
+              ["OpenAI/OpenGPT-style agents", "Point OpenAI-compatible base_url traffic at the local Tether proxy."],
+              ["Custom CLI agents", "Run tether capture -- <agent command> so the wrapper can collect process, shell, file, and proxy events."],
+            ],
+          },
+        ],
+      },
+      {
+        title: "What gets normalized",
+        blocks: [
+          {
+            kind: "list",
+            items: [
+              "User request and turn-scoped prompt text.",
+              "LLM requests and responses with provider metadata.",
+              "Tool calls, file reads, file writes, shell commands, test runs, git diffs, and errors.",
+              "Replay and rollback evidence where the selected source supports it.",
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
     slug: "architecture-overview",
     title: "System overview",
     category: "Architecture",
@@ -408,12 +470,12 @@ export const DOCS_PAGES: DocsPage[] = [
             kind: "code",
             language: "text",
             code:
-              "Agent SDK -> http://127.0.0.1:8080/v1\n      -> Rust proxy gateway\n      -> OpenAI / Anthropic upstream\n      -> SQLite trace + cache stores\n      -> SwiftUI macOS app",
+              "tether capture -- <agent command>\n      -> wrapper starts or uses local proxy\n      -> source adapters normalize agent events\n      -> SQLite trace database\n      -> SwiftUI macOS execution graph",
           },
           {
             kind: "paragraph",
             text:
-              "The proxy is the only network hop added to the agent path. It forwards provider calls, records request and response metadata, and serves a local REST API consumed by the macOS app.",
+              "The proxy is one capture path, not the whole product. Tether also ingests local logs and adapter events, stores normalized execution evidence locally, and serves a local REST API consumed by the macOS app.",
           },
         ],
       },
@@ -424,12 +486,72 @@ export const DOCS_PAGES: DocsPage[] = [
             kind: "table",
             headers: ["Surface", "Responsibility"],
             rows: [
+              ["tether capture", "Wrap local agent commands and coordinate proxy or adapter-based capture."],
               ["proxy/src/gateway", "Provider routing, upstream forwarding, cache hit responses, stream completion."],
-              ["proxy/src/trace", "Capture, summarize, persist, query, replay, and session lifecycle."],
+              ["proxy/src/trace", "Capture, summarize, persist, query, replay, rollback evidence, and session lifecycle."],
               ["ui/Sources/Core", "Shared trace models and reducer state."],
-              ["ui/Sources/Networking", "Proxy API, local launcher, Keychain, and Codex log ingestion."],
+              ["ui/Sources/Networking", "Proxy API, local launcher, Keychain, and source-log ingestion."],
               ["ui/Tether/Features", "App shell, graph, sidebar, inspector, settings, and welcome UI."],
               ["web", "Marketing site and public documentation pages."],
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "architecture-execution-graph",
+    title: "Execution graph architecture",
+    category: "Architecture",
+    description:
+      "The Tether graph represents agent execution, not just model requests.",
+    sections: [
+      {
+        title: "Not an LLM request tree",
+        blocks: [
+          {
+            kind: "paragraph",
+            text:
+              "The graph is an agent execution graph. LLM calls are only one event type. The useful debugging question is what the agent changed, ran, broke, and can recover from.",
+          },
+          {
+            kind: "paragraph",
+            text:
+              "A single user request can produce model calls, tool calls, file reads, file writes, shell commands, tests, git diffs, errors, replay attempts, and rollback evidence. Tether keeps those events connected so the macOS app can move from prompt to action to failure to recovery.",
+          },
+        ],
+      },
+      {
+        title: "Event types",
+        blocks: [
+          {
+            kind: "table",
+            headers: ["Event", "Meaning"],
+            rows: [
+              ["llm.request", "A model request with turn-scoped prompt, provider, model, token, latency, cache, and response metadata."],
+              ["tool.call", "A tool invocation made by the agent or framework."],
+              ["file.read", "A file or workspace input used by the agent."],
+              ["file.write", "A file creation, edit, or deletion produced by the agent."],
+              ["shell.command", "A shell command, including command line, stdout, stderr, duration, and exit status."],
+              ["test.run", "A test command or test-result event with pass/fail status."],
+              ["git.diff", "A diff summary with changed files and line counts."],
+              ["error", "A model, tool, shell, test, or adapter failure."],
+              ["replay", "A supported replay attempt from a proxy-captured request boundary."],
+              ["rollback", "A local recovery or revert action tied to file and diff evidence."],
+            ],
+          },
+        ],
+      },
+      {
+        title: "Graph node contract",
+        blocks: [
+          {
+            kind: "list",
+            items: [
+              "Each node should show the actual user request or event-specific action for that turn.",
+              "Node cards preserve file changes, changed line counts, command or test status, timing, token, model, source, and request metadata.",
+              "Sidebar selection focuses the graph camera on the selected node.",
+              "Replay controls only appear for sources that can safely replay a stored request.",
             ],
           },
         ],

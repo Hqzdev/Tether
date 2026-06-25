@@ -45,6 +45,22 @@ extension MainThreePaneLayoutView {
     /// Replays a node `count` times sequentially to surface provider non-determinism.
     @MainActor
     func runMultiple(node: AgentNode, count: Int = 3) async throws -> [TraceReplayResult] {
+        if node.cacheStatus == "codex-log" {
+            return (0..<max(1, count)).map { _ in
+                TraceReplayResult(
+                    nodeId: node.id,
+                    reason: "local-codex-log-not-replayable",
+                    previousOutputHash: node.outputHash,
+                    outputHash: node.outputHash,
+                    statusCode: 204,
+                    cost: "$0.0000",
+                    tokensIn: node.tokensIn,
+                    tokensOut: node.tokensOut,
+                    invalidated: []
+                )
+            }
+        }
+
         var results: [TraceReplayResult] = []
         results.reserveCapacity(count)
         for _ in 0..<max(1, count) {

@@ -29,6 +29,7 @@ enum CodexDatabase {
 
     private static var codexDirectory: URL {
         codexBookmarkURL
+            ?? storedCodexURL
             ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".codex", isDirectory: true)
     }
 
@@ -38,8 +39,15 @@ enum CodexDatabase {
         return try? URL(resolvingBookmarkData: data, options: .withSecurityScope, relativeTo: nil, bookmarkDataIsStale: &stale)
     }
 
+    private static var storedCodexURL: URL? {
+        guard let path = UserDefaults.standard.string(forKey: "tether.access.codexPath"), !path.isEmpty else { return nil }
+        return URL(fileURLWithPath: path, isDirectory: true)
+    }
+
     private static func withCodexAccess<T>(_ body: () throws -> T) rethrows -> T? {
-        guard let url = codexBookmarkURL else { return nil }
+        guard let url = codexBookmarkURL else {
+            return try? body()
+        }
         let accessing = url.startAccessingSecurityScopedResource()
         defer {
             if accessing {
@@ -55,13 +63,11 @@ enum CodexDatabase {
         query: String,
         as _: [Row].Type
     ) throws -> [Row] {
-        guard let accessURL = codexBookmarkURL else {
-            throw CodexLogObserverError.sqlite("Codex log access has not been granted")
-        }
-        let accessing = accessURL.startAccessingSecurityScopedResource()
+        let accessURL = codexBookmarkURL
+        let accessing = accessURL?.startAccessingSecurityScopedResource() ?? false
         defer {
             if accessing {
-                accessURL.stopAccessingSecurityScopedResource()
+                accessURL?.stopAccessingSecurityScopedResource()
             }
         }
 

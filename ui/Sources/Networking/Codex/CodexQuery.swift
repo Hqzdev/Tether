@@ -50,6 +50,90 @@ extension CodexLogObserver {
             ORDER BY id DESC
             LIMIT 1000
         ),
+        structured_message_events AS (
+            SELECT
+                id,
+                ts,
+                CASE
+                    WHEN instr(feedback_log_body, 'turn.id=') > 0 THEN substr(
+                        substr(feedback_log_body, instr(feedback_log_body, 'turn.id=') + length('turn.id=')),
+                        1,
+                        instr(substr(feedback_log_body, instr(feedback_log_body, 'turn.id=') + length('turn.id=')), ' ') - 1
+                    )
+                    ELSE NULL
+                END AS turn_id,
+                substr(
+                    feedback_log_body,
+                    instr(feedback_log_body, 'OutputText { text: "') + length('OutputText { text: "')
+                ) AS text_tail
+            FROM logs
+            WHERE thread_id = \(sqlQuote(threadId))
+              \(baselineClause)
+              AND target = 'codex_core::stream_events_utils'
+              AND feedback_log_body LIKE '%Output item item=Message%'
+              AND feedback_log_body LIKE '%OutputText { text: "%'
+            ORDER BY id DESC
+            LIMIT 1000
+        ),
+        structured_user_inputs AS (
+            SELECT
+                CASE
+                    WHEN instr(feedback_log_body, 'submission.id="') > 0 THEN substr(
+                        substr(feedback_log_body, instr(feedback_log_body, 'submission.id="') + length('submission.id="')),
+                        1,
+                        instr(substr(feedback_log_body, instr(feedback_log_body, 'submission.id="') + length('submission.id="')), '"') - 1
+                    )
+                    WHEN instr(feedback_log_body, 'Submission { id: "') > 0 THEN substr(
+                        substr(feedback_log_body, instr(feedback_log_body, 'Submission { id: "') + length('Submission { id: "')),
+                        1,
+                        instr(substr(feedback_log_body, instr(feedback_log_body, 'Submission { id: "') + length('Submission { id: "')), '"') - 1
+                    )
+                    ELSE NULL
+                END AS turn_id,
+                substr(
+                    feedback_log_body,
+                    instr(feedback_log_body, 'items: [Text { text: "') + length('items: [Text { text: "')
+                ) AS prompt_tail
+            FROM logs
+            WHERE thread_id = \(sqlQuote(threadId))
+              \(baselineClause)
+              AND target = 'codex_core::session::handlers'
+              AND feedback_log_body LIKE '%op: UserInput%'
+              AND feedback_log_body LIKE '%items: [Text { text: "%'
+        ),
+        structured_prompts AS (
+            SELECT
+                turn_id,
+                substr(prompt_tail, 1, instr(prompt_tail, '", text_elements:') - 1) AS prompt_user
+            FROM structured_user_inputs
+            WHERE turn_id IS NOT NULL
+              AND instr(prompt_tail, '", text_elements:') > 1
+        ),
+        structured_events AS (
+            SELECT
+                message.id,
+                message.ts,
+                'response.completed' AS event_type,
+                'codex-log-' || message.id AS response_id,
+                NULL AS model,
+                'completed' AS response_status,
+                message.ts AS response_created_at,
+                message.ts AS response_completed_at,
+                0 AS input_tokens,
+                0 AS output_tokens,
+                NULL AS error_message,
+                substr(message.text_tail, 1, instr(message.text_tail, '" }') - 1) AS output_text,
+                'message' AS item_type,
+                'codex-log-' || message.id AS item_id,
+                NULL AS item_name,
+                NULL AS item_arguments,
+                substr(message.text_tail, 1, instr(message.text_tail, '" }') - 1) AS item_text,
+                message.turn_id,
+                prompt.prompt_user
+            FROM structured_message_events message
+            LEFT JOIN structured_prompts prompt ON prompt.turn_id = message.turn_id
+            WHERE instr(message.text_tail, '" }') > 1
+        ),
         parsed_events AS (
             SELECT
                 id,
@@ -68,7 +152,9 @@ extension CodexLogObserver {
                 json_extract(body, '$.item.id') AS item_id,
                 json_extract(body, '$.item.name') AS item_name,
                 json_extract(body, '$.item.arguments') AS item_arguments,
-                json_extract(body, '$.item.content[0].text') AS item_text
+                json_extract(body, '$.item.content[0].text') AS item_text,
+                NULL AS turn_id,
+                NULL AS prompt_user
             FROM raw_events
         )
         SELECT *
@@ -79,6 +165,11 @@ extension CodexLogObserver {
             'response.output_item.done',
             'response.completed'
         )
+        UNION ALL
+        SELECT *
+        FROM structured_events
+        WHERE output_text IS NOT NULL
+          AND output_text != ''
         ORDER BY id ASC;
         """
 

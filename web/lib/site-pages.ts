@@ -1,4 +1,3 @@
-/** Marketing page data rendered by the generic footer-page route. */
 export type SitePage = {
   slug: string;
   title: string;
@@ -43,25 +42,24 @@ export type SitePage = {
   };
 };
 
-/** Static marketing and company pages exposed by /[slug]. */
 export const SITE_PAGES: SitePage[] = [
   {
     slug: "product",
     title: "Product",
     eyebrow: "Local-first execution debugging",
     description:
-      "Tether gives AI builders a single Mac-native workspace for execution traces, file impact, failures, and recovery replay.",
+      "Tether is a local execution debugger for AI coding agents: prompt, action, file diff, failed command, and recovery in one Mac-native graph.",
     sections: [
       {
         title: "Built around the real shape of agent work",
         body:
-          "Agent runs are not linear logs. They branch, retry, call tools, hit caches, fail in strange places, and recover in ways that are hard to see from a terminal. Tether turns those runs into a readable execution-debugging surface.",
-        bullets: ["Execution nodes", "Provider metadata", "Prompt/action inspection", "Recovery-ready traces"],
+          "Agent runs are not LLM request trees. They read files, write diffs, call tools, run shell commands, break tests, retry, and recover. Tether turns that local activity into a readable execution graph.",
+        bullets: ["Prompt to action", "File diff evidence", "Command and test status", "Recovery-ready traces"],
       },
       {
         title: "Private by default",
         body:
-          "The product is designed for sensitive workflows where prompts, customer data, and API keys should stay local. Tether keeps traces on your machine and puts secrets in macOS Keychain.",
+          "The product is designed for sensitive coding workflows where prompts, traces, and API keys should stay local. Tether keeps traces on your machine and stores tokens in macOS Keychain.",
       },
     ],
     cta: { label: "Download the alpha", href: "/download" },
@@ -71,19 +69,19 @@ export const SITE_PAGES: SitePage[] = [
     title: "Features",
     eyebrow: "Everything needed to recover broken AI code runs",
     description:
-      "A complete loop for local AI execution debugging: capture actions, inspect files and failures, replay branches, and recover quickly.",
+      "A complete loop for local AI execution debugging: capture the request, inspect actions and file diffs, see failed commands or tests, and recover quickly.",
     sections: [
       {
         title: "Execution capture",
         body:
-          "Route provider calls through the local proxy and see every prompt, command, and file-change in a structured execution graph.",
-        bullets: ["Request and response bodies", "Command output and exit status", "Model metadata", "Nested tool-call context"],
+          "Use tether capture -- <agent command>, source adapters, or OpenAI-compatible proxying to see prompts, tool calls, commands, tests, and file changes in a structured graph.",
+        bullets: ["Codex and Claude Code sources", "LangChain and LangGraph adapters", "Command output and exit status", "File diff and line counts"],
       },
       {
         title: "Recovery actions",
         body:
-          "Edit a failed step, replay from that node, and test downstream behavior without burning tokens on every upstream call.",
-        bullets: ["Patch action output", "Replay selected branches", "Cache-aware development", "Deterministic iteration"],
+          "Replay supported proxy-captured requests, compare outcomes, or roll back from local evidence when a run came from source logs.",
+        bullets: ["Supported replay boundaries", "Rollback evidence", "Cache-aware development", "Failure recovery"],
       },
     ],
     cta: { label: "Open inspector page", href: "/inspector" },
@@ -93,18 +91,18 @@ export const SITE_PAGES: SitePage[] = [
     title: "Inspector",
     eyebrow: "The right pane for every agent decision",
     description:
-      "Inspect prompts, responses, metadata, timing, cache state, failures, and replay controls from one focused panel.",
+      "Inspect prompts, responses, file changes, metadata, timing, command status, failures, and recovery controls from one focused panel.",
     sections: [
       {
         title: "Prompt and response clarity",
         body:
-          "Read exactly what went into a model and what came back out, formatted for scanning instead of buried in raw terminal output.",
+          "Read exactly what the user asked, what the agent did, which files changed, and what came back from the model or tool.",
       },
       {
         title: "Operational context",
         body:
-          "See whether a call was cached, how long it took, what it cost, and where it sits in the larger agent tree.",
-        bullets: ["Status chips", "Cache metadata", "Token counts", "Provider and model details"],
+          "See whether a step was cached, how long it took, what it cost, which command failed, and where it sits in the larger execution graph.",
+        bullets: ["Status chips", "Cache metadata", "Token counts", "Source and adapter details"],
       },
     ],
     cta: { label: "See how it works", href: "/how-it-works" },
@@ -112,24 +110,24 @@ export const SITE_PAGES: SitePage[] = [
   {
     slug: "how-it-works",
     title: "How it works",
-    eyebrow: "One proxy, full execution context",
+    eyebrow: "Capture wrapper, proxy, graph",
     description:
-      "Tether runs a local HTTP proxy. Point your SDK at localhost, run your agent, and inspect the execution context.",
+      "Tether wraps local agent commands, starts or uses the local proxy, captures normalized execution events, and shows the run in the macOS app.",
     sections: [
       {
-        title: "1. Route calls through Tether",
+        title: "1. Capture the agent run",
         body:
-          "Change the SDK base URL to the local Tether endpoint. Your application keeps using the same request shape.",
+          "Run tether capture -- <agent command>, connect a source adapter, or point OpenAI-compatible traffic at the local proxy.",
       },
       {
         title: "2. Capture the run",
         body:
-          "The proxy forwards requests to your configured provider while recording prompt/action order, file diffs, failures, and responses locally.",
+          "Tether records prompt, action, file diff, shell command, test run, git diff, error, replay, and rollback events into a local trace database.",
       },
       {
         title: "3. Replay the recovery point",
         body:
-          "Select a failed node, edit or override the action, then rerun downstream logic from that point forward.",
+          "Select a failed node, inspect the evidence, then use supported replay or rollback paths instead of rerunning blindly.",
       },
     ],
     cta: { label: "Read documentation", href: "/documentation" },
@@ -139,7 +137,7 @@ export const SITE_PAGES: SitePage[] = [
     title: "Download",
     eyebrow: "Alpha for macOS",
     description:
-      "Get the Mac build, connect the local proxy, and inspect your first execution debugger workflow in minutes.",
+      "Get the Mac build, capture a local agent run, and inspect your first execution graph in minutes.",
     sections: [
       {
         title: "macOS-first",
@@ -150,7 +148,7 @@ export const SITE_PAGES: SitePage[] = [
       {
         title: "What you get",
         body:
-          "The alpha includes the web landing, local proxy, trace capture, cache metadata, and the evolving Mac interface.",
+          "The alpha includes the local proxy, source-log ingestion, trace capture, file and command metadata, and the evolving Mac interface.",
       },
     ],
     cta: { label: "Join the waitlist", href: "/#download" },
@@ -165,8 +163,8 @@ export const SITE_PAGES: SitePage[] = [
       {
         title: "Use it with your existing stack",
         body:
-          "Keep your SDKs, models, and frameworks. Tether sits in front of provider calls and gives you execution recovery context.",
-        bullets: ["OpenAI-compatible clients", "LangChain", "LangGraph", "LlamaIndex", "Ollama and LM Studio"],
+          "Keep your agents, SDKs, models, and frameworks. Tether connects through adapters and normalized event ingestion.",
+        bullets: ["Codex", "Claude Code", "LangChain", "LangGraph", "OpenAI/OpenGPT-style agents", "Custom CLI agents"],
       },
       {
         title: "Debug before production",
@@ -181,19 +179,19 @@ export const SITE_PAGES: SitePage[] = [
     title: "Documentation",
     eyebrow: "Setup and operating guide",
     description:
-      "A practical guide to installing Tether, routing provider calls, reading execution paths, using cache, and recovery replay.",
+      "A practical guide to installing Tether, connecting source adapters, reading execution graphs, and recovering broken agent runs.",
     sections: [
       {
         title: "Quick setup",
         body:
-          "Install dependencies, start the web app, run the local proxy, then point your SDK base URL at Tether.",
-        bullets: ["Clone the repo", "Run npm install", "Start the web app", "Configure the local proxy"],
+          "Install dependencies, build the proxy and app, then capture an agent run through tether capture -- or a supported source adapter.",
+        bullets: ["Clone the repo", "Build the proxy", "Build the macOS app", "Capture a local agent run"],
       },
       {
         title: "Architecture pages",
         body:
-          "The generated docs section now covers the system overview, Rust proxy modules, macOS app modules, CI/CD, releases, local privacy, commands, and API boundaries.",
-        bullets: ["System overview", "Rust proxy", "macOS app", "CI/CD and releases"],
+          "The docs cover supported agents and frameworks, execution graph semantics, Rust proxy modules, macOS app modules, local privacy, commands, and API boundaries.",
+        bullets: ["Supported agents", "Execution graph", "Rust proxy", "macOS app"],
       },
     ],
     cta: { label: "Open docs", href: "/docs" },
@@ -203,18 +201,18 @@ export const SITE_PAGES: SitePage[] = [
     title: "CLI reference",
     eyebrow: "Commands for local workflows",
     description:
-      "Reference material for running the proxy, packaging the app, validating builds, and debugging local execution paths.",
+      "Reference material for capture, proxy operation, packaging the app, validating builds, and debugging local execution paths.",
     sections: [
       {
         title: "Common commands",
         body:
           "The CLI surface is evolving with the proxy. These commands document the local development workflow.",
-        bullets: ["npm run dev", "npm run build", "npm run package:dmg", "npm run smoke:e2e"],
+        bullets: ["tether capture -- <agent command>", "npm run build", "scripts/package-dmg.sh", "scripts/smoke-e2e.sh"],
       },
       {
         title: "Proxy operations",
         body:
-          "Future CLI commands will expose provider setup, cache inspection, trace export, and replay utilities.",
+          "The CLI direction centers on capture, adapter setup, trace export, cache inspection, and supported replay utilities.",
       },
     ],
     cta: { label: "Read changelog", href: "/changelog" },
@@ -229,8 +227,8 @@ export const SITE_PAGES: SitePage[] = [
       {
         title: "Current alpha",
         body:
-          "The current build focuses on the landing experience, waitlist flow, trace UI direction, local proxy skeleton, and response caching.",
-        bullets: ["Next.js product site", "macOS app structure", "Rust proxy foundation", "Local cache and trace models"],
+          "The current build focuses on local execution debugging: source logs, proxy-captured requests, dense node cards, file impact, and recovery workflows.",
+        bullets: ["Next.js docs site", "macOS graph app", "Rust proxy foundation", "Local trace models"],
       },
       {
         title: "Next releases",

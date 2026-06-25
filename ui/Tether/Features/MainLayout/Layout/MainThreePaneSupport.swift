@@ -115,7 +115,7 @@ enum WorkspaceGuideStep: Int, CaseIterable {
         case .inspector:
             "Click a node to inspect prompt context, response, metadata, and replay tools."
         case .quickview:
-            "Press Cmd Shift T to check the latest run without switching away from your editor or terminal."
+            "Press Cmd T to check the latest run without switching away from your editor or terminal."
         }
     }
 

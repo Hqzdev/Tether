@@ -81,11 +81,14 @@ export function SiteHeader() {
           Tether
         </Link>
         <div className="nav-links">
-          <Link href="/#demo" onClick={() => trackEvent("navigation_clicked", { label: "Replay bench", location: "header" })}>
-            Replay bench
+          <Link href="/#demo" onClick={() => trackEvent("navigation_clicked", { label: "Inspector", location: "header" })}>
+            Inspector
           </Link>
-          <Link href="/#how" onClick={() => trackEvent("navigation_clicked", { label: "Setup flow", location: "header" })}>
-            Setup flow
+          <Link href="/#how" onClick={() => trackEvent("navigation_clicked", { label: "Capture flow", location: "header" })}>
+            Capture flow
+          </Link>
+          <Link href="/#sources" onClick={() => trackEvent("navigation_clicked", { label: "Sources", location: "header" })}>
+            Sources
           </Link>
           <Link href="/security" onClick={() => trackEvent("navigation_clicked", { label: "Security review", location: "header" })}>
             Security review

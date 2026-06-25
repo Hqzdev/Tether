@@ -78,7 +78,8 @@ struct ShortcutsSettingsView: View {
         (
             "Workspace",
             [
-                ShortcutRow(action: "Open Quickview", shortcut: "Cmd Shift T", detail: "Show the latest run without switching context."),
+                ShortcutRow(action: "Open Quickview", shortcut: "Cmd T", detail: "Show the latest run without switching context."),
+                ShortcutRow(action: "Search Nodes", shortcut: "Cmd F", detail: "Focus node search when the graph gets large."),
                 ShortcutRow(action: "Toggle Inspector", shortcut: "Space", detail: "Show or hide node details with immediate feedback."),
                 ShortcutRow(action: "Previous Node", shortcut: "Cmd [", detail: "Move selection to the previous graph node."),
                 ShortcutRow(action: "Next Node", shortcut: "Cmd ]", detail: "Move selection to the next graph node.")
@@ -89,8 +90,15 @@ struct ShortcutsSettingsView: View {
             [
                 ShortcutRow(action: "Replay Selected Node", shortcut: "Cmd R", detail: "Replay the selected node and refresh the trace."),
                 ShortcutRow(action: "Reload Trace", shortcut: "Cmd Shift R", detail: "Refresh the current trace from local sources."),
-                ShortcutRow(action: "Copy Selection", shortcut: "Cmd C", detail: "Copy the active inspector content."),
-                ShortcutRow(action: "Clear View", shortcut: "Cmd Option K", detail: "Reset transient selection without deleting trace data.")
+                ShortcutRow(action: "Clear View", shortcut: "Escape", detail: "Reset transient selection without deleting trace data.")
+            ]
+        ),
+        (
+            "Inspector Tabs",
+            [
+                ShortcutRow(action: "Content", shortcut: "1", detail: "Jump to the primary inspector content."),
+                ShortcutRow(action: "Parameters", shortcut: "2", detail: "Jump to request parameters and model context."),
+                ShortcutRow(action: "Resolution", shortcut: "3", detail: "Jump to response and failure resolution.")
             ]
         )
     ]

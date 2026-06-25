@@ -17,6 +17,7 @@ struct GraphViewport: View {
     let positionStore: GraphNodePositionStore
     @Binding var nodeSizes: [AgentNode.ID: CGSize]
     let zoomScale: CGFloat
+    let focusRequest: Int
     let onSelect: (AgentNode) -> Void
     let onZoom: (CGFloat, Bool) -> Void
     let onInteractionChanged: (Bool) -> Void
@@ -101,6 +102,9 @@ struct GraphViewport: View {
                 withTransaction(transaction) {
                     panOffset = clampedPan(panOffset, viewportSize: geometry.size)
                 }
+            }
+            .onChange(of: focusRequest) { _, _ in
+                centerSelectedNode(in: geometry.size)
             }
             .onDisappear {
                 onInteractionChanged(false)

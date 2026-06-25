@@ -224,11 +224,12 @@ final class TraceStore: ObservableObject {
         guard !pendingAttributionNodeIds.isEmpty else { return }
 
         let changed = lastWorkspaceSnapshot.map { snapshot.changedSummary(since: $0) } ?? .empty
-        let targetNodeId = changed.hasChanges ? pendingAttributionNodeIds.last : nil
+        guard changed.hasChanges, let targetNodeId = pendingAttributionNodeIds.last else { return }
 
         for nodeId in pendingAttributionNodeIds {
             guard let node = nodes.first(where: { $0.id == nodeId }) else { continue }
-            let files = nodeId == targetNodeId ? changed.files : []
+            let existing = nodeWorkSummaries[nodeId]
+            let files = nodeId == targetNodeId ? changed.files : existing?.changedFiles ?? []
             nodeWorkSummaries[nodeId] = AgentNodeWorkSummary(
                 promptText: node.workPromptText,
                 changedFiles: files

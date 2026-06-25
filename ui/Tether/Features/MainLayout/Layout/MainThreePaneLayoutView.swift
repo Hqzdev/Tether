@@ -20,6 +20,8 @@ struct MainThreePaneLayoutView: View {
     @State var notificationTokens: [NSObjectProtocol] = []
     @State var workspaceGuideVisible = false
     @State var workspaceGuideStep: WorkspaceGuideStep = .intro
+    @State var graphFocusRequest = 0
+    @FocusState var searchFocused: Bool
     @AppStorage("hasSeenWorkspaceGuide") var hasSeenWorkspaceGuide = false
 
     @EnvironmentObject var preferences: AppPreferences
@@ -183,6 +185,8 @@ struct MainThreePaneLayoutView: View {
             center.addObserver(forName: .agentTraceShowInspector, object: nil, queue: .main) { _ in showInspectorFromCommand() },
             center.addObserver(forName: .agentTraceShowGraph, object: nil, queue: .main) { _ in showGraphFromCommand() },
             center.addObserver(forName: .agentTraceToggleInspector, object: nil, queue: .main) { _ in toggleInspector() },
+            center.addObserver(forName: .agentTraceFocusSearch, object: nil, queue: .main) { _ in focusNodeSearch() },
+            center.addObserver(forName: .agentTraceSelectInspectorTab, object: nil, queue: .main) { notification in selectInspectorTab(notification.object) },
             center.addObserver(forName: .agentTraceSelectPreviousNode, object: nil, queue: .main) { _ in selectAdjacentNode(offset: -1) },
             center.addObserver(forName: .agentTraceSelectNextNode, object: nil, queue: .main) { _ in selectAdjacentNode(offset: 1) },
             center.addObserver(forName: .agentTraceReplaySelectedNode, object: nil, queue: .main) { _ in replaySelectedNodeFromShortcut() },
@@ -217,6 +221,20 @@ struct MainThreePaneLayoutView: View {
     func showGraphFromCommand() {
         compactSection = .graph
         showShortcutFeedback("Graph shown")
+    }
+
+    func focusNodeSearch() {
+        compactSection = .calls
+        searchFocused = true
+        showShortcutFeedback("Search nodes")
+    }
+
+    func selectInspectorTab(_ object: Any?) {
+        guard let tab = object as? InspectorTab else { return }
+        inspectorTab = tab
+        inspectorVisible = true
+        compactSection = .inspector
+        showShortcutFeedback(tab.title)
     }
 
     func reloadTraceFromCommand() {
@@ -286,12 +304,18 @@ struct MainThreePaneLayoutView: View {
         let currentIndex = selectedNodeId.flatMap { id in nodes.firstIndex { $0.id == id } } ?? 0
         let nextIndex = min(max(currentIndex + offset, 0), nodes.count - 1)
         selectedNodeId = nodes[nextIndex].id
+        graphFocusRequest += 1
         showShortcutFeedback(offset < 0 ? "Previous node" : "Next node")
     }
 
     func replaySelectedNodeFromShortcut() {
         guard let selectedNode else {
             showShortcutFeedback("No node selected")
+            return
+        }
+
+        if selectedNode.provider.lowercased() == "codex-log" || selectedNode.cacheStatus == "codex-log" {
+            showShortcutFeedback("Replay needs a proxy-captured request")
             return
         }
 

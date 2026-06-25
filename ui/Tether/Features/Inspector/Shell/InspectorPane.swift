@@ -27,7 +27,6 @@ struct ReplayWithModelAction: Sendable {
     }
 }
 
-/// Right-hand inspector that shows prompt, response, and metadata for the selected node.
 struct InspectorPane: View {
     let node: AgentNode?
     @Binding var tab: InspectorTab

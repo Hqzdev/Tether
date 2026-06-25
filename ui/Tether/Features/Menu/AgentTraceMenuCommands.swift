@@ -1,4 +1,5 @@
 import AppKit
+import Core
 import SwiftUI
 
 struct AgentTraceMenuCommands: Commands {
@@ -40,24 +41,39 @@ struct AgentTraceMenuCommands: Commands {
             Button("Clear View") {
                 NotificationCenter.default.post(name: .agentTraceClearView, object: nil)
             }
-            .keyboardShortcut("k", modifiers: [.option, .command])
+            .keyboardShortcut(.escape, modifiers: [])
         }
 
         CommandMenu("View") {
+            Button("Open Quickview") {
+                NotificationCenter.default.post(name: .agentTraceToggleQuickview, object: nil)
+            }
+            .keyboardShortcut("t", modifiers: .command)
+
+            Button("Find Nodes") {
+                NotificationCenter.default.post(name: .agentTraceFocusSearch, object: nil)
+            }
+            .keyboardShortcut("f", modifiers: .command)
+
             Button("Toggle Inspector") {
                 NotificationCenter.default.post(name: .agentTraceToggleInspector, object: nil)
             }
             .keyboardShortcut(.space, modifiers: [])
 
-            Button("Show Inspector") {
-                NotificationCenter.default.post(name: .agentTraceShowInspector, object: nil)
+            Button("Content Tab") {
+                NotificationCenter.default.post(name: .agentTraceSelectInspectorTab, object: InspectorTab.context)
             }
-            .keyboardShortcut("1", modifiers: .command)
+            .keyboardShortcut("1", modifiers: [])
 
-            Button("Show Graph") {
-                NotificationCenter.default.post(name: .agentTraceShowGraph, object: nil)
+            Button("Parameters Tab") {
+                NotificationCenter.default.post(name: .agentTraceSelectInspectorTab, object: InspectorTab.llmCall)
             }
-            .keyboardShortcut("2", modifiers: .command)
+            .keyboardShortcut("2", modifiers: [])
+
+            Button("Resolution Tab") {
+                NotificationCenter.default.post(name: .agentTraceSelectInspectorTab, object: InspectorTab.response)
+            }
+            .keyboardShortcut("3", modifiers: [])
 
             Divider()
 
@@ -114,6 +130,9 @@ extension Notification.Name {
     static let agentTraceShowInspector = Notification.Name("agentTraceShowInspector")
     static let agentTraceShowGraph = Notification.Name("agentTraceShowGraph")
     static let agentTraceToggleInspector = Notification.Name("agentTraceToggleInspector")
+    static let agentTraceToggleQuickview = Notification.Name("agentTraceToggleQuickview")
+    static let agentTraceFocusSearch = Notification.Name("agentTraceFocusSearch")
+    static let agentTraceSelectInspectorTab = Notification.Name("agentTraceSelectInspectorTab")
     static let agentTraceSelectPreviousNode = Notification.Name("agentTraceSelectPreviousNode")
     static let agentTraceSelectNextNode = Notification.Name("agentTraceSelectNextNode")
     static let agentTraceReplaySelectedNode = Notification.Name("agentTraceReplaySelectedNode")

@@ -3,6 +3,7 @@ import UI
 
 struct SidebarSearchField: View {
     @Binding var searchText: String
+    let searchFocused: FocusState<Bool>.Binding
     let palette: AgentTracePalette
 
     var body: some View {
@@ -17,6 +18,7 @@ struct SidebarSearchField: View {
                     .textFieldStyle(.plain)
                     .font(.system(size: 12.5))
                     .foregroundStyle(palette.text)
+                    .focused(searchFocused)
             }
             .frame(height: 30)
             .padding(.horizontal, 9)

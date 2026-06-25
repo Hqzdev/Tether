@@ -65,7 +65,7 @@ struct NodeCardModel: Identifiable, Equatable {
         replayCostImproved: Bool = false,
         workSummary: AgentNodeWorkSummary? = nil
     ) {
-        let workSummary = workSummary ?? AgentNodeWorkSummary(promptText: node.workPromptText)
+        let workSummary = workSummary ?? AgentNodeWorkSummary(promptText: node.cardPreviewText)
         id = node.id
         agentName = node.agentName
         stepName = node.stepName
@@ -86,6 +86,12 @@ struct NodeCardModel: Identifiable, Equatable {
         changedLineSummary = workSummary.lineSummary
         isExecutionEvent = node.isExecutionEvent
         executionStatus = node.status == .success ? "exit 0" : node.error.map { "exit \($0.code)" } ?? node.status.label.lowercased()
+    }
+}
+
+private extension AgentNode {
+    var cardPreviewText: String {
+        return workPromptText
     }
 }
 

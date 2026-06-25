@@ -30,7 +30,6 @@ const YANDEX_METRIKA_ID = 109761424;
 const APP_ICON_PATH = "/icon-1024.png";
 const APP_ICON_URL = `${SITE_URL}${APP_ICON_PATH}`;
 
-/** Global SEO, sharing, and install metadata for the Tether website. */
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   applicationName: "Tether",
@@ -39,19 +38,19 @@ export const metadata: Metadata = {
     template: "%s | Tether",
   },
   description:
-    "Debug execution failures from AI coding agents: what changed, what broke, and what to replay. Local proxy for OpenAI, Anthropic, Ollama, LangChain, and LangGraph.",
+    "Debug AI coding agent execution locally: prompt, action, file diff, failed command or test, and recovery. Source adapters for Codex, Claude Code, LangChain, LangGraph, OpenAI/OpenGPT-style agents, and custom CLIs.",
   keywords: [
     "AI coding agent debugger",
     "execution debugger",
     "local AI proxy",
-    "OpenAI proxy macOS",
-    "Anthropic proxy",
+    "Codex debugger",
+    "Claude Code debugger",
     "agent tracing tool",
-    "LLM call inspector",
+    "agent execution graph",
     "AI debugging macOS",
     "local execution debugging",
     "agent failure recovery",
-    "AI execution replay",
+    "AI agent recovery",
     "local LangSmith alternative",
     "LLM debugging privacy",
   ],
@@ -77,7 +76,7 @@ export const metadata: Metadata = {
   siteName: "Tether",
     title: "Tether - Local execution debugger for AI coding agents",
     description:
-      "Capture prompt-to-action execution paths, command output, file changes, and failed branches from AI coding agents. Local proxy, one base_url change.",
+      "Capture prompt-to-action execution paths, command output, file changes, failed tests, and recovery evidence from AI coding agents. Local-first source adapters.",
     images: [
       {
         url: APP_ICON_PATH,
@@ -92,7 +91,7 @@ export const metadata: Metadata = {
   card: "summary_large_image",
     title: "Tether - Local execution debugger for AI coding agents",
     description:
-      "Capture prompt-to-action execution paths, command output, file changes, and failed branches from AI coding agents. Local proxy, one base_url change.",
+      "Capture prompt-to-action execution paths, command output, file changes, failed tests, and recovery evidence from AI coding agents. Local-first source adapters.",
     images: [APP_ICON_PATH],
   },
   alternates: {
@@ -130,13 +129,13 @@ const jsonLd = {
       description:
         "Tether captures execution context from local AI coding agents, tracks what changed and what broke, and lets you replay from a failed step with local proxy confidence.",
       featureList: [
-        "Local execution capture through proxy",
-        "Failure-first run graph",
-        "Prompt-action path replay",
+        "Local execution capture through source adapters",
+        "Agent execution graph",
+        "Prompt-action-file-diff recovery path",
         "File-change recovery from failed nodes",
         "Local response cache for repeated execution paths",
         "API key storage in macOS Keychain",
-        "Air-gapped — no data leaves the machine",
+        "Local-first traces and prompts",
       ],
       screenshot: APP_ICON_URL,
     },
@@ -158,13 +157,13 @@ const jsonLd = {
           "@type": "HowToStep",
           position: 1,
           name: "Point the base_url",
-          text: "Change your AI client's base_url to http://localhost:8080/v1. This is the only code change required. Works with any OpenAI-compatible SDK.",
+      text: "Run tether capture -- <agent command> or point OpenAI-compatible traffic to http://localhost:8080/v1.",
         },
         {
           "@type": "HowToStep",
           position: 2,
           name: "Run your agent",
-      text: "Run your agent as normal. Every LLM request is automatically intercepted, cached, and streamed into the visual tree in real time.",
+      text: "Run your agent as normal. Tether captures LLM requests, tool calls, file changes, shell commands, tests, diffs, and errors.",
         },
         {
           "@type": "HowToStep",
@@ -182,7 +181,7 @@ const jsonLd = {
           name: "Why not just use print() or logging?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "Logging shows you what happened. Tether shows you why. You see the exact point where your agent failed, what response broke it, and you replay with a fix in seconds without re-running the whole chain.",
+            text: "Logging shows fragments. Tether connects the prompt, action, file diff, command output, failed test, and recovery point in one local execution graph.",
           },
         },
         {
@@ -206,7 +205,7 @@ const jsonLd = {
           name: "Will Tether work with my stack?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "If your SDK uses a configurable base_url, including OpenAI SDK, LangChain, LangGraph, LlamaIndex, or Anthropic SDK, it works with one line change. If you use a different provider or custom setup, Tether still works as a transparent proxy.",
+            text: "Tether supports Codex, Claude Code, LangChain, LangGraph, OpenAI/OpenGPT-style agents, and custom CLI agents through source adapters, callbacks, proxy routing, or tether capture --.",
           },
         },
         {

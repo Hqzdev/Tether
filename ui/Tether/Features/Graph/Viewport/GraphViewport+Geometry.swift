@@ -26,6 +26,22 @@ extension GraphViewport {
         )
     }
 
+    func centerSelectedNode(in viewportSize: CGSize) {
+        guard let selectedNode, let index = nodes.firstIndex(where: { $0.id == selectedNode.id }) else { return }
+
+        let origin = position(for: selectedNode, at: index)
+        let size = nodeSizes[selectedNode.id] ?? nodeSize
+        let center = CGPoint(x: origin.x + size.width / 2, y: origin.y + size.height / 2)
+        let target = CGSize(
+            width: viewportSize.width / 2 - center.x * zoomScale,
+            height: viewportSize.height / 2 - center.y * zoomScale
+        )
+
+        withAnimation(.smooth(duration: 0.22)) {
+            panOffset = clampedPan(target, viewportSize: viewportSize)
+        }
+    }
+
     func clampedPan(_ offset: CGSize, viewportSize: CGSize) -> CGSize {
         let bounds = nodeBounds.isNull ? CGRect(origin: .zero, size: contentSize) : nodeBounds
         let minimumX = min(0, viewportSize.width - bounds.maxX * zoomScale - panOverscrollPadding)

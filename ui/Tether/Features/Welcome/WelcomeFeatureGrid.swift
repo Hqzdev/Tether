@@ -1,7 +1,6 @@
 import SwiftUI
 import UI
 
-/// Three-column feature summary in the welcome flow.
 struct WelcomeFeatureGrid: View {
     let palette: AgentTracePalette
     let hasAppeared: Bool
@@ -10,24 +9,24 @@ struct WelcomeFeatureGrid: View {
         HStack(spacing: 16) {
             WelcomeFeatureCard(
                 systemImage: "terminal",
-                title: "Terminal-native",
-                description: "Point Claude Code or Codex to 127.0.0.1:8080. No SDK rewrite.",
+                title: "Adapter-native",
+                description: "Capture Codex, Claude Code, LangChain, LangGraph, OpenAI-compatible, and custom CLI agents.",
                 palette: palette
             )
             .welcomeReveal(hasAppeared, delay: 0.15)
 
             WelcomeFeatureCard(
                 systemImage: "point.3.connected.trianglepath.dotted",
-                title: "Every call mapped",
-                description: "Prompt, response, latency, model and cache status stay readable locally.",
+                title: "Every action mapped",
+                description: "Prompt, file diff, command status, latency, model, and cache state stay readable locally.",
                 palette: palette
             )
             .welcomeReveal(hasAppeared, delay: 0.30)
 
             WelcomeFeatureCard(
                 systemImage: "arrow.trianglehead.branch",
-                title: "Replay the chain",
-                description: "Inspect failures, edit one response, and re-run downstream steps.",
+                title: "Recover the run",
+                description: "Inspect failures, replay supported branches, or roll back from local evidence.",
                 palette: palette
             )
             .welcomeReveal(hasAppeared, delay: 0.45)

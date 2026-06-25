@@ -58,6 +58,8 @@ struct CodexResponseEventRow: Decodable {
     let itemName: String?
     let itemArguments: String?
     let itemText: String?
+    let turnId: String?
+    let promptUser: String?
 
     private enum CodingKeys: String, CodingKey {
         case id
@@ -77,6 +79,8 @@ struct CodexResponseEventRow: Decodable {
         case itemName = "item_name"
         case itemArguments = "item_arguments"
         case itemText = "item_text"
+        case turnId = "turn_id"
+        case promptUser = "prompt_user"
     }
 }
 
@@ -95,6 +99,7 @@ struct CodexResponseDraft {
     var tokensIn: Int
     var tokensOut: Int
     var outputText: String
+    var promptUser: String?
     var toolSummaries: [String]
     var errorMessage: String?
 
