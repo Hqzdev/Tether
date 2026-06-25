@@ -6,7 +6,7 @@ import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import { trackEvent } from "@/lib/analytics";
 import { NODES, type NodeStatus, type TraceNode } from "@/lib/data";
 
-const GITHUB_RELEASE_HREF = "https://github.com/Hqzdev/Tether/releases/latest";
+const GITHUB_RELEASE_HREF = "https://github.com/Hqzdev/Tether/releases/latest/download/Tether.dmg";
 
 
 type LandingIconName = IconName;
@@ -96,7 +96,7 @@ const TREE_LAYOUT: {
 const FAQ_ITEMS: { q: string; a: ReactNode }[] = [
   {
     q: "We already use LangSmith or Langfuse. Why Tether?",
-    a: "Those tools are strong hosted observability systems. Tether is a local workbench for the moment an agent breaks on your machine and you need the exact request, response, cache state, and downstream replay path without uploading the run.",
+    a: "Hosted tools still help teams discuss traces, but Tether is a local execution debugger for one question: which step broke the project and how to recover from there.",
   },
   {
     q: "Does Tether send prompts, responses, or API keys anywhere?",
@@ -382,7 +382,7 @@ export default function TetherLanding() {
         </h1>
         <p className="lead">
           Tether records the run on your Mac, shows the failed node with its request and response,
-          then lets you patch that output and replay only what comes after it.
+          then lets you patch that step and replay only what comes after it.
         </p>
         <div className="cta-row">
           <a
@@ -453,7 +453,7 @@ export default function TetherLanding() {
 
       <section className="section-pad wrap deferred-section" id="features">
         <div className="section-head reveal">
-          <div className="kicker">Failure replay</div>
+          <div className="kicker">Recovery replay</div>
           <h2 className="title">
             Find the node that changed the outcome.
           </h2>
@@ -809,7 +809,7 @@ export default function TetherLanding() {
           </div>
           <div className="step reveal">
             <div className="num">03 / PROVE</div>
-            <h4>Inspect &amp; replay</h4>
+            <h4>Inspect and recover</h4>
             <p>
               Open the canvas, click the node that broke, rewrite its output,
               and replay forward. See exactly where your agent fails - without
@@ -924,7 +924,7 @@ export default function TetherLanding() {
           <div className="download-pane">
             <div className="kicker">Alpha access</div>
             <h2>
-              Install the local trace workbench
+              Install the local execution debugger
               <br />
               before your next agent run.
             </h2>

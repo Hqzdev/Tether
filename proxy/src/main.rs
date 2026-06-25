@@ -9,6 +9,7 @@
 //! The macOS UI reads live captured calls through `/api/traces/current`.
 
 mod api_docs;
+mod actions;
 mod auth;
 mod context;
 mod diagnostics;
@@ -18,6 +19,7 @@ mod logging;
 mod providers;
 mod settings;
 mod trace;
+mod workspace;
 
 use std::io::Write;
 use std::sync::{Arc, Mutex};
@@ -60,6 +62,8 @@ async fn main() {
     let cache_enabled = std::env::var("TETHER_CACHE")
         .map(|v| v != "off" && v != "0" && v != "false")
         .unwrap_or(true);
+    let trace_retention = trace::TraceRetention::from_env()
+        .unwrap_or_else(|error| panic!("tether: cannot configure trace retention: {error}"));
     let openai_api_key = read_api_key("OPENAI_API_KEY");
     let anthropic_api_key = read_api_key("ANTHROPIC_API_KEY");
 
@@ -93,9 +97,11 @@ async fn main() {
         comet_models: Arc::new(RwLock::new(None)),
     };
     trace::spawn_ingest_worker(state.db.clone(), trace_events);
+    trace::spawn_retention_worker(state.db.clone(), trace_retention);
 
     let app = Router::new()
         .merge(api_docs::router())
+        .merge(actions::router())
         .merge(auth::router())
         .merge(settings::router())
         .merge(providers::router())
@@ -112,6 +118,10 @@ async fn main() {
     println!("  {DIM}/v1/messages*   -> {anthropic}   (Anthropic / Claude Code){RESET}");
     println!("  {DIM}everything else -> {openai}   (OpenAI / Codex){RESET}");
     println!("  {DIM}cache: {BOLD}{cache_label}{RESET}{DIM}  ·  db: {db_path}{RESET}");
+    println!(
+        "  {DIM}trace retention: {BOLD}{}{RESET}",
+        trace_retention.label()
+    );
     let key_label = |present: bool| {
         if present {
             "injected from env"
@@ -131,6 +141,7 @@ async fn main() {
         serde_json::json!({
             "addr": addr,
             "cache_enabled": cache_enabled,
+            "trace_retention": trace_retention.label(),
             "db_path": db_path,
             "openai_key_source": key_label(openai_key_present),
             "anthropic_key_source": key_label(anthropic_key_present)

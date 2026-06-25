@@ -3,7 +3,6 @@ import AppKit
 import SwiftUI
 import UI
 
-/// Switches between the prompt, response, and metadata inspector bodies.
 struct InspectorBody: View {
     let node: AgentNode
     let tab: InspectorTab
@@ -24,11 +23,15 @@ struct InspectorBody: View {
                     palette: palette
                 )
             case .llmCall:
-                LLMCallInspectorBody(
-                    node: node,
-                    responseText: responseText,
-                    palette: palette
-                )
+                if node.isExecutionEvent {
+                    ExecutionInspectorBody(node: node, responseText: responseText, palette: palette)
+                } else {
+                    LLMCallInspectorBody(
+                        node: node,
+                        responseText: responseText,
+                        palette: palette
+                    )
+                }
             case .response:
                 ResponseInspectorBody(
                     node: node,
@@ -43,6 +46,79 @@ struct InspectorBody: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+private struct ExecutionInspectorBody: View {
+    let node: AgentNode
+    let responseText: String
+    let palette: AgentTracePalette
+    @State private var revealOutput = true
+    @State private var revealDiff = false
+
+    private var execution: AgentExecutionContext? {
+        node.contextInputs.execution
+    }
+
+    private var exitLabel: String {
+        if let exitCode = execution?.exitCode {
+            return "exit \(exitCode)"
+        }
+        return node.error.map { "exit \($0.code)" } ?? node.status.label.lowercased()
+    }
+
+    private var commandLine: String {
+        if let commandLine = execution?.commandLine, !commandLine.isEmpty {
+            return commandLine
+        }
+        return node.prompt.user
+    }
+
+    var body: some View {
+        EditorToolbar(
+            title: "shell.command",
+            chips: [
+                exitLabel,
+                node.latency,
+                execution?.diffAfterSummary ?? "diff unknown"
+            ],
+            palette: palette
+        )
+
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                InspectorSection(title: "Command", palette: palette) {
+                    MetadataInlineRow(label: "Command", value: commandLine, palette: palette)
+                    MetadataInlineRow(label: "CWD", value: execution?.cwd ?? "n/a", palette: palette)
+                    MetadataInlineRow(label: "Session", value: execution?.sessionId ?? node.requestId, palette: palette)
+                    MetadataInlineRow(label: "Exit", value: exitLabel, palette: palette)
+                    MetadataInlineRow(label: "Duration", value: node.latency, palette: palette)
+                }
+
+                RawPayloadDisclosure(
+                    title: "Command Output",
+                    revealed: $revealOutput,
+                    sections: [CodeSection(label: nil, text: responseText.isEmpty ? "no output" : responseText)],
+                    language: .text,
+                    palette: palette
+                )
+
+                InspectorSection(title: "Git Snapshot", palette: palette) {
+                    MetadataInlineRow(label: "Base", value: execution?.gitBaseRevision ?? "n/a", palette: palette)
+                    MetadataInlineRow(label: "Before", value: execution?.diffBeforeSummary ?? "n/a", palette: palette)
+                    MetadataInlineRow(label: "After", value: execution?.diffAfterSummary ?? "n/a", palette: palette)
+                }
+
+                RawPayloadDisclosure(
+                    title: "Git Diff After",
+                    revealed: $revealDiff,
+                    sections: [CodeSection(label: nil, text: execution?.gitDiffAfter.isEmpty == false ? execution?.gitDiffAfter ?? "" : "no diff")],
+                    language: .text,
+                    palette: palette
+                )
+            }
+        }
+        .background(palette.panel.opacity(0.52))
     }
 }
 
@@ -154,7 +230,6 @@ private struct ResponseInspectorBody: View {
     }
 }
 
-/// Structured context-boundary view for the selected model call.
 struct ContextBoundaryInspectorBody: View {
     let node: AgentNode
     let replayImpact: TraceInvalidationResult?
@@ -446,7 +521,6 @@ private struct ReplayBoundarySection: View {
     }
 }
 
-/// A simple labeled section used inside the inspector body.
 struct InspectorSection<Content: View>: View {
     let title: String
     let palette: AgentTracePalette
@@ -455,7 +529,7 @@ struct InspectorSection<Content: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(title)
-                .font(.system(size: 10.5, weight: .bold, design: .monospaced))
+                .font(.system(size: 10.5, weight: .semibold, design: .monospaced))
                 .foregroundStyle(palette.textTertiary)
                 .padding(.horizontal, 14)
                 .padding(.top, 14)
@@ -464,7 +538,7 @@ struct InspectorSection<Content: View>: View {
             content
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(palette.panel.opacity(0.42))
+        .background(palette.panel.opacity(0.34))
         .overlay(alignment: .bottom) {
             Rectangle()
                 .fill(palette.border)
@@ -473,7 +547,6 @@ struct InspectorSection<Content: View>: View {
     }
 }
 
-/// Compact key/value row shared by context, LLM call, and metadata surfaces.
 struct MetadataInlineRow: View {
     let label: String
     let value: String
@@ -490,16 +563,16 @@ struct MetadataInlineRow: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 12) {
             Text(label)
-                .font(.system(size: 11.5))
+                .font(.system(size: 11.5, weight: .medium))
                 .foregroundStyle(palette.textTertiary)
-                .frame(width: 112, alignment: .leading)
+                .frame(width: 104, alignment: .leading)
 
             Text(value.isEmpty ? "n/a" : value)
                 .font(.system(size: valueFontSize, design: .monospaced))
                 .foregroundStyle(palette.text)
                 .lineLimit(nil)
                 .textSelection(.enabled)
-                .frame(maxWidth: .infinity, alignment: .trailing)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 8)
@@ -540,7 +613,6 @@ private extension View {
     }
 }
 
-/// Explicit raw payload reveal used by the LLM call layer.
 struct RawPayloadDisclosure: View {
     let title: String
     @Binding var revealed: Bool

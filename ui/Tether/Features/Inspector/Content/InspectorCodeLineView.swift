@@ -2,7 +2,6 @@ import Core
 import SwiftUI
 import UI
 
-/// Numbered row rendered by the inspector code viewer.
 struct CodeRow: Equatable, Identifiable {
     let id: Int
     let number: Int
@@ -17,7 +16,6 @@ struct CodeRow: Equatable, Identifiable {
     }
 }
 
-/// Renders one numbered line or labeled section break in the inspector.
 struct CodeLineView: View {
     let row: CodeRow
     let language: ResponseLanguage
@@ -27,13 +25,13 @@ struct CodeLineView: View {
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
             Text("\(row.number)")
-                .font(.system(size: 12, design: .monospaced))
+                .font(.system(size: 11.5, design: .monospaced))
                 .foregroundStyle(palette.textQuaternary)
-                .frame(width: 48, alignment: .trailing)
-                .padding(.trailing, 12)
-                .padding(.leading, 14)
-                .frame(minHeight: 20)
-                .background(palette.panel.opacity(0.48))
+                .frame(width: 44, alignment: .trailing)
+                .padding(.trailing, 10)
+                .padding(.leading, 12)
+                .frame(minHeight: 21)
+                .background(palette.panel.opacity(0.40))
                 .overlay(alignment: .trailing) {
                     Rectangle()
                         .fill(palette.borderSoft)
@@ -74,15 +72,14 @@ private struct SectionLabelLine: View {
     var body: some View {
         HStack(spacing: 8) {
             Text(label.uppercased())
-                .font(.system(size: 10, weight: .bold, design: .monospaced))
-                .tracking(0.8)
+                .font(.system(size: 10, weight: .semibold, design: .monospaced))
                 .foregroundStyle(labelAccent)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 2)
-                .background(labelAccent.opacity(0.14))
+                .background(labelAccent.opacity(0.10))
                 .overlay(
                     RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous)
-                        .stroke(labelAccent.opacity(0.32), lineWidth: 1)
+                    .stroke(labelAccent.opacity(0.32), lineWidth: 1)
                 )
                 .clipShape(RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous))
 
@@ -90,10 +87,10 @@ private struct SectionLabelLine: View {
                 .fill(labelAccent.opacity(0.18))
                 .frame(height: 1)
         }
-        .frame(maxWidth: .infinity, minHeight: 26, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 25, alignment: .leading)
         .padding(.horizontal, 16)
         .padding(.vertical, 4)
-        .background(palette.panel.opacity(0.56))
+        .background(palette.panel.opacity(0.46))
     }
 }
 
@@ -106,9 +103,9 @@ private struct CodeTextLine: View {
     var body: some View {
         syntaxText(text)
             .font(.system(size: 12, design: .monospaced))
-            .lineSpacing(5)
+            .lineSpacing(4)
             .foregroundStyle(highlightedStatus == .error ? palette.pinkText : palette.textSecondary)
-            .frame(maxWidth: .infinity, minHeight: 20, alignment: .leading)
+            .frame(maxWidth: .infinity, minHeight: 21, alignment: .leading)
             .padding(.horizontal, 16)
             .background(highlightedStatus == .error ? palette.pinkBackground.opacity(0.55) : Color.clear)
             .overlay(alignment: .leading) {
@@ -120,7 +117,6 @@ private struct CodeTextLine: View {
             }
     }
 
-    /// Returns display text while preserving empty rows for line-height consistency.
     private func syntaxText(_ text: String) -> Text {
         guard language == .json else {
             return Text(text.isEmpty ? " " : text)

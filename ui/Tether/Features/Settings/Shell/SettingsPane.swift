@@ -1,8 +1,8 @@
 import Foundation
 
-/// Logical settings panes shown in the desktop settings sidebar.
 enum SettingsPane: String, CaseIterable, Identifiable {
     case general
+    case shortcuts
     case agents
     case workspace
     case privacy
@@ -13,14 +13,15 @@ enum SettingsPane: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    static let settings: [SettingsPane] = [.general, .agents, .workspace, .privacy, .usage]
+    static let settings: [SettingsPane] = [.general, .shortcuts, .agents, .workspace, .privacy, .usage]
     static let desktop: [SettingsPane] = [.proxy, .extensions, .developer]
 
-    /// User-facing pane title.
     var title: String {
         switch self {
         case .general:
             return "General"
+        case .shortcuts:
+            return "Shortcuts"
         case .agents:
             return "Agents"
         case .workspace:
@@ -38,11 +39,12 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         }
     }
 
-    /// SF Symbol used for this pane.
     var systemImage: String {
         switch self {
         case .general:
             return "gearshape"
+        case .shortcuts:
+            return "keyboard"
         case .agents:
             return "person.2"
         case .workspace:

@@ -7,9 +7,10 @@ use rusqlite::{Connection, OptionalExtension, params};
 use super::store_row::TraceRow;
 
 /// Inserts a trace row. Best-effort: logs and returns on failure.
-pub(super) fn insert_trace_row(db: &Arc<Mutex<Connection>>, row: TraceRow, status: &str) {
+pub(crate) fn insert_trace_row(db: &Arc<Mutex<Connection>>, row: TraceRow, status: &str) {
     if let Ok(conn) = db.lock() {
-        let (trace_id, parent_span_id) = resolve_lineage(&conn, &row.id, &row.tool_result_ids);
+        let (trace_id, parent_span_id) =
+            resolve_lineage(&conn, &row.id, &row.tool_result_ids, &row.workspace_id);
         insert_row(&conn, row, trace_id, parent_span_id);
         println!("  captured trace node: {status}");
     }
@@ -24,10 +25,10 @@ fn insert_row(conn: &Connection, row: TraceRow, trace_id: String, parent_span_id
              response_language, error_code, error_message, error_detail, tokens_in,
              tokens_out, cost, temperature, trace_id, parent_span_id, tool_use_ids,
              context_inputs, input_hash, stale, request_body, request_target,
-             is_replay, replay_source_id, replay_provider)
+             is_replay, replay_source_id, replay_provider, workspace_id)
          VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14,
                  ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26,
-                 ?27, ?28, ?29, ?30, ?31, ?32)",
+                 ?27, ?28, ?29, ?30, ?31, ?32, ?33)",
         params![
             row.id,
             row.created_at,
@@ -61,6 +62,7 @@ fn insert_row(conn: &Connection, row: TraceRow, trace_id: String, parent_span_id
             row.is_replay as i64,
             row.replay_source_id,
             row.replay_provider,
+            row.workspace_id,
         ],
     );
 }
@@ -70,9 +72,12 @@ fn resolve_lineage(
     conn: &Connection,
     own_id: &str,
     tool_result_ids: &[String],
+    workspace_id: &str,
 ) -> (String, Option<String>) {
     for tool_use_id in tool_result_ids {
-        if let Some((parent_id, parent_trace_id)) = find_parent_span(conn, tool_use_id) {
+        if let Some((parent_id, parent_trace_id)) =
+            find_parent_span(conn, tool_use_id, workspace_id)
+        {
             let trace_id = if parent_trace_id.is_empty() {
                 parent_id.clone()
             } else {
@@ -85,14 +90,18 @@ fn resolve_lineage(
 }
 
 /// Finds a prior response span that emitted the given tool use id.
-fn find_parent_span(conn: &Connection, tool_use_id: &str) -> Option<(String, String)> {
+fn find_parent_span(
+    conn: &Connection,
+    tool_use_id: &str,
+    workspace_id: &str,
+) -> Option<(String, String)> {
     conn.query_row(
         "SELECT id, COALESCE(trace_id, '')
          FROM trace_calls
-         WHERE tool_use_ids LIKE ?1
+         WHERE tool_use_ids LIKE ?1 AND workspace_id = ?2
          ORDER BY created_at DESC
          LIMIT 1",
-        [format!("%\"{tool_use_id}\"%")],
+        params![format!("%\"{tool_use_id}\"%"), workspace_id],
         |row| Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?)),
     )
     .optional()

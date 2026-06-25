@@ -2,7 +2,6 @@ import Core
 import SwiftUI
 
 extension MainThreePaneLayoutView {
-    /// Builds the adaptive workspace body for the current window size.
     @ViewBuilder
     func workspace(layout: AdaptiveWorkspaceLayout, size _: CGSize) -> some View {
         switch layout.mode {
@@ -12,20 +11,28 @@ extension MainThreePaneLayoutView {
                     .frame(minWidth: 220, idealWidth: layout.sidebarWidth, maxWidth: 380)
                 graphPane()
                     .frame(minWidth: 360, maxWidth: .infinity)
-                inspectorPane()
-                    .frame(minWidth: 280, idealWidth: layout.inspectorWidth, maxWidth: 520)
+                if inspectorVisible {
+                    inspectorPane()
+                        .frame(minWidth: 280, idealWidth: layout.inspectorWidth, maxWidth: 520)
+                        .transition(.move(edge: .trailing).combined(with: .opacity))
+                }
             }
         case .medium:
             HSplitView {
                 sidebarPane()
                     .frame(minWidth: 220, idealWidth: layout.sidebarWidth, maxWidth: 340)
-                VSplitView {
+                if inspectorVisible {
+                    VSplitView {
+                        graphPane()
+                            .frame(minHeight: 280)
+                        inspectorPane()
+                            .frame(minHeight: 180, idealHeight: layout.inspectorHeight, maxHeight: 360)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
                     graphPane()
-                        .frame(minHeight: 280)
-                    inspectorPane()
-                        .frame(minHeight: 180, idealHeight: layout.inspectorHeight, maxHeight: 360)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         case .compact:
             VStack(spacing: 0) {
@@ -36,7 +43,6 @@ extension MainThreePaneLayoutView {
         }
     }
 
-    /// Chooses the currently selected compact pane.
     @ViewBuilder
     func compactPane() -> some View {
         switch compactSection {
@@ -49,7 +55,6 @@ extension MainThreePaneLayoutView {
         }
     }
 
-    /// Builds the left sidebar pane.
     func sidebarPane() -> some View {
         Sidebar(
             nodes: callListNodes,
@@ -67,7 +72,6 @@ extension MainThreePaneLayoutView {
         )
     }
 
-    /// Builds the center graph pane.
     func graphPane() -> some View {
         GraphPane(
             nodes: nodes,
@@ -75,12 +79,12 @@ extension MainThreePaneLayoutView {
             selectedNode: selectedNode,
             totalLatencyMs: totalLatencyMs,
             onSelect: { selectedNodeId = $0.id },
+            onCopyFailureAnalysisPrompt: copyFailureAnalysisPrompt,
             onInteractionChanged: traceStore.setGraphInteractionActive,
             palette: palette
         )
     }
 
-    /// Builds the right inspector pane.
     func inspectorPane() -> some View {
         InspectorPane(
             node: selectedNode,

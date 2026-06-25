@@ -1,7 +1,6 @@
 import SwiftUI
 import UI
 
-/// Sidebar header showing current proxy or observer status.
 struct SidebarStatusHeader: View {
     let proxyStatus: ProxyConnectionStatus
     let palette: AgentTracePalette
@@ -25,16 +24,15 @@ struct SidebarStatusHeader: View {
                 Spacer(minLength: 0)
             }
             .padding(.horizontal, 10)
-            .frame(height: 38)
-            .liquidGlass(
-                palette: palette,
-                cornerRadius: palette.controlRadius,
-                tint: proxyStatus.backgroundTint(palette),
-                strokeOpacity: 0.84
-            )
+            .frame(height: 34)
+            .background(proxyStatus.backgroundTint(palette), in: RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous)
+                    .stroke(proxyStatus.color(palette).opacity(0.20), lineWidth: 1)
+            }
         }
         .padding(.horizontal, 12)
-        .padding(.top, 12)
+        .padding(.top, 10)
         .padding(.bottom, 8)
     }
 }

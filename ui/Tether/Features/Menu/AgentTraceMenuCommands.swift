@@ -16,6 +16,11 @@ struct AgentTraceMenuCommands: Commands {
             }
             .keyboardShortcut("e", modifiers: .command)
 
+            Button("Copy Failure Analysis Prompt") {
+                NotificationCenter.default.post(name: .agentTraceCopyFailureAnalysisPrompt, object: nil)
+            }
+            .keyboardShortcut("f", modifiers: [.shift, .command])
+
             Divider()
         }
 
@@ -39,6 +44,11 @@ struct AgentTraceMenuCommands: Commands {
         }
 
         CommandMenu("View") {
+            Button("Toggle Inspector") {
+                NotificationCenter.default.post(name: .agentTraceToggleInspector, object: nil)
+            }
+            .keyboardShortcut(.space, modifiers: [])
+
             Button("Show Inspector") {
                 NotificationCenter.default.post(name: .agentTraceShowInspector, object: nil)
             }
@@ -51,10 +61,27 @@ struct AgentTraceMenuCommands: Commands {
 
             Divider()
 
+            Button("Previous Node") {
+                NotificationCenter.default.post(name: .agentTraceSelectPreviousNode, object: nil)
+            }
+            .keyboardShortcut("[", modifiers: .command)
+
+            Button("Next Node") {
+                NotificationCenter.default.post(name: .agentTraceSelectNextNode, object: nil)
+            }
+            .keyboardShortcut("]", modifiers: .command)
+
+            Divider()
+
+            Button("Replay Selected Node") {
+                NotificationCenter.default.post(name: .agentTraceReplaySelectedNode, object: nil)
+            }
+            .keyboardShortcut("r", modifiers: .command)
+
             Button("Reload") {
                 NotificationCenter.default.post(name: .agentTraceReload, object: nil)
             }
-            .keyboardShortcut("r", modifiers: .command)
+            .keyboardShortcut("r", modifiers: [.shift, .command])
         }
 
         CommandGroup(replacing: .help) {
@@ -80,14 +107,16 @@ struct AgentTraceMenuCommands: Commands {
 extension Notification.Name {
     static let agentTraceNewSession = Notification.Name("agentTraceNewSession")
     static let agentTraceExportTraces = Notification.Name("agentTraceExportTraces")
+    static let agentTraceCopyFailureAnalysisPrompt = Notification.Name("agentTraceCopyFailureAnalysisPrompt")
     static let agentTraceCopySelection = Notification.Name("agentTraceCopySelection")
-    /// Non-destructive: clears transient selection without deleting data.
     static let agentTraceClearView = Notification.Name("agentTraceClearView")
-    /// Destructive: permanently deletes every stored trace. Only the dedicated
-    /// Privacy settings button posts this.
     static let agentTraceClearAllTraces = Notification.Name("agentTraceClearAllTraces")
     static let agentTraceShowInspector = Notification.Name("agentTraceShowInspector")
     static let agentTraceShowGraph = Notification.Name("agentTraceShowGraph")
+    static let agentTraceToggleInspector = Notification.Name("agentTraceToggleInspector")
+    static let agentTraceSelectPreviousNode = Notification.Name("agentTraceSelectPreviousNode")
+    static let agentTraceSelectNextNode = Notification.Name("agentTraceSelectNextNode")
+    static let agentTraceReplaySelectedNode = Notification.Name("agentTraceReplaySelectedNode")
     static let agentTraceReload = Notification.Name("agentTraceReload")
     static let agentTraceShowOnboarding = Notification.Name("agentTraceShowOnboarding")
     static let agentTraceShowSettings = Notification.Name("agentTraceShowSettings")

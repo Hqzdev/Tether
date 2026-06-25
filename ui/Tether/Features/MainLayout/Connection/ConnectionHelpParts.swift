@@ -1,7 +1,6 @@
 import SwiftUI
 import UI
 
-/// Header content for the connection help sheet.
 struct ConnectionHelpHeader: View {
     let palette: AgentTracePalette
 
@@ -33,7 +32,6 @@ struct ConnectionHelpHeader: View {
     }
 }
 
-/// One numbered setup row in the connection help sheet.
 struct HelpRow: View {
     let systemImage: String
     let title: String
@@ -59,7 +57,6 @@ struct HelpRow: View {
     }
 }
 
-/// Footer action row for dismissing the connection help sheet.
 struct ConnectionHelpFooter: View {
     let palette: AgentTracePalette
     let dismiss: DismissAction
@@ -79,11 +76,9 @@ struct ConnectionHelpFooter: View {
     }
 }
 
-/// Primary button style for connection help actions.
 struct HelpPrimaryButtonStyle: ButtonStyle {
     let palette: AgentTracePalette
 
-    /// Renders the help button with a dark filled treatment.
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 13, weight: .semibold))
@@ -96,6 +91,7 @@ struct HelpPrimaryButtonStyle: ButtonStyle {
 
 struct MainThreePaneLayoutView_Previews: PreviewProvider {
     static var previews: some View {
-        MainThreePaneLayoutView()
+        MainThreePaneLayoutView(traceStore: TraceStore())
+            .environmentObject(AppPreferences.shared)
     }
 }

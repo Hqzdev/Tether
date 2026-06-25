@@ -1,7 +1,6 @@
 import SwiftUI
 import UI
 
-/// Search field used to filter captured calls.
 struct SidebarSearchField: View {
     @Binding var searchText: String
     let palette: AgentTracePalette
@@ -9,22 +8,25 @@ struct SidebarSearchField: View {
     var body: some View {
         VStack(spacing: 10) {
             HStack(spacing: 0) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(palette.textQuaternary)
+                    .frame(width: 16)
+
                 TextField("Filter calls...", text: $searchText)
                     .textFieldStyle(.plain)
                     .font(.system(size: 12.5))
                     .foregroundStyle(palette.text)
             }
             .frame(height: 30)
-            .padding(.horizontal, 10)
-            .liquidGlass(
-                palette: palette,
-                cornerRadius: palette.controlRadius,
-                tint: palette.glassTint,
-                interactive: true,
-                strokeOpacity: 0.72
-            )
+            .padding(.horizontal, 9)
+            .background(palette.window.opacity(0.72), in: RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous)
+                    .stroke(palette.border, lineWidth: 1)
+            }
         }
         .padding(.horizontal, 12)
-        .padding(.top, 12)
+        .padding(.top, 10)
     }
 }

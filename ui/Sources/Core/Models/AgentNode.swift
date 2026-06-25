@@ -255,4 +255,12 @@ public struct AgentNode: Identifiable, Hashable, Codable, Sendable {
         let digest = SHA256.hash(data: Data(value.utf8))
         return digest.prefix(8).map { String(format: "%02x", $0) }.joined()
     }
+
+    public var isExecutionEvent: Bool {
+        provider.lowercased() == "tether" && model.lowercased() == "shell"
+    }
+
+    public var isRepairCandidate: Bool {
+        isExecutionEvent && status == .error
+    }
 }

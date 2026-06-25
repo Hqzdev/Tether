@@ -35,23 +35,23 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   applicationName: "Tether",
   title: {
-    default: "Tether - Local AI Agent Trace Debugger for macOS",
+    default: "Tether - Local execution debugger for AI coding agents",
     template: "%s | Tether",
   },
   description:
-    "Trace, inspect, cache, mock, and replay every LLM call from your AI agents entirely on your Mac. Local proxy for OpenAI, Anthropic, Ollama, LangChain, and LangGraph.",
+    "Debug execution failures from AI coding agents: what changed, what broke, and what to replay. Local proxy for OpenAI, Anthropic, Ollama, LangChain, and LangGraph.",
   keywords: [
-    "AI agent debugger",
-    "LLM observability",
+    "AI coding agent debugger",
+    "execution debugger",
     "local AI proxy",
     "OpenAI proxy macOS",
     "Anthropic proxy",
     "agent tracing tool",
     "LLM call inspector",
     "AI debugging macOS",
-    "local AI observability",
-    "agent replay",
-    "AI agent trace replay",
+    "local execution debugging",
+    "agent failure recovery",
+    "AI execution replay",
     "local LangSmith alternative",
     "LLM debugging privacy",
   ],
@@ -72,12 +72,12 @@ export const metadata: Metadata = {
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
   openGraph: {
-    type: "website",
-    url: SITE_URL,
-    siteName: "Tether",
-    title: "Tether - Local AI Agent Trace Debugger for macOS",
+  type: "website",
+  url: SITE_URL,
+  siteName: "Tether",
+    title: "Tether - Local execution debugger for AI coding agents",
     description:
-      "Intercept, inspect, cache, mock, and replay every LLM call from your AI agents. Local proxy, one base_url change, no prompt uploads.",
+      "Capture prompt-to-action execution paths, command output, file changes, and failed branches from AI coding agents. Local proxy, one base_url change.",
     images: [
       {
         url: APP_ICON_PATH,
@@ -89,10 +89,10 @@ export const metadata: Metadata = {
     locale: "en_US",
   },
   twitter: {
-    card: "summary_large_image",
-    title: "Tether - Local AI Agent Trace Debugger for macOS",
+  card: "summary_large_image",
+    title: "Tether - Local execution debugger for AI coding agents",
     description:
-      "Intercept, inspect, cache, mock, and replay every LLM call from your AI agents. Local proxy, one base_url change, no prompt uploads.",
+      "Capture prompt-to-action execution paths, command output, file changes, and failed branches from AI coding agents. Local proxy, one base_url change.",
     images: [APP_ICON_PATH],
   },
   alternates: {
@@ -111,7 +111,7 @@ const jsonLd = {
       logo: APP_ICON_URL,
       image: APP_ICON_URL,
       description:
-        "Local-first trace debugging, replay, and mocking tool for AI agents and LLM applications on macOS.",
+        "Local execution debugger for AI coding agents on macOS: prompt, action, file change, and recovery traces stay on your machine.",
     },
     {
       "@type": "SoftwareApplication",
@@ -126,15 +126,15 @@ const jsonLd = {
         description: "Free during alpha",
       },
       publisher: { "@id": `${SITE_URL}/#organization` },
-      image: APP_ICON_URL,
+  image: APP_ICON_URL,
       description:
-        "Tether intercepts every LLM call from your AI agents, visualizes complex agent trees, and lets you cache, replay, or mock responses entirely locally on your Mac. Supports OpenAI, Anthropic, Ollama, LangChain, LangGraph, and more.",
+        "Tether captures execution context from local AI coding agents, tracks what changed and what broke, and lets you replay from a failed step with local proxy confidence.",
       featureList: [
-        "Local LLM proxy — zero SDK changes",
-        "Real-time agent trace visualization",
-        "Request/response time-travel replay",
-        "Response mocking for offline testing",
-        "Local response cache for repeated runs",
+        "Local execution capture through proxy",
+        "Failure-first run graph",
+        "Prompt-action path replay",
+        "File-change recovery from failed nodes",
+        "Local response cache for repeated execution paths",
         "API key storage in macOS Keychain",
         "Air-gapped — no data leaves the machine",
       ],
@@ -150,8 +150,8 @@ const jsonLd = {
     {
       "@type": "HowTo",
       "@id": `${SITE_URL}/#howto`,
-      name: "How to debug AI agents with Tether",
-      description: "Set up Tether to intercept, visualize, and replay LLM calls from any AI agent in three steps.",
+      name: "How to debug broken AI coding agent runs with Tether",
+      description: "Set up Tether to capture prompt-to-action execution paths and replay from any failed step in three steps.",
       totalTime: "PT2M",
       step: [
         {
@@ -164,13 +164,13 @@ const jsonLd = {
           "@type": "HowToStep",
           position: 2,
           name: "Run your agent",
-          text: "Run your agent as normal. Every LLM request is automatically intercepted, cached, and streamed into the visual tree in real time.",
+      text: "Run your agent as normal. Every LLM request is automatically intercepted, cached, and streamed into the visual tree in real time.",
         },
         {
           "@type": "HowToStep",
           position: 3,
           name: "Inspect and replay",
-          text: "Open the canvas, click any node to inspect its full request and response, rewrite its output, and replay the chain from that point to test fixes.",
+          text: "Open the canvas, inspect the failed step with output and file impact, then replay the affected branch with your fix.",
         },
       ],
     },

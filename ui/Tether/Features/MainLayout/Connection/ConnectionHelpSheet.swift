@@ -1,10 +1,14 @@
 import SwiftUI
 import UI
 
-/// Help sheet explaining how local agents connect to Tether.
 struct ConnectionHelpSheet: View {
     @Environment(\.dismiss) private var dismiss
-    private let palette = AgentTracePalette(light: true)
+    @Environment(\.colorScheme) private var systemColorScheme
+    @EnvironmentObject private var preferences: AppPreferences
+
+    private var palette: AgentTracePalette {
+        AgentTracePalette(light: preferences.appearance.isLight(systemColorScheme: systemColorScheme))
+    }
 
     var body: some View {
         ZStack {
@@ -20,7 +24,7 @@ struct ConnectionHelpSheet: View {
                 ConnectionHelpFooter(palette: palette, dismiss: dismiss)
             }
             .padding(24)
-            .background(Color.white.opacity(0.88), in: RoundedRectangle(cornerRadius: palette.paperRadius, style: .continuous))
+            .background(palette.window.opacity(0.88), in: RoundedRectangle(cornerRadius: palette.paperRadius, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: palette.paperRadius, style: .continuous)
                     .stroke(palette.border, lineWidth: 1)
@@ -28,6 +32,5 @@ struct ConnectionHelpSheet: View {
             .padding(12)
         }
         .frame(width: 480)
-        .preferredColorScheme(.light)
     }
 }

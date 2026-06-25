@@ -2,7 +2,6 @@ import Core
 import SwiftUI
 import UI
 
-/// Positions a node card on the canvas without participating in hit testing.
 struct MovableNodeCard: View, Equatable {
     let node: NodeCardModel
     @ObservedObject var nodePosition: GraphNodePosition
@@ -35,7 +34,6 @@ struct MovableNodeCard: View, Equatable {
     }
 }
 
-/// Lightweight graph-card model that excludes inspector-only prompt and response payloads.
 struct NodeCardModel: Identifiable, Equatable {
     let id: AgentNode.ID
     let agentName: String
@@ -55,9 +53,11 @@ struct NodeCardModel: Identifiable, Equatable {
     let promptPreview: String
     let changedFileCount: Int
     let changedLineSummary: String?
+    let isExecutionEvent: Bool
+    let executionStatus: String
 
     var hasBillableCost: Bool {
-        cost != "$0.0000" && cost != "$0" && cost != "$0.00"
+        !isExecutionEvent && cost != "$0.0000" && cost != "$0" && cost != "$0.00"
     }
 
     init(
@@ -84,6 +84,8 @@ struct NodeCardModel: Identifiable, Equatable {
         promptPreview = workSummary.promptText
         changedFileCount = workSummary.fileCount
         changedLineSummary = workSummary.lineSummary
+        isExecutionEvent = node.isExecutionEvent
+        executionStatus = node.status == .success ? "exit 0" : node.error.map { "exit \($0.code)" } ?? node.status.label.lowercased()
     }
 }
 

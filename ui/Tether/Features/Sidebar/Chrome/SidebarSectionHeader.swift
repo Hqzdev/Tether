@@ -1,7 +1,6 @@
 import SwiftUI
 import UI
 
-/// Small section label with a right-aligned count.
 struct SidebarSectionHeader: View {
     let title: String
     let detail: String
@@ -10,18 +9,16 @@ struct SidebarSectionHeader: View {
     var body: some View {
         HStack {
             Text(title)
-                .font(.caption)
-                .fontWeight(.semibold)
+                .font(.system(size: 11, weight: .semibold))
                 .lineLimit(1)
 
             Spacer()
 
             Text(detail)
-                .font(.caption2.monospacedDigit())
+                .font(.system(size: 10.5, design: .monospaced))
         }
         .textCase(nil)
-        .foregroundStyle(.secondary)
-        .fontDesign(.monospaced)
+        .foregroundStyle(palette.textTertiary)
         .padding(.leading, 18)
         .padding(.trailing, 14)
         .padding(.top, 10)

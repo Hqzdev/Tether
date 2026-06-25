@@ -77,6 +77,7 @@ pub(crate) fn record_response(
         replay_provider: None,
         request_body: capture.request_body.clone(),
         request_target: capture.request_target.clone(),
+        workspace_id: capture.workspace_id.clone(),
         tool_result_ids: capture.tool_result_ids.clone(),
     };
 
@@ -123,6 +124,7 @@ pub(crate) fn record_upstream_error(
         replay_provider: None,
         request_body: capture.request_body.clone(),
         request_target: capture.request_target.clone(),
+        workspace_id: capture.workspace_id.clone(),
         tool_result_ids: capture.tool_result_ids.clone(),
     };
 

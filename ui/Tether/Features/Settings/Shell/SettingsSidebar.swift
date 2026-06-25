@@ -1,7 +1,6 @@
 import SwiftUI
 import UI
 
-/// Left settings sidebar with search and pane groups.
 struct SettingsSidebar: View {
     @Binding var selectedPane: SettingsPane
     @Binding var searchText: String
@@ -39,7 +38,6 @@ struct SettingsSidebar: View {
         }
     }
 
-    /// Filters a pane group by the current search query, matching on the pane title.
     private func filtered(_ panes: [SettingsPane]) -> [SettingsPane] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else { return panes }
@@ -63,9 +61,9 @@ private struct SettingsSearchField: View {
         }
         .padding(.horizontal, 10)
         .frame(height: 34)
-        .background(Color.white.opacity(0.86), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+        .background(palette.elevated.opacity(0.78), in: RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 9, style: .continuous)
+            RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous)
                 .stroke(palette.border, lineWidth: 1)
         )
     }
@@ -80,7 +78,7 @@ private struct SettingsPaneGroup: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title)
-                .font(.system(size: 12, weight: .medium))
+                .font(.system(size: 11.5, weight: .semibold))
                 .foregroundStyle(palette.textTertiary)
                 .padding(.horizontal, 10)
                 .padding(.bottom, 4)

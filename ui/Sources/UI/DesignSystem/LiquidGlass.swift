@@ -1,6 +1,5 @@
 import SwiftUI
 
-/// View modifier that applies Tether's light liquid-glass panel treatment.
 public struct LiquidGlassModifier<S: Shape>: ViewModifier {
     let palette: AgentTracePalette
     let shape: S
@@ -8,7 +7,6 @@ public struct LiquidGlassModifier<S: Shape>: ViewModifier {
     let interactive: Bool
     let strokeOpacity: Double
 
-    /// Renders layered tint, stroke, highlight, and shadow effects around content.
     public func body(content: Content) -> some View {
         content
             .background((tint ?? palette.glassTint), in: shape)
@@ -33,13 +31,11 @@ public struct LiquidGlassModifier<S: Shape>: ViewModifier {
                     .blur(radius: 0.2)
                     .padding(1)
             }
-            .shadow(color: palette.liquidShade.opacity(0.42), radius: 10, x: 0, y: 5)
+            .shadow(color: palette.liquidShade.opacity(interactive ? 0.24 : 0.16), radius: interactive ? 5 : 3, x: 0, y: interactive ? 2 : 1)
     }
 }
 
-/// Convenience modifiers for applying the shared liquid-glass treatment.
 public extension View {
-    /// Applies a liquid-glass treatment inside an explicit shape.
     func liquidGlass<S: Shape>(
         palette: AgentTracePalette,
         in shape: S,
@@ -58,7 +54,6 @@ public extension View {
         )
     }
 
-    /// Applies a rounded-rectangle liquid-glass treatment.
     func liquidGlass(
         palette: AgentTracePalette,
         cornerRadius: CGFloat,

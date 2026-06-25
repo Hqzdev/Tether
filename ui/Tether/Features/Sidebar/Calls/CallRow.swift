@@ -2,7 +2,6 @@ import Core
 import SwiftUI
 import UI
 
-/// One captured call row in the sidebar list.
 struct CallRow: View, Equatable {
     let node: CallRowModel
     let selected: Bool
@@ -22,21 +21,14 @@ struct CallRow: View, Equatable {
                 CallRowBody(node: node, palette: palette)
                 CallRowMetrics(node: node, palette: palette)
             }
-            .padding(.horizontal, 9)
-            .padding(.vertical, 9)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 7)
             .frame(maxWidth: .infinity)
-            .background(selected ? palette.active.opacity(0.60) : palette.glassTint.opacity(0.03))
-            .liquidGlass(
-                palette: palette,
-                cornerRadius: palette.controlRadius,
-                tint: selected ? palette.accent.opacity(0.18) : palette.glassTint.opacity(0.08),
-                interactive: true,
-                strokeOpacity: selected ? 0.82 : 0.32
-            )
+            .background(selected ? palette.active.opacity(0.70) : Color.clear)
             .clipShape(RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous)
-                    .stroke(selected ? palette.borderStrong : Color.clear, lineWidth: 1)
+                    .stroke(selected ? palette.borderStrong : palette.borderSoft.opacity(0.0), lineWidth: 1)
             )
             .overlay(alignment: .leading) {
                 if selected {
@@ -52,7 +44,6 @@ struct CallRow: View, Equatable {
     }
 }
 
-/// Lightweight sidebar row model that excludes inspector-only payloads.
 struct CallRowModel: Identifiable, Equatable {
     let id: AgentNode.ID
     let agentName: String
@@ -91,13 +82,9 @@ private struct CallStatusRail: View {
     var body: some View {
         RoundedRectangle(cornerRadius: 2, style: .continuous)
             .fill(palette.color(for: status))
-            .frame(width: selected ? 4 : 3, height: 34)
-            .overlay {
-                RoundedRectangle(cornerRadius: 2, style: .continuous)
-                    .stroke(palette.window.opacity(0.72), lineWidth: 1)
-            }
+            .frame(width: selected ? 3 : 2, height: 30)
             .padding(.top, 1)
-            .frame(width: 10, alignment: .leading)
+            .frame(width: 7, alignment: .leading)
             .accessibilityHidden(true)
     }
 }

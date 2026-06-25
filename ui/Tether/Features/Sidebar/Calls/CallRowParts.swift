@@ -2,7 +2,6 @@ import Core
 import SwiftUI
 import UI
 
-/// Main text content for a sidebar call row.
 struct CallRowBody: View {
     let node: CallRowModel
     let palette: AgentTracePalette
@@ -16,9 +15,9 @@ struct CallRowBody: View {
 
             HStack(spacing: 6) {
                 AgentBadge(name: node.agentName, palette: palette)
-                    .opacity(0.4)
+                    .opacity(0.62)
                 ModelBadge(model: "\(node.provider) / \(node.model)", palette: palette)
-                    .opacity(0.4)
+                    .opacity(0.62)
                 if node.stale {
                     Text("STALE")
                         .font(.system(size: 9, weight: .bold, design: .monospaced))
@@ -54,7 +53,6 @@ private struct ModelBadge: View {
     }
 }
 
-/// Right-side cost and latency metrics for a sidebar call row.
 struct CallRowMetrics: View {
     let node: CallRowModel
     let palette: AgentTracePalette

@@ -2,7 +2,6 @@ import Core
 import SwiftUI
 import UI
 
-/// Scrollable list of filtered trace calls.
 struct SidebarCallList: View {
     let filteredNodes: [AgentNode]
     let selectedNodeId: AgentNode.ID?
@@ -28,7 +27,7 @@ struct SidebarCallList: View {
                     }
                 }
             }
-            .padding(.horizontal, 8)
+            .padding(.horizontal, 7)
             .padding(.bottom, 12)
         }
         .scrollIndicators(.automatic)

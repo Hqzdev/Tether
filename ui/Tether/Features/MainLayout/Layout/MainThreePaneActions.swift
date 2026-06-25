@@ -82,6 +82,60 @@ extension MainThreePaneLayoutView {
         }
     }
 
+    func copyFailureAnalysisPrompt() {
+        Task { @MainActor in
+            await traceStore.loadVisibleNodeDetailsIfNeeded()
+            let snapshot = TraceSnapshot(nodes: nodes)
+
+            guard !snapshot.nodes.isEmpty else {
+                showShortcutFeedback("No trace to analyze")
+                return
+            }
+
+            do {
+                let data = try jsonData(for: snapshot)
+                let traceJSON = String(data: data, encoding: .utf8) ?? "{}"
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(failureAnalysisPrompt(traceJSON: traceJSON), forType: .string)
+                showShortcutFeedback("Failure analysis prompt copied")
+            } catch {
+                NSAlert(error: error).runModal()
+            }
+        }
+    }
+
+    func failureAnalysisPrompt(traceJSON: String) -> String {
+        """
+        You are analyzing an AI agent trace to find the root cause of failure.
+
+        TRACE:
+        \(traceJSON)
+
+        Analyze the trace and identify:
+        1. The exact step index where the agent first went wrong
+        2. The error type from this list:
+           - IGNORED_TOOL_OUTPUT (tool was called but result not used in next prompt)
+           - HALLUCINATED_FACT (agent stated fact not present in any tool result)
+           - LOOP_DETECTED (same tool called 3+ times with same/similar input)
+           - MISSING_CONTEXT (agent lacked information needed to proceed correctly)
+           - PROMPT_AMBIGUITY (instruction was unclear causing wrong direction)
+           - CONFLICTING_MEMORY (injected context contradicted tool output)
+        3. One sentence explanation of what went wrong
+        4. One sentence of what should have happened instead
+
+        Return ONLY valid JSON, no markdown, no explanation:
+        {
+          "step_index": 2,
+          "error_type": "IGNORED_TOOL_OUTPUT",
+          "explanation": "Agent received search result but constructed next prompt without including it.",
+          "suggestion": "Inject tool output directly into next prompt context."
+        }
+
+        If no error found, return:
+        { "step_index": -1, "error_type": "NONE", "explanation": "No failure detected.", "suggestion": "" }
+        """
+    }
+
     /// Presents the trace export panel for an already-hydrated snapshot.
     private func presentExportPanel(for snapshot: TraceSnapshot) {
         let panel = NSSavePanel()

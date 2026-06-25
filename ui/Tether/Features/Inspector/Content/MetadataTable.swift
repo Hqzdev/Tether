@@ -2,16 +2,15 @@ import Core
 import SwiftUI
 import UI
 
-/// Key-value metadata table for the selected graph node.
 struct MetadataTable: View {
     let node: AgentNode
     let edited: Bool
     let palette: AgentTracePalette
 
     private var rows: [(String, String, Color?)] {
-        [
+        var rows = [
             ("Request ID", node.requestId, nil),
-            ("Agent", node.agentName, nil),
+            ("Agent", node.isExecutionEvent ? "Execution" : node.agentName, nil),
             ("Provider", node.provider, nil),
             ("Status", node.error?.code ?? node.status.label, palette.color(for: node.status)),
             ("Model", node.model, nil),
@@ -27,6 +26,13 @@ struct MetadataTable: View {
             ("Timestamp", node.timestamp, nil),
             ("Mock Override", edited ? "ACTIVE" : "none", edited ? palette.pink : nil)
         ]
+        if let execution = node.contextInputs.execution {
+            rows.insert(("Command", execution.commandLine, nil), at: 1)
+            rows.insert(("CWD", execution.cwd, nil), at: 2)
+            rows.insert(("Exit Code", execution.exitCode.map(String.init) ?? "n/a", palette.color(for: node.status)), at: 3)
+            rows.insert(("Git Diff", execution.diffAfterSummary, nil), at: 4)
+        }
+        return rows
     }
 
     var body: some View {
@@ -48,14 +54,15 @@ private struct MetadataRow: View {
     var body: some View {
         HStack(spacing: 16) {
             Text(row.0)
-                .font(.system(size: 11.5))
+                .font(.system(size: 11.5, weight: .medium))
                 .foregroundStyle(palette.textTertiary)
-                .frame(width: 150, alignment: .leading)
+                .frame(width: 132, alignment: .leading)
 
             Text(row.1)
                 .font(.system(size: 12, design: .monospaced))
                 .foregroundStyle(row.2 ?? palette.text)
-                .frame(maxWidth: .infinity, alignment: .trailing)
+                .lineLimit(nil)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .textSelection(.enabled)
         }
         .padding(.horizontal, 16)

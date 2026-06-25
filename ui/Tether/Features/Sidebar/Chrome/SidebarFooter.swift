@@ -1,7 +1,6 @@
 import SwiftUI
 import UI
 
-/// Bottom sidebar action area.
 struct SidebarFooter: View {
     let onShowSettings: () -> Void
     let palette: AgentTracePalette
@@ -14,7 +13,7 @@ struct SidebarFooter: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
-        .background(palette.panelSecondary.opacity(0.38))
+        .background(palette.panelSecondary.opacity(0.42))
         .overlay(alignment: .top) {
             Rectangle()
                 .fill(palette.border)
@@ -36,13 +35,11 @@ private struct SidebarButton: View {
                 .frame(maxWidth: .infinity)
                 .frame(height: 32)
                 .foregroundStyle(selected ? palette.text : palette.textSecondary)
-                .liquidGlass(
-                    palette: palette,
-                    cornerRadius: palette.controlRadius,
-                    tint: selected ? palette.accent.opacity(0.16) : palette.glassTint,
-                    interactive: true,
-                    strokeOpacity: 0.74
-                )
+                .background(selected ? palette.active : palette.window.opacity(0.58), in: RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: palette.controlRadius, style: .continuous)
+                        .stroke(palette.border, lineWidth: 1)
+                }
         }
         .buttonStyle(.plain)
     }

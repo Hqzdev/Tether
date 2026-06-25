@@ -23,19 +23,20 @@ pub(super) fn map_node_error(message: String) -> (StatusCode, String) {
 /// Edits a node response and marks all descendants stale.
 pub(super) fn edit_output_result(
     conn: &Connection,
+    workspace_id: &str,
     id: String,
     output: String,
 ) -> Result<InvalidationResult, String> {
-    let previous_output = node_response_text(conn, &id)?;
+    let previous_output = node_response_text(conn, workspace_id, &id)?;
     let previous_output_hash = short_hash(previous_output.as_bytes());
     let output_hash = short_hash(output.as_bytes());
     conn.execute(
-        "UPDATE trace_calls SET response_text = ?1 WHERE id = ?2",
-        params![output, id],
+        "UPDATE trace_calls SET response_text = ?1 WHERE id = ?2 AND workspace_id = ?3",
+        params![output, id, workspace_id],
     )
     .map_err(|error| error.to_string())?;
-    let invalidated = descendants(conn, &id).map_err(|e| e.to_string())?;
-    mark_stale(conn, &invalidated).map_err(|e| e.to_string())?;
+    let invalidated = descendants(conn, workspace_id, &id).map_err(|e| e.to_string())?;
+    mark_stale(conn, workspace_id, &invalidated).map_err(|e| e.to_string())?;
     Ok(InvalidationResult {
         node_id: id,
         reason: "mocked-output-edited".to_string(),
@@ -46,8 +47,13 @@ pub(super) fn edit_output_result(
 }
 
 /// Returns downstream descendants for a node.
-pub(super) fn downstream_result(conn: &Connection, id: String) -> Result<DownstreamResult, String> {
-    let downstream = descendants(conn, &id).map_err(|e| e.to_string())?;
+pub(super) fn downstream_result(
+    conn: &Connection,
+    workspace_id: &str,
+    id: String,
+) -> Result<DownstreamResult, String> {
+    ensure_node(conn, workspace_id, &id)?;
+    let downstream = descendants(conn, workspace_id, &id).map_err(|e| e.to_string())?;
     Ok(DownstreamResult {
         node_id: id,
         downstream,
@@ -55,11 +61,15 @@ pub(super) fn downstream_result(conn: &Connection, id: String) -> Result<Downstr
 }
 
 /// Loads the replayable request fields for a node.
-pub(super) fn load_replay_spec(conn: &Connection, id: &str) -> Result<ReplaySpec, String> {
+pub(super) fn load_replay_spec(
+    conn: &Connection,
+    workspace_id: &str,
+    id: &str,
+) -> Result<ReplaySpec, String> {
     conn.query_row(
         "SELECT method, provider, request_target, model, request_body
-         FROM trace_calls WHERE id = ?1",
-        [id],
+         FROM trace_calls WHERE id = ?1 AND workspace_id = ?2",
+        params![id, workspace_id],
         |row| {
             Ok(ReplaySpec {
                 method: row.get(0)?,
@@ -76,13 +86,17 @@ pub(super) fn load_replay_spec(conn: &Connection, id: &str) -> Result<ReplaySpec
 }
 
 /// Loads source request fields for a cross-model replay.
-pub(super) fn load_replay_with_spec(conn: &Connection, id: &str) -> Result<ReplayWithSpec, String> {
+pub(super) fn load_replay_with_spec(
+    conn: &Connection,
+    workspace_id: &str,
+    id: &str,
+) -> Result<ReplayWithSpec, String> {
     conn.query_row(
         "SELECT id, COALESCE(trace_id, ''), parent_span_id, prompt_system, prompt_user,
                 COALESCE(context_inputs, '{}'), COALESCE(input_hash, ''), temperature,
                 request_body
-         FROM trace_calls WHERE id = ?1",
-        [id],
+         FROM trace_calls WHERE id = ?1 AND workspace_id = ?2",
+        params![id, workspace_id],
         |row| {
             let source_id: String = row.get(0)?;
             let trace_id: String = row.get(1)?;
@@ -111,9 +125,10 @@ pub(super) fn load_replay_with_spec(conn: &Connection, id: &str) -> Result<Repla
 /// Persists replay output and marks descendants stale.
 pub(super) fn persist_replay_result(
     conn: &Connection,
+    workspace_id: &str,
     update: ReplayUpdate,
 ) -> Result<ReplayResult, String> {
-    let previous_output = node_response_text(conn, &update.node_id)?;
+    let previous_output = node_response_text(conn, workspace_id, &update.node_id)?;
     let previous_output_hash = short_hash(previous_output.as_bytes());
     let output_hash = short_hash(update.response_text.as_bytes());
     conn.execute(
@@ -121,7 +136,7 @@ pub(super) fn persist_replay_result(
          SET response_text = ?1, response_language = ?2, tokens_in = ?3, tokens_out = ?4,
              cost = ?5, status_code = ?6, latency_ms = ?7, cache_status = 'miss',
              tool_use_ids = ?8, request_id = ?9, stale = 0
-         WHERE id = ?10",
+         WHERE id = ?10 AND workspace_id = ?11",
         params![
             update.response_text,
             update.response_language,
@@ -133,11 +148,13 @@ pub(super) fn persist_replay_result(
             update.tool_use_ids,
             update.request_id,
             update.node_id,
+            workspace_id,
         ],
     )
     .map_err(|error| error.to_string())?;
-    let invalidated = descendants(conn, &update.node_id).map_err(|e| e.to_string())?;
-    mark_stale(conn, &invalidated).map_err(|e| e.to_string())?;
+    let invalidated =
+        descendants(conn, workspace_id, &update.node_id).map_err(|e| e.to_string())?;
+    mark_stale(conn, workspace_id, &invalidated).map_err(|e| e.to_string())?;
     Ok(ReplayResult {
         node_id: update.node_id,
         reason: "upstream-replay-refreshed-output".to_string(),
@@ -155,6 +172,7 @@ pub(super) fn persist_replay_result(
 pub(super) fn insert_replay_with_result(
     conn: &Connection,
     insert: ReplayWithInsert,
+    workspace_id: &str,
 ) -> Result<ReplayWithResult, String> {
     conn.execute(
         "INSERT INTO trace_calls
@@ -163,11 +181,11 @@ pub(super) fn insert_replay_with_result(
              response_language, error_code, error_message, error_detail, tokens_in,
              tokens_out, cost, temperature, trace_id, parent_span_id, tool_use_ids,
              context_inputs, input_hash, stale, request_body, request_target,
-             is_replay, replay_source_id, replay_provider)
+             is_replay, replay_source_id, replay_provider, workspace_id)
          VALUES (?1, strftime('%s','now') * 1000, 'cometapi', 'POST', '/v1/chat/completions',
                  ?2, ?3, 'replay', ?4, ?5, ?6, ?7, ?8, ?9, NULL, NULL, NULL,
                  ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, 0, ?19,
-                 '/chat/completions', 1, ?20, 'cometapi')",
+                 '/chat/completions', 1, ?20, 'cometapi', ?21)",
         params![
             insert.id.as_str(),
             insert.model.as_str(),
@@ -189,6 +207,7 @@ pub(super) fn insert_replay_with_result(
             insert.input_hash.as_str(),
             insert.request_body.as_slice(),
             insert.source_node_id.as_str(),
+            workspace_id,
         ],
     )
     .map_err(|error| error.to_string())?;
@@ -208,10 +227,10 @@ pub(super) fn insert_replay_with_result(
 }
 
 /// Reads the current stored response text for output-hash diffs.
-fn node_response_text(conn: &Connection, id: &str) -> Result<String, String> {
+fn node_response_text(conn: &Connection, workspace_id: &str, id: &str) -> Result<String, String> {
     conn.query_row(
-        "SELECT response_text FROM trace_calls WHERE id = ?1",
-        [id],
+        "SELECT response_text FROM trace_calls WHERE id = ?1 AND workspace_id = ?2",
+        params![id, workspace_id],
         |row| row.get::<_, Option<String>>(0),
     )
     .optional()
@@ -221,10 +240,15 @@ fn node_response_text(conn: &Connection, id: &str) -> Result<String, String> {
 }
 
 /// Returns all transitive descendants of a trace node.
-fn descendants(conn: &Connection, root_id: &str) -> rusqlite::Result<Vec<String>> {
-    let mut stmt = conn.prepare("SELECT id, parent_span_id FROM trace_calls")?;
+fn descendants(
+    conn: &Connection,
+    workspace_id: &str,
+    root_id: &str,
+) -> rusqlite::Result<Vec<String>> {
+    let mut stmt =
+        conn.prepare("SELECT id, parent_span_id FROM trace_calls WHERE workspace_id = ?1")?;
     let edges = stmt
-        .query_map([], |row| {
+        .query_map([workspace_id], |row| {
             Ok((row.get::<_, String>(0)?, row.get::<_, Option<String>>(1)?))
         })?
         .collect::<rusqlite::Result<Vec<_>>>()?;
@@ -263,11 +287,28 @@ fn children_by_parent(edges: &[(String, Option<String>)]) -> HashMap<String, Vec
 }
 
 /// Marks trace nodes stale after an upstream edit or replay.
-fn mark_stale(conn: &Connection, ids: &[String]) -> rusqlite::Result<()> {
+fn mark_stale(conn: &Connection, workspace_id: &str, ids: &[String]) -> rusqlite::Result<()> {
     for id in ids {
-        conn.execute("UPDATE trace_calls SET stale = 1 WHERE id = ?1", [id])?;
+        conn.execute(
+            "UPDATE trace_calls SET stale = 1 WHERE id = ?1 AND workspace_id = ?2",
+            params![id, workspace_id],
+        )?;
     }
     Ok(())
+}
+
+fn ensure_node(conn: &Connection, workspace_id: &str, id: &str) -> Result<(), String> {
+    let exists: Option<i64> = conn
+        .query_row(
+            "SELECT 1 FROM trace_calls WHERE id = ?1 AND workspace_id = ?2",
+            params![id, workspace_id],
+            |row| row.get(0),
+        )
+        .optional()
+        .map_err(|error| error.to_string())?;
+    exists
+        .map(|_| ())
+        .ok_or_else(|| "trace node not found".to_string())
 }
 
 fn cost_to_usd(cost: &str) -> f64 {

@@ -1,7 +1,7 @@
 use axum::{
     Json,
     extract::{Path, State},
-    http::{StatusCode, header::CONTENT_TYPE},
+    http::{HeaderMap, StatusCode, header::CONTENT_TYPE},
 };
 use serde_json::Value;
 use uuid::Uuid;
@@ -10,7 +10,7 @@ use super::cost::estimate_cost;
 use super::replay::{replay_request_id, response_content_type, worker_error};
 use super::replay_store::{insert_replay_with_result, load_replay_with_spec, map_node_error};
 use super::replay_types::{ReplayWithInsert, ReplayWithRequest, ReplayWithResult};
-use super::routes::response_request_id;
+use super::routes::{response_request_id, workspace_id_from_headers};
 use super::summarize::summarize_response;
 use super::text::now_millis;
 use crate::{AppState, settings::cometapi::load_cometapi_key};
@@ -20,8 +20,10 @@ const COMETAPI_CHAT_COMPLETIONS_URL: &str = "https://api.cometapi.com/v1/chat/co
 pub(super) async fn replay_with_model(
     State(state): State<AppState>,
     Path(id): Path<String>,
+    headers: HeaderMap,
     Json(payload): Json<ReplayWithRequest>,
 ) -> Result<Json<ReplayWithResult>, (StatusCode, String)> {
+    let workspace_id = workspace_id_from_headers(&headers)?;
     let model = payload.model.trim().to_string();
     if model.is_empty() {
         return Err((StatusCode::BAD_REQUEST, "model is required".to_string()));
@@ -45,7 +47,7 @@ pub(super) async fn replay_with_model(
             })?,
     };
 
-    let source = load_replay_with_source(&state, &id).await?;
+    let source = load_replay_with_source(&state, &workspace_id, &id).await?;
     if source.body.is_empty() {
         return Err((
             StatusCode::CONFLICT,
@@ -115,21 +117,23 @@ pub(super) async fn replay_with_model(
         input_hash: source.input_hash,
         request_body,
     };
-    let result = persist_replay_with_insert(&state, insert).await?;
+    let result = persist_replay_with_insert(&state, insert, workspace_id).await?;
     Ok(Json(result))
 }
 
 async fn load_replay_with_source(
     state: &AppState,
+    workspace_id: &str,
     id: &str,
 ) -> Result<super::replay_types::ReplayWithSpec, (StatusCode, String)> {
     let db = state.db.clone();
     let lookup_id = id.to_string();
+    let workspace_id = workspace_id.to_string();
     tokio::task::spawn_blocking(move || {
         let conn = db
             .lock()
             .map_err(|_| "trace database lock poisoned".to_string())?;
-        load_replay_with_spec(&conn, &lookup_id)
+        load_replay_with_spec(&conn, &workspace_id, &lookup_id)
     })
     .await
     .map_err(worker_error)?
@@ -139,13 +143,14 @@ async fn load_replay_with_source(
 async fn persist_replay_with_insert(
     state: &AppState,
     insert: ReplayWithInsert,
+    workspace_id: String,
 ) -> Result<ReplayWithResult, (StatusCode, String)> {
     let db = state.db.clone();
     tokio::task::spawn_blocking(move || {
         let conn = db
             .lock()
             .map_err(|_| "trace database lock poisoned".to_string())?;
-        insert_replay_with_result(&conn, insert)
+        insert_replay_with_result(&conn, insert, &workspace_id)
     })
     .await
     .map_err(worker_error)?

@@ -1,7 +1,7 @@
 # Tether
-### The local command center for AI agent debugging.
+### The local execution debugger for AI coding agents.
 
-Tether intercepts, visualizes, caches, replays, and mocks LLM calls so builders can understand every agent decision before it reaches production.
+Tether is a local execution debugger for AI coding agents. It tracks what the agent changed, ran, broke, and how to recover it.
 
 [Website](https://useTether.dev) • [Docs](#quick-start) • [Discord](#) • [GitHub](https://github.com/Hqzdev/Tether)
 
@@ -11,9 +11,9 @@ Tether intercepts, visualizes, caches, replays, and mocks LLM calls so builders 
 
 AI agents are becoming production systems, but the tools around them still feel like logs, guesswork, and late-night incident reports.
 
-Tether turns the invisible work of an agent into a living interface: every request, tool call, cached response, failure, replay, and cost signal becomes something a developer can inspect and trust. It is built for the moment when "the model did something weird" is no longer an acceptable debugging strategy.
+Tether turns each execution run into a recoverable graph: every prompt, tool action, file change, failure, and test result is traceable to the step that broke the project.
 
-The product is local-first by design. Prompts stay on the machine. API keys stay in the Keychain. Traces stay in local storage. Teams get the clarity of an observability platform without surrendering sensitive agent data to another cloud dashboard.
+The product is local-first by design. Prompts stay on the machine. API keys stay in the Keychain. Execution traces stay in local storage. Tether is a debugger, not a hosted dashboard.
 
 ---
 
@@ -33,7 +33,7 @@ The product is local-first by design. Prompts stay on the machine. API keys stay
 | --- | --- |
 | 🌱 Faster Debugging Loops | Turn unclear agent behavior into a visual story developers, founders, and product teams can discuss together. |
 | 🧩 Provider-Agnostic Workflow | Work across OpenAI, Anthropic, Ollama, LM Studio, LangChain, LangGraph, LlamaIndex, and OpenAI-compatible APIs. |
-| 📈 Product-Grade Observability | Make agent quality easier to improve by seeing latency, cache hits, failures, and response structure in context. |
+| 📈 Root-Cause Recovery | Connect prompt, action, file change, failed command, and recovery path in one execution graph. |
 
 ### Automation
 
@@ -41,7 +41,7 @@ The product is local-first by design. Prompts stay on the machine. API keys stay
 | --- | --- |
 | 🚀 Zero-SDK Proxy | Point your client at `http://localhost:8080/v1` and capture calls without rewriting your app. |
 | ⚡ Smart Response Caching | Reuse known responses during development to cut latency, cost, and repetitive provider calls. |
-| 🕰 Time-Travel Replay | Edit a previous response, replay a chain, and test downstream behavior without rerunning the entire workflow. |
+| 🧪 Recovery Replay | Edit a failed step, replay from that point, and validate the affected branch without rerunning the entire run. |
 
 ### Monetization
 
@@ -67,10 +67,10 @@ The product is local-first by design. Prompts stay on the machine. API keys stay
    Capture agent behavior through a local proxy instead of instrumenting every SDK call by hand.
 
 2. **Modular system**  
-   Use Tether as a visual debugger, cache layer, replay tool, privacy layer, or local observability console.
+   Use Tether as a local execution debugger that links prompts, file changes, failures, and replayed fixes.
 
-3. **Real-time analytics**  
-   Inspect latency, cache state, model metadata, errors, and response flow while the agent is still running.
+3. **Recovery evidence in real time**  
+   Inspect changed files, command output, failed tests, and downstream impact while the execution is still running.
 
 4. **Built for scale**  
    Start with one local workflow, then expand into repeatable debugging patterns for larger agent systems.
@@ -79,7 +79,7 @@ The product is local-first by design. Prompts stay on the machine. API keys stay
    Agent traces, prompts, responses, and keys stay local by default.
 
 6. **AI-native architecture**  
-   Built around LLM calls, tool chains, replay, mocks, provider adapters, and the messy shape of modern agent workflows.
+   Built around prompt-driven actions, file edits, failures, tool chains, and the messy shape of real execution workflows.
 
 
 ---
@@ -165,14 +165,14 @@ npm start
 ### Now
 
 - Local proxy capture for OpenAI-compatible requests
-- Visual trace graph for multi-step agent workflows
+- Visual execution graph for multi-step agent workflows
 - Smart caching and replay-ready response history
 - macOS-first interface with privacy-focused local storage
 
 ### Next
 
 - Rich provider adapters for OpenAI, Anthropic, Ollama, and LM Studio
-- Replay workbench for edited responses and deterministic test runs
+- Recovery replay for edited outputs and deterministic branch validation
 - Download page, release channel, and polished DMG distribution
 - Deeper docs for LangChain, LangGraph, and LlamaIndex workflows
 

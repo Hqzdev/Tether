@@ -2,16 +2,14 @@ import Core
 import SwiftUI
 import UI
 
-/// Pannable and draggable viewport for the graph canvas.
 struct GraphViewport: View {
-    let freeformCanvasPadding: CGFloat = 360
-    let panOverscrollPadding: CGFloat = 420
-    let nodeBoundaryInset: CGFloat = 96
-    let minimumCanvasSize = CGSize(width: 2_400, height: 1_600)
+    let freeformCanvasPadding: CGFloat = 960
+    let panOverscrollPadding: CGFloat = 1_100
+    let nodeBoundaryInset: CGFloat = 240
+    let minimumCanvasSize = CGSize(width: 4_200, height: 2_800)
     let verticalNodeSpacing: CGFloat = 156
 
     let nodes: [AgentNode]
-    /// Count of leading history nodes; the remainder render as the live cluster.
     let historyCount: Int
     let selectedNode: AgentNode?
     let nodeSize: CGSize

@@ -33,10 +33,11 @@ pub(crate) async fn proxy(State(state): State<AppState>, req: Request) -> Respon
     let method = parts.method;
     let uri = parts.uri;
     let path = uri.path().to_string();
-    let path_and_query = uri
-        .path_and_query()
-        .map(|pq| pq.as_str().to_string())
-        .unwrap_or_else(|| path.clone());
+    let workspace = match crate::workspace::from_gateway(&parts.headers, &path, uri.query()) {
+        Ok(workspace) => workspace,
+        Err(message) => return (StatusCode::UNAUTHORIZED, message).into_response(),
+    };
+    let path_and_query = workspace.path_and_query;
 
     let (base, label) = if path.starts_with("/v1/messages") {
         (state.anthropic_upstream.clone(), "anthropic")
@@ -65,6 +66,7 @@ pub(crate) async fn proxy(State(state): State<AppState>, req: Request) -> Respon
         &path,
         &path_and_query,
         label,
+        &workspace.id,
         &body_bytes,
     );
     let model = capture.model.clone();
@@ -73,7 +75,11 @@ pub(crate) async fn proxy(State(state): State<AppState>, req: Request) -> Respon
 
     let cacheable = state.cache_enabled && method == Method::POST;
     let key = if cacheable {
-        tether_cache::cache_key(method.as_str(), &path_and_query, &body_bytes)
+        tether_cache::cache_key(
+            method.as_str(),
+            &format!("{}:{path_and_query}", workspace.id),
+            &body_bytes,
+        )
     } else {
         String::new()
     };

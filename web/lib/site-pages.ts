@@ -48,15 +48,15 @@ export const SITE_PAGES: SitePage[] = [
   {
     slug: "product",
     title: "Product",
-    eyebrow: "Local-first agent observability",
+    eyebrow: "Local-first execution debugging",
     description:
-      "Tether gives AI builders a single Mac-native workspace for tracing, inspecting, caching, and replaying LLM calls.",
+      "Tether gives AI builders a single Mac-native workspace for execution traces, file impact, failures, and recovery replay.",
     sections: [
       {
         title: "Built around the real shape of agent work",
         body:
-          "Agent runs are not linear logs. They branch, retry, call tools, hit caches, fail in strange places, and recover in ways that are hard to see from a terminal. Tether turns those runs into a readable product surface.",
-        bullets: ["Visual call trees", "Provider metadata", "Prompt and response inspection", "Replay-ready traces"],
+          "Agent runs are not linear logs. They branch, retry, call tools, hit caches, fail in strange places, and recover in ways that are hard to see from a terminal. Tether turns those runs into a readable execution-debugging surface.",
+        bullets: ["Execution nodes", "Provider metadata", "Prompt/action inspection", "Recovery-ready traces"],
       },
       {
         title: "Private by default",
@@ -69,21 +69,21 @@ export const SITE_PAGES: SitePage[] = [
   {
     slug: "features",
     title: "Features",
-    eyebrow: "Everything needed to debug modern agents",
+    eyebrow: "Everything needed to recover broken AI code runs",
     description:
-      "A complete debugging loop for local AI development: capture calls, inspect state, replay branches, and understand cost.",
+      "A complete loop for local AI execution debugging: capture actions, inspect files and failures, replay branches, and recover quickly.",
     sections: [
       {
-        title: "Trace capture",
+        title: "Execution capture",
         body:
-          "Route OpenAI-compatible calls through the local proxy and see every request become a structured node in the Tether interface.",
-        bullets: ["Request and response bodies", "Latency and status", "Model metadata", "Nested tool-call context"],
+          "Route provider calls through the local proxy and see every prompt, command, and file-change in a structured execution graph.",
+        bullets: ["Request and response bodies", "Command output and exit status", "Model metadata", "Nested tool-call context"],
       },
       {
-        title: "Replay and mocking",
+        title: "Recovery actions",
         body:
-          "Edit a response, replay from a node, and test downstream behavior without burning tokens on every upstream call.",
-        bullets: ["Mock JSON responses", "Replay selected branches", "Cache-aware development", "Deterministic iteration"],
+          "Edit a failed step, replay from that node, and test downstream behavior without burning tokens on every upstream call.",
+        bullets: ["Patch action output", "Replay selected branches", "Cache-aware development", "Deterministic iteration"],
       },
     ],
     cta: { label: "Open inspector page", href: "/inspector" },
@@ -112,9 +112,9 @@ export const SITE_PAGES: SitePage[] = [
   {
     slug: "how-it-works",
     title: "How it works",
-    eyebrow: "One proxy, full visibility",
+    eyebrow: "One proxy, full execution context",
     description:
-      "Tether runs a local HTTP proxy. Point your SDK at localhost, run your agent, and inspect the trace.",
+      "Tether runs a local HTTP proxy. Point your SDK at localhost, run your agent, and inspect the execution context.",
     sections: [
       {
         title: "1. Route calls through Tether",
@@ -124,12 +124,12 @@ export const SITE_PAGES: SitePage[] = [
       {
         title: "2. Capture the run",
         body:
-          "The proxy forwards requests to your configured provider while recording the call tree, metadata, timings, and responses locally.",
+          "The proxy forwards requests to your configured provider while recording prompt/action order, file diffs, failures, and responses locally.",
       },
       {
-        title: "3. Replay the interesting part",
+        title: "3. Replay the recovery point",
         body:
-          "Select a node, edit or mock the response, then rerun downstream logic from that point forward.",
+          "Select a failed node, edit or override the action, then rerun downstream logic from that point forward.",
       },
     ],
     cta: { label: "Read documentation", href: "/documentation" },
@@ -139,12 +139,12 @@ export const SITE_PAGES: SitePage[] = [
     title: "Download",
     eyebrow: "Alpha for macOS",
     description:
-      "Get the Mac build, connect the local proxy, and trace your first AI agent workflow in minutes.",
+      "Get the Mac build, connect the local proxy, and inspect your first execution debugger workflow in minutes.",
     sections: [
       {
         title: "macOS-first",
         body:
-          "Tether is crafted for local development on the Mac, with Keychain-aware secrets, a native-feeling interface, and local trace storage.",
+          "Tether is crafted for local development on the Mac, with Keychain-aware secrets, a native-feeling interface, and local execution records.",
         bullets: ["macOS 13+", "Local proxy included", "No account required for local tracing", "Free during alpha"],
       },
       {
@@ -158,20 +158,20 @@ export const SITE_PAGES: SitePage[] = [
   {
     slug: "developers",
     title: "Developers",
-    eyebrow: "For people shipping agent systems",
+    eyebrow: "For people shipping AI coding agents",
     description:
       "Tether is designed for engineers building AI products, internal tools, copilots, autonomous workflows, and agent infrastructure.",
     sections: [
       {
         title: "Use it with your existing stack",
         body:
-          "Keep your SDKs, models, and frameworks. Tether sits in front of provider calls and gives you a better debugging surface.",
+          "Keep your SDKs, models, and frameworks. Tether sits in front of provider calls and gives you execution recovery context.",
         bullets: ["OpenAI-compatible clients", "LangChain", "LangGraph", "LlamaIndex", "Ollama and LM Studio"],
       },
       {
         title: "Debug before production",
         body:
-          "Find slow calls, broken branches, retry loops, and confusing model behavior while you can still fix the workflow locally.",
+          "Find broken branches, file-impacting steps, and confusing model behavior while you can still recover locally.",
       },
     ],
     cta: { label: "View CLI reference", href: "/cli-reference" },
@@ -181,7 +181,7 @@ export const SITE_PAGES: SitePage[] = [
     title: "Documentation",
     eyebrow: "Setup and operating guide",
     description:
-      "A practical guide to installing Tether, routing provider calls, reading traces, using cache, and replaying responses.",
+      "A practical guide to installing Tether, routing provider calls, reading execution paths, using cache, and recovery replay.",
     sections: [
       {
         title: "Quick setup",
@@ -203,7 +203,7 @@ export const SITE_PAGES: SitePage[] = [
     title: "CLI reference",
     eyebrow: "Commands for local workflows",
     description:
-      "Reference material for running the proxy, packaging the app, validating builds, and debugging local traces.",
+      "Reference material for running the proxy, packaging the app, validating builds, and debugging local execution paths.",
     sections: [
       {
         title: "Common commands",
@@ -235,7 +235,7 @@ export const SITE_PAGES: SitePage[] = [
       {
         title: "Next releases",
         body:
-          "Upcoming entries will track signed downloads, provider adapters, replay workbench, and documentation updates.",
+          "Upcoming entries will track signed downloads, provider adapters, recovery replay, and documentation updates.",
       },
     ],
     cta: { label: "Download alpha", href: "/download" },
@@ -265,7 +265,7 @@ export const SITE_PAGES: SitePage[] = [
     title: "Privacy",
     eyebrow: "Local-first by design",
     description:
-      "Tether is built around the principle that prompts, responses, traces, and API keys should stay close to the developer.",
+      "Tether is built around the principle that prompts, responses, execution traces, and API keys should stay close to the developer.",
     sections: [
       {
         title: "Local trace storage",
@@ -285,10 +285,10 @@ export const SITE_PAGES: SitePage[] = [
     title: "Security",
     eyebrow: "Trust starts at the machine",
     description:
-      "Tether reduces debugging risk by keeping the observability loop local, explicit, and inspectable.",
+      "Tether reduces debugging risk by keeping the recovery loop local, explicit, and inspectable.",
     sections: [
       {
-        title: "Local evidence, not hosted observability theater",
+        title: "Local evidence, not hosted dashboards",
         body:
           "Tether is built for debugging sensitive agent runs without turning every prompt into another SaaS data copy. The core security claim is narrow: local traces, explicit provider calls, Keychain-backed secrets, and inspectable replay state.",
         bullets: ["Trace database stays on the developer machine", "Provider traffic follows your configured endpoints", "No hosted Tether workspace is required for local debugging"],

@@ -1,6 +1,6 @@
 # Pricing — Tether
 
-Tether is a local-first LLM observability tool for macOS developers.
+Tether is a local execution debugger for AI coding agents on macOS.
 
 ## Alpha (Current)
 
@@ -9,8 +9,8 @@ Tether is a local-first LLM observability tool for macOS developers.
 - Limits: Unlimited — no rate limits, no usage caps
 - Features:
   - Local HTTP proxy (intercepts all LLM calls via base_url change)
-  - Real-time agent trace visualization
-  - Request/response replay and time-travel mocking
+  - Real-time execution recovery graph
+  - Prompt/action replay and step-level recovery
   - Local response cache (SQLite, zero latency, $0 cost for cache hits)
   - API key storage in macOS Keychain (encrypted, never in plain text)
   - Air-gapped by default — no data leaves the machine
