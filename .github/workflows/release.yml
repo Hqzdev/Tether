@@ -9,32 +9,6 @@ permissions:
   contents: write
 
 jobs:
-  macos:
-    runs-on: macos-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache Rust
-        uses: Swatinem/rust-cache@v2
-
-      - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode.app
-
-      - name: Build DMG
-        run: ./scripts/package-dmg.sh
-
-      - name: Upload macOS artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: tether-macos
-          path: dist/Tether.dmg
-          if-no-files-found: error
-
   linux:
     runs-on: ubuntu-22.04
 
@@ -85,7 +59,7 @@ jobs:
 
   publish:
     runs-on: ubuntu-22.04
-    needs: [macos, linux]
+    needs: [linux]
 
     steps:
       - name: Checkout
@@ -101,7 +75,6 @@ jobs:
         with:
           body_path: .github/releases/v1.7.md
           files: |
-            release-assets/tether-macos/Tether.dmg
             release-assets/tether-linux/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
