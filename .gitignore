@@ -3,6 +3,8 @@
 .AppleDouble
 .LSOverride
 Icon?
+!apps/linux/src-tauri/icons/
+!apps/linux/src-tauri/icons/icon.png
 ._*
 
 # Editors
