@@ -31,7 +31,7 @@ echo "==> Installing Linux app dependencies"
 npm --prefix "$LINUX_APP_DIR" ci
 
 echo "==> Building Linux desktop app"
-TAURI_CONFIG='{"bundle":{"externalBin":["binaries/tether-proxy"]}}' npm --prefix "$LINUX_APP_DIR" run tauri:build
+TAURI_CONFIG='{"bundle":{"externalBin":["binaries/tether-proxy"],"icon":["icons/icon.png"]}}' npm --prefix "$LINUX_APP_DIR" run tauri:build
 
 echo "==> Collecting Linux artifacts"
 find "$TAURI_DIR/target/release/bundle" -type f \( -name "*.AppImage" -o -name "*.deb" \) -exec cp {} "$DIST_DIR/" \;

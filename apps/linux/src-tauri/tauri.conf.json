@@ -26,6 +26,6 @@
   "bundle": {
     "active": true,
     "targets": ["appimage", "deb"],
-    "icon": []
+    "icon": ["icons/icon.png"]
   }
 }
