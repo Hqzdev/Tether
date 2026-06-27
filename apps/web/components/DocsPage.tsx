@@ -671,7 +671,7 @@ export function DocsPage({ page }: { page: DocsPageData }) {
               </div>
               <div>
                 <dt>Runtime</dt>
-                <dd>macOS + local proxy</dd>
+                <dd>macOS + Linux + local proxy</dd>
               </div>
               <div>
                 <dt>Docs</dt>

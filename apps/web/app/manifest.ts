@@ -8,7 +8,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Tether",
     short_name: "Tether",
     description:
-      "Local execution debugger for AI coding agents and repo-level recovery on macOS.",
+      "Local execution debugger for AI coding agents and repo-level recovery on macOS and Linux.",
     start_url: "/",
     display: "standalone",
     background_color: "#ffffff",

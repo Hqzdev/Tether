@@ -111,14 +111,14 @@ const jsonLd = {
       logo: APP_ICON_URL,
       image: APP_ICON_URL,
       description:
-        "Local execution debugger for AI coding agents on macOS and Linux alpha: prompt, action, file change, and recovery traces stay on your machine.",
+        "Local execution debugger for AI coding agents on macOS and Linux: prompt, action, file change, and recovery traces stay on your machine.",
     },
     {
       "@type": "SoftwareApplication",
       "@id": `${SITE_URL}/#app`,
       name: "Tether",
       applicationCategory: "DeveloperApplication",
-      operatingSystem: "macOS 13+, Linux alpha",
+      operatingSystem: "macOS 13+, Linux",
       offers: {
         "@type": "Offer",
         price: "0",
@@ -136,7 +136,7 @@ const jsonLd = {
         "File-change recovery from failed nodes",
         "Local response cache for repeated execution paths",
         "Keychain-aware macOS secrets",
-        "Linux alpha desktop shell",
+        "Linux Tauri desktop app",
         "Local-first traces and prompts",
       ],
       screenshot: APP_ICON_URL,
@@ -239,7 +239,7 @@ const jsonLd = {
           name: "Does Tether send my prompts or API keys to the cloud?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "No. Tether is fully air-gapped. Your prompts and responses stay on your machine. macOS secrets use Keychain-aware storage, and the Linux alpha keeps the same local proxy model.",
+            text: "No. Tether is fully air-gapped. Your prompts and responses stay on your machine. macOS secrets use Keychain-aware storage, Linux uses the same local proxy model, and traces stay local.",
           },
         },
         {

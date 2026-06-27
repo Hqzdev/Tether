@@ -81,7 +81,7 @@ export const DOCS_PAGES: DocsPage[] = [
     title: "Tether documentation",
     category: "Docs",
     description:
-      "Install Tether, capture local agent runs, inspect execution steps, recover failed branches, and understand the architecture behind the desktop app.",
+      "Install Tether on macOS or Linux, capture local agent runs, inspect execution steps, recover failed branches, and understand the architecture behind the desktop clients.",
     sections: [
       {
         title: "What Tether does",
@@ -89,7 +89,7 @@ export const DOCS_PAGES: DocsPage[] = [
           {
             kind: "paragraph",
             text:
-              "Tether is a local-first execution debugger for agent builders. It runs a Rust proxy on the developer machine, stores captured execution traces in SQLite, and renders the run inside a native macOS SwiftUI app.",
+              "Tether is a local-first execution debugger for agent builders. It runs a Rust proxy on the developer machine, stores captured execution traces in SQLite, and renders the run inside desktop clients for macOS and Linux.",
           },
           {
             kind: "list",
@@ -97,7 +97,7 @@ export const DOCS_PAGES: DocsPage[] = [
               "Capture Codex, Claude Code, LangChain, LangGraph, OpenAI/OpenGPT-style, and custom CLI runs through adapters or proxy ingestion.",
               "Inspect prompt, action, command output, file changes, latency, tokens, cost, cache state, and errors.",
               "Replay supported proxy-captured requests or use local rollback evidence when replay is unavailable.",
-              "Keep API keys in macOS Keychain and trace data on the local machine.",
+              "Keep API keys and trace data on the local machine through platform-local storage paths.",
             ],
           },
         ],
@@ -110,7 +110,7 @@ export const DOCS_PAGES: DocsPage[] = [
             cards: [
               {
                 title: "System overview",
-                text: "The capture wrapper, desktop app, Rust proxy, SQLite stores, provider upstreams, and release pipeline in one map.",
+                text: "The capture wrapper, desktop clients, Rust proxy, SQLite stores, provider upstreams, and release pipeline in one map.",
                 href: "/docs/architecture-overview",
               },
               {
@@ -144,7 +144,7 @@ export const DOCS_PAGES: DocsPage[] = [
     title: "Install",
     category: "Getting Started",
     description:
-      "Build the local proxy, run the macOS app, and package a DMG when you need a release artifact.",
+      "Build the local proxy, run the macOS or Linux desktop app, and package release artifacts when needed.",
     sections: [
       {
         title: "Local developer setup",
@@ -157,12 +157,12 @@ export const DOCS_PAGES: DocsPage[] = [
           {
             kind: "paragraph",
             text:
-              "The web app is the public site and documentation surface. The macOS app lives under apps/macos/ and the proxy binary is built from core/proxy/.",
+              "The web app is the public site and documentation surface. The macOS app lives under apps/macos/, the Linux app lives under apps/linux/, and the proxy binary is built from core/proxy/.",
           },
         ],
       },
       {
-        title: "Package the desktop app",
+        title: "Package desktop builds",
         blocks: [
           {
             kind: "code",
@@ -176,6 +176,7 @@ export const DOCS_PAGES: DocsPage[] = [
               "Builds the Tether Xcode scheme.",
               "Copies tether-proxy into Tether.app/Contents/Helpers.",
               "Creates dist/Tether.dmg and mirrors it into apps/web/public/downloads/.",
+              "Use scripts/package-linux.sh for Linux AppImage and deb packaging.",
             ],
           },
         ],
@@ -252,7 +253,7 @@ export const DOCS_PAGES: DocsPage[] = [
           {
             kind: "list",
             items: [
-              "Open the macOS app and go to Settings -> Extensions.",
+              "Open the desktop app and go to Settings -> Extensions.",
               "In the CometAPI section, paste your CometAPI API key.",
               "Click Save & Test.",
               "A successful connection shows Connected with the number of available models.",
@@ -390,7 +391,7 @@ export const DOCS_PAGES: DocsPage[] = [
             rows: [
               ["Trace calls", "Local SQLite"],
               ["Cached responses", "Local SQLite"],
-              ["Provider keys", "macOS Keychain"],
+              ["Provider keys", "Platform-local secret storage"],
               ["Provider requests", "Configured upstream only"],
             ],
           },
@@ -427,7 +428,7 @@ export const DOCS_PAGES: DocsPage[] = [
             kind: "code",
             language: "text",
             code:
-              "tether capture -- <agent command>\n  -> wrapper starts or uses local proxy\n  -> agent traffic plus tool, file, shell, and test events are captured\n  -> local trace DB\n  -> macOS app execution graph",
+              "tether capture -- <agent command>\n  -> wrapper starts or uses local proxy\n  -> agent traffic plus tool, file, shell, and test events are captured\n  -> local trace DB\n  -> macOS or Linux desktop execution graph",
           },
         ],
       },
@@ -555,7 +556,7 @@ export const DOCS_PAGES: DocsPage[] = [
     title: "System overview",
     category: "Architecture",
     description:
-      "A high-level map of the local-first desktop app, Rust proxy, storage layer, provider upstreams, and release automation.",
+      "A high-level map of the local-first desktop clients, Rust proxy, storage layer, provider upstreams, and release automation.",
     sections: [
       {
         title: "Runtime shape",
@@ -564,12 +565,12 @@ export const DOCS_PAGES: DocsPage[] = [
             kind: "code",
             language: "text",
             code:
-              "tether capture -- <agent command>\n      -> wrapper starts or uses local proxy\n      -> source adapters normalize agent events\n      -> SQLite trace database\n      -> SwiftUI macOS execution graph",
+              "tether capture -- <agent command>\n      -> wrapper starts or uses local proxy\n      -> source adapters normalize agent events\n      -> SQLite trace database\n      -> macOS or Linux desktop execution graph",
           },
           {
             kind: "paragraph",
             text:
-              "The proxy is one capture path, not the whole product. Tether also ingests local logs and adapter events, stores normalized execution evidence locally, and serves a local REST API consumed by the macOS app.",
+              "The proxy is one capture path, not the whole product. Tether also ingests local logs and adapter events, stores normalized execution evidence locally, and serves a local REST API consumed by the macOS and Linux apps.",
           },
         ],
       },
@@ -586,6 +587,7 @@ export const DOCS_PAGES: DocsPage[] = [
               ["apps/macos/Sources/Core", "Shared trace models and reducer state."],
               ["apps/macos/Sources/Networking", "Proxy API, local launcher, Keychain, and source-log ingestion."],
               ["apps/macos/Tether/Features", "App shell, graph, sidebar, inspector, settings, and welcome UI."],
+              ["apps/linux", "Tauri shell, React graph, inspector, settings, and Linux sidecar proxy control."],
               ["apps/web", "Marketing site and public documentation pages."],
             ],
           },
@@ -611,7 +613,7 @@ export const DOCS_PAGES: DocsPage[] = [
           {
             kind: "paragraph",
             text:
-              "A single user request can produce model calls, tool calls, file reads, file writes, shell commands, tests, git diffs, errors, replay attempts, and rollback evidence. Tether keeps those events connected so the macOS app can move from prompt to action to failure to recovery.",
+              "A single user request can produce model calls, tool calls, file reads, file writes, shell commands, tests, git diffs, errors, replay attempts, and rollback evidence. Tether keeps those events connected so the desktop app can move from prompt to action to failure to recovery.",
           },
         ],
       },
@@ -793,7 +795,7 @@ export const DOCS_PAGES: DocsPage[] = [
           {
             kind: "list",
             items: [
-              "Linux is an alpha desktop client.",
+              "Linux uses a Tauri desktop shell over the shared local proxy.",
               "Nodes appear only when traffic or local commands are captured through the proxy or tether capture.",
               "Browser previews cannot start the local proxy because Tauri commands are desktop-only.",
             ],

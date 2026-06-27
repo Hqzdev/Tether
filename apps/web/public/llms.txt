@@ -1,6 +1,6 @@
 # Tether
 
-> Local execution debugger for AI coding agents on macOS and Linux alpha.
+> Local execution debugger for AI coding agents on macOS and Linux.
 
 Tether is a local execution debugger for AI coding agents. It tracks prompts, command actions, file changes, and failures, and lets you replay from the failing step. It works by running a local HTTP proxy; developers point their AI client's `base_url` at `http://localhost:8080/v1` — that is the single required setup change.
 
@@ -28,7 +28,7 @@ Frameworks: LangChain, LangGraph, LlamaIndex, and any library that accepts a con
 
 ## How to use Tether (quick setup)
 
-1. Download the macOS app or Linux alpha from https://useTether.dev/#download
+1. Download the macOS or Linux desktop app from https://useTether.dev/#download
 2. Change your AI client's base_url to `http://localhost:8080/v1`
 3. Run your agent as normal — every LLM call appears in the Tether canvas instantly
 
@@ -37,7 +37,7 @@ No account required. No configuration beyond the base_url change.
 ## Key facts
 
 - Free during alpha; open-source core
-- Requires macOS 13 or later for the native app; Linux alpha artifacts are available from the Linux App workflow
+- Requires macOS 13 or later for the native app; Linux builds are available from GitHub Releases
 - Air-gapped by default — zero outbound connections from Tether itself
 - No account, no signup, no cloud required
 - Pricing: Free (see https://useTether.dev/pricing.md for details)
@@ -48,7 +48,7 @@ No account required. No configuration beyond the base_url change.
 Tether runs a local HTTP proxy. You point your AI client's base_url at http://localhost:8080/v1 — that's the only change. Tether forwards requests to the real provider and records everything locally.
 
 **Does Tether send my prompts or API keys to the cloud?**
-No. Tether is fully air-gapped. Prompts and responses stay on your machine. The macOS app uses Keychain-aware secret storage, and the Linux alpha keeps the same local proxy model.
+No. Tether is fully air-gapped. Prompts and responses stay on your machine. macOS uses Keychain-aware secret storage, Linux uses the same local proxy model, and traces stay local.
 
 **Which LLM providers does Tether support?**
 OpenAI, Anthropic, Ollama, LM Studio, and any provider that accepts an OpenAI-compatible base_url. It also works with LangChain, LangGraph, LlamaIndex, and similar frameworks.

@@ -101,7 +101,7 @@ const FAQ_ITEMS: { q: string; a: ReactNode }[] = [
   },
   {
     q: "Does Tether send prompts, responses, or API keys anywhere?",
-    a: "No. Tether is local-first. Prompts, responses, and traces stay in local storage. The macOS app uses Keychain-aware secrets, and the Linux alpha keeps the same proxy-first local model. The proxy only talks to the providers you configure.",
+    a: "No. Tether is local-first on macOS and Linux. Prompts, responses, and traces stay in local storage. macOS uses Keychain-aware secrets, Linux uses the same proxy-first local model, and the proxy only talks to the providers you configure.",
   },
   {
     q: "How does Tether capture agent runs?",
@@ -383,7 +383,7 @@ export default function TetherLanding() {
         </h1>
         <p className="lead">
           Tether is a local execution debugger for AI coding agents. It captures the prompt,
-          action, file diff, failed command or test, and recovery point in a desktop execution graph for macOS and Linux alpha.
+          action, file diff, failed command or test, and recovery point in a desktop execution graph for macOS and Linux.
         </p>
         <div className="cta-row">
           <a
@@ -436,7 +436,7 @@ export default function TetherLanding() {
           </span>
           <span>
             <LandingIcon name="shield-halved" />
-            Keys stay in Keychain.
+            Local secrets.
           </span>
         </div>
 
@@ -598,13 +598,13 @@ export default function TetherLanding() {
               </div>
               <h3>Local evidence vault</h3>
               <p>
-                macOS secrets use Keychain-aware storage. Linux alpha keeps the
-                same local proxy model. Prompts, responses, and traces stay in a
-                local SQLite database that never leaves the machine.
+                macOS secrets use Keychain-aware storage. Linux uses the same
+                local proxy model. Prompts, responses, and traces stay in a local
+                SQLite database that never leaves the machine.
               </p>
               <div className="bstat">
                 <span className="metric-chip ok">
-                  <LandingIcon name="lock" /> Keychain
+                  <LandingIcon name="lock" /> Local secrets
                 </span>
                 <span className="metric-chip">SQLite - local</span>
                 <span className="metric-chip">0 outbound</span>
@@ -754,8 +754,8 @@ export default function TetherLanding() {
                   </div>
                   <div className="privacy-view">
                     {[
-                      ["key", "OPENAI_API_KEY", "sk-********************7f2a - macOS Keychain", "SECURE"],
-                      ["key", "ANTHROPIC_API_KEY", "sk-ant-************91be - macOS Keychain", "SECURE"],
+                      ["key", "OPENAI_API_KEY", "sk-********************7f2a - local secret store", "SECURE"],
+                      ["key", "ANTHROPIC_API_KEY", "sk-ant-************91be - local secret store", "SECURE"],
                       ["database", "Trace database", "~/.Tether/traces.sqlite - 0 bytes sent", "LOCAL"],
                       ["tower-broadcast", "Outbound connections", "only to providers you configured - telemetry off", "0 / hr"],
                     ].map(([icon, name, value, badge]) => (
@@ -942,7 +942,7 @@ export default function TetherLanding() {
               Free during alpha. Run Tether locally, point your SDK at the proxy,
               and keep the whole debugging record on your machine.
             </p>
-            <p className="alpha-note">macOS is active. Linux alpha is now available from CI artifacts.</p>
+            <p className="alpha-note">Tether works on macOS and Linux today, with one shared Rust proxy and platform-specific desktop clients.</p>
             <div className="download-actions">
               <div className="download-direct">
                 <a
@@ -965,7 +965,7 @@ export default function TetherLanding() {
                   href={LINUX_DOWNLOAD_HREF}
                   onClick={() =>
                     trackEvent("download_clicked", {
-                      asset: "Linux alpha artifact",
+                      asset: "Linux release",
                       location: "final_cta",
                     })
                   }
@@ -973,7 +973,7 @@ export default function TetherLanding() {
                   target="_blank"
                 >
                   <LandingIcon name="microchip" />
-                  Download Linux alpha
+                  Open Linux releases
                 </a>
               </div>
               <p className="download-note">macOS downloads the latest DMG directly. Linux opens the GitHub Releases page for AppImage and deb builds.</p>
@@ -1022,7 +1022,7 @@ export default function TetherLanding() {
             <div className="meta-row final-meta">
               <span>
                 <LandingIcon name="check" />
-                macOS 13+ and Linux alpha
+                macOS 13+ and Linux
               </span>
               <span>
                 <LandingIcon name="check" />

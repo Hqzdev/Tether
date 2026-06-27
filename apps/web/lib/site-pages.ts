@@ -48,7 +48,7 @@ export const SITE_PAGES: SitePage[] = [
     title: "Product",
     eyebrow: "Local-first execution debugging",
     description:
-      "Tether is a local execution debugger for AI coding agents: prompt, action, file diff, failed command, and recovery in one Mac-native graph.",
+      "Tether is a local execution debugger for AI coding agents on macOS and Linux: prompt, action, file diff, failed command, and recovery in one desktop graph.",
     sections: [
       {
         title: "Built around the real shape of agent work",
@@ -59,7 +59,7 @@ export const SITE_PAGES: SitePage[] = [
       {
         title: "Private by default",
         body:
-          "The product is designed for sensitive coding workflows where prompts, traces, and API keys should stay local. Tether keeps traces on your machine and stores tokens in macOS Keychain.",
+          "The product is designed for sensitive coding workflows where prompts, traces, and API keys should stay local. Tether keeps traces on your machine and uses platform-local secret handling.",
       },
     ],
     cta: { label: "Download the alpha", href: "/download" },
@@ -112,7 +112,7 @@ export const SITE_PAGES: SitePage[] = [
     title: "How it works",
     eyebrow: "Capture wrapper, proxy, graph",
     description:
-      "Tether wraps local agent commands, starts or uses the local proxy, captures normalized execution events, and shows the run in the macOS app.",
+      "Tether wraps local agent commands, starts or uses the local proxy, captures normalized execution events, and shows the run in the macOS or Linux desktop app.",
     sections: [
       {
         title: "1. Capture the agent run",
@@ -135,15 +135,15 @@ export const SITE_PAGES: SitePage[] = [
   {
     slug: "download",
     title: "Download",
-    eyebrow: "Alpha for macOS and Linux",
+    eyebrow: "Desktop builds for macOS and Linux",
     description:
-      "Get the macOS build or Linux alpha, capture a local agent run, and inspect your first execution graph in minutes.",
+      "Get Tether for macOS or Linux, capture a local agent run, and inspect your first execution graph in minutes.",
     sections: [
       {
-        title: "macOS active, Linux alpha",
+        title: "macOS and Linux are active",
         body:
-          "Tether is crafted for local desktop development, with a native macOS app, a Linux Tauri alpha, the shared Rust proxy, and local execution records.",
-        bullets: ["macOS 13+", "Linux alpha", "Local proxy included", "No account required for local tracing", "Free during alpha"],
+          "Tether is crafted for local desktop development, with a native macOS app, a Linux Tauri app, the shared Rust proxy, and local execution records.",
+        bullets: ["macOS 13+", "Linux desktop build", "Local proxy included", "No account required for local tracing", "Free during alpha"],
       },
       {
         title: "What you get",
@@ -185,13 +185,13 @@ export const SITE_PAGES: SitePage[] = [
         title: "Quick setup",
         body:
           "Install dependencies, build the proxy and app, then capture an agent run through tether capture -- or a supported source adapter.",
-        bullets: ["Clone the repo", "Build the proxy", "Build the macOS app", "Capture a local agent run"],
+        bullets: ["Clone the repo", "Build the proxy", "Build the desktop app", "Capture a local agent run"],
       },
       {
         title: "Architecture pages",
         body:
-          "The docs cover supported agents and frameworks, execution graph semantics, Rust proxy modules, macOS app modules, local privacy, commands, and API boundaries.",
-        bullets: ["Supported agents", "Execution graph", "Rust proxy", "macOS app"],
+          "The docs cover supported agents and frameworks, execution graph semantics, Rust proxy modules, macOS and Linux desktop clients, local privacy, commands, and API boundaries.",
+        bullets: ["Supported agents", "Execution graph", "Rust proxy", "Desktop clients"],
       },
     ],
     cta: { label: "Open docs", href: "/docs" },
@@ -228,7 +228,7 @@ export const SITE_PAGES: SitePage[] = [
         title: "Current alpha",
         body:
           "The current build focuses on local execution debugging: source logs, proxy-captured requests, dense node cards, file impact, and recovery workflows.",
-        bullets: ["Next.js docs site", "macOS graph app", "Rust proxy foundation", "Local trace models"],
+        bullets: ["Next.js docs site", "macOS graph app", "Linux Tauri app", "Rust proxy foundation"],
       },
       {
         title: "Next releases",
@@ -273,7 +273,7 @@ export const SITE_PAGES: SitePage[] = [
       {
         title: "Key handling",
         body:
-          "API credentials are handled with macOS Keychain-aware storage patterns instead of plain text project files.",
+          "API credentials use platform-local handling instead of plain text project files: Keychain-aware storage on macOS and the local proxy settings path on Linux.",
       },
     ],
     cta: { label: "Read security", href: "/security" },
@@ -288,7 +288,7 @@ export const SITE_PAGES: SitePage[] = [
       {
         title: "Local evidence, not hosted dashboards",
         body:
-          "Tether is built for debugging sensitive agent runs without turning every prompt into another SaaS data copy. The core security claim is narrow: local traces, explicit provider calls, Keychain-backed secrets, and inspectable replay state.",
+          "Tether is built for debugging sensitive agent runs without turning every prompt into another SaaS data copy. The core security claim is narrow: local traces, explicit provider calls, platform-local secrets, and inspectable replay state.",
         bullets: ["Trace database stays on the developer machine", "Provider traffic follows your configured endpoints", "No hosted Tether workspace is required for local debugging"],
       },
       {
@@ -365,9 +365,9 @@ export const SITE_PAGES: SitePage[] = [
       },
       {
         asset: "API keys",
-        location: "macOS Keychain",
+        location: "Platform-local secret storage",
         leavesDevice: "Used only to call chosen providers",
-        control: "Keychain-backed secret storage",
+        control: "OS and local proxy secret handling",
       },
       {
         asset: "Cache entries",
@@ -416,8 +416,8 @@ export const SITE_PAGES: SitePage[] = [
       },
       {
         control: "API key handling",
-        evidence: "Provider secrets are stored through macOS Keychain, not in plaintext project files.",
-        proof: "macOS Keychain",
+        evidence: "Provider secrets use platform-local storage paths instead of plaintext project files.",
+        proof: "macOS Keychain and local proxy settings",
       },
       {
         control: "Telemetry posture",
