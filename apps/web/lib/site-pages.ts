@@ -185,8 +185,8 @@ export const SITE_PAGES: SitePage[] = [
       {
         title: "Common commands",
         body:
-          "The CLI surface is evolving with the proxy. These commands document the local development workflow.",
-        bullets: ["curl -fsSL https://tetherapp.vercel.app/install.sh | bash", "tether capture -- <agent command>", "npm run build", "scripts/package-dmg.sh", "scripts/smoke-e2e.sh"],
+          "The installed CLI manages the desktop app and keeps developer commands discoverable from the terminal.",
+        bullets: ["curl -fsSL https://tetherapp.vercel.app/install.sh | bash", "tether help", "tether doctor", "tether update", "tether uninstall", "tether uninstall --purge"],
       },
       {
         title: "Proxy operations",

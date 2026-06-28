@@ -161,8 +161,24 @@ export const DOCS_PAGES: DocsPage[] = [
               "Checks required system tools before changing anything.",
               "Downloads the matching release artifact from GitHub Releases.",
               "Installs the macOS app into Applications or the Linux package or AppImage path.",
+              "Installs the tether CLI with help, update, uninstall, version, doctor, and open commands.",
               "Use --dry-run to inspect the plan or --yes for non-interactive Linux package installation.",
             ],
+          },
+        ],
+      },
+      {
+        title: "Installed CLI",
+        blocks: [
+          {
+            kind: "code",
+            language: "bash",
+            code: "tether help\ntether doctor\ntether open\ntether update\ntether uninstall\ntether uninstall --purge",
+          },
+          {
+            kind: "paragraph",
+            text:
+              "tether update closes the desktop app if it is running, installs the newest release, and reopens it when it was open before the update. tether uninstall keeps local traces and settings unless --purge is passed.",
           },
         ],
       },
@@ -946,6 +962,16 @@ export const DOCS_PAGES: DocsPage[] = [
     description:
       "Common commands for local development, verification, packaging, and release preflight.",
     sections: [
+      {
+        title: "Installed app",
+        blocks: [
+          {
+            kind: "code",
+            language: "bash",
+            code: "tether help\ntether version\ntether doctor\ntether open\ntether update\ntether uninstall\ntether uninstall --purge",
+          },
+        ],
+      },
       {
         title: "Verification",
         blocks: [
