@@ -62,7 +62,7 @@ export const SITE_PAGES: SitePage[] = [
           "The product is designed for sensitive coding workflows where prompts, traces, and API keys should stay local. Tether keeps traces on your machine and uses platform-local secret handling.",
       },
     ],
-    cta: { label: "Download the alpha", href: "/download" },
+    cta: { label: "Download the alpha", href: "/#download" },
   },
   {
     slug: "features",
@@ -84,7 +84,7 @@ export const SITE_PAGES: SitePage[] = [
         bullets: ["Supported replay boundaries", "Rollback evidence", "Cache-aware development", "Failure recovery"],
       },
     ],
-    cta: { label: "Open inspector page", href: "/inspector" },
+    cta: { label: "Inspect demo trace", href: "/#demo" },
   },
   {
     slug: "inspector",
@@ -120,7 +120,7 @@ export const SITE_PAGES: SitePage[] = [
           "Run tether capture -- <agent command>, connect a source adapter, or point OpenAI-compatible traffic at the local proxy.",
       },
       {
-        title: "2. Capture the run",
+        title: "2. Normalize the evidence",
         body:
           "Tether records prompt, action, file diff, shell command, test run, git diff, error, replay, and rollback events into a local trace database.",
       },
@@ -131,27 +131,6 @@ export const SITE_PAGES: SitePage[] = [
       },
     ],
     cta: { label: "Read documentation", href: "/documentation" },
-  },
-  {
-    slug: "download",
-    title: "Download",
-    eyebrow: "Desktop builds for macOS and Linux",
-    description:
-      "Get Tether for macOS or Linux, capture a local agent run, and inspect your first execution graph in minutes.",
-    sections: [
-      {
-        title: "macOS and Linux are active",
-        body:
-          "Tether is crafted for local desktop development, with a native macOS app, a Linux Tauri app, the shared Rust proxy, and local execution records.",
-        bullets: ["macOS 13+", "Linux desktop build", "Local proxy included", "No account required for local tracing", "Free during alpha"],
-      },
-      {
-        title: "What you get",
-        body:
-          "The alpha includes the local proxy, source-log ingestion, trace capture, file and command metadata, and desktop graph interfaces for macOS and Linux.",
-      },
-    ],
-    cta: { label: "Join the waitlist", href: "/#download" },
   },
   {
     slug: "developers",
@@ -184,8 +163,8 @@ export const SITE_PAGES: SitePage[] = [
       {
         title: "Quick setup",
         body:
-          "Install dependencies, build the proxy and app, then capture an agent run through tether capture -- or a supported source adapter.",
-        bullets: ["Clone the repo", "Build the proxy", "Build the desktop app", "Capture a local agent run"],
+          "Install from the terminal, let the script verify the machine, then capture an agent run through tether capture -- or a supported source adapter.",
+        bullets: ["Run the install command", "Verify system requirements", "Open the desktop app", "Capture a local agent run"],
       },
       {
         title: "Architecture pages",
@@ -207,7 +186,7 @@ export const SITE_PAGES: SitePage[] = [
         title: "Common commands",
         body:
           "The CLI surface is evolving with the proxy. These commands document the local development workflow.",
-        bullets: ["tether capture -- <agent command>", "npm run build", "scripts/package-dmg.sh", "scripts/smoke-e2e.sh"],
+        bullets: ["curl -fsSL https://tetherapp.vercel.app/install.sh | bash", "tether capture -- <agent command>", "npm run build", "scripts/package-dmg.sh", "scripts/smoke-e2e.sh"],
       },
       {
         title: "Proxy operations",
@@ -236,7 +215,7 @@ export const SITE_PAGES: SitePage[] = [
           "Upcoming entries will track signed downloads, provider adapters, recovery replay, and documentation updates.",
       },
     ],
-    cta: { label: "Download alpha", href: "/download" },
+    cta: { label: "Download alpha", href: "/#download" },
   },
   {
     slug: "company",
@@ -442,7 +421,7 @@ export const SITE_PAGES: SitePage[] = [
       {
         title: "Alpha access",
         body:
-          "Join through the download page and share what kind of agent system you are building so the product can prioritize the right workflows.",
+          "Use the download section and share what kind of agent system you are building so the product can prioritize the right workflows.",
       },
       {
         title: "Direct feedback",
@@ -454,5 +433,4 @@ export const SITE_PAGES: SitePage[] = [
   },
 ];
 
-/** Lookup map used by the generic static page route. */
 export const SITE_PAGE_MAP = new Map(SITE_PAGES.map((page) => [page.slug, page]));

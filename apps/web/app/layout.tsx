@@ -204,14 +204,6 @@ const jsonLd = {
         },
         {
           "@type": "Question",
-          name: "Will Tether work with my stack?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Tether supports Codex, Claude Code, LangChain, LangGraph, OpenAI/OpenGPT-style agents, and custom CLI agents through source adapters, callbacks, proxy routing, or tether capture --.",
-          },
-        },
-        {
-          "@type": "Question",
           name: "Does Tether add latency to my agent?",
           acceptedAnswer: {
             "@type": "Answer",

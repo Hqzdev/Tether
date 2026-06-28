@@ -85,9 +85,6 @@ export function SiteHeader() {
           <Link href="/#how" onClick={() => trackEvent("navigation_clicked", { label: "Capture flow", location: "header" })}>
             Capture flow
           </Link>
-          <Link href="/#sources" onClick={() => trackEvent("navigation_clicked", { label: "Sources", location: "header" })}>
-            Sources
-          </Link>
           <Link href="/security" onClick={() => trackEvent("navigation_clicked", { label: "Security review", location: "header" })}>
             Security review
           </Link>

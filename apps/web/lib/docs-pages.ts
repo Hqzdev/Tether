@@ -144,8 +144,28 @@ export const DOCS_PAGES: DocsPage[] = [
     title: "Install",
     category: "Getting Started",
     description:
-      "Build the local proxy, run the macOS or Linux desktop app, and package release artifacts when needed.",
+      "Install the macOS or Linux desktop app from the terminal, verify the local system, and keep developer builds separate from release installs.",
     sections: [
+      {
+        title: "Terminal installer",
+        blocks: [
+          {
+            kind: "code",
+            language: "bash",
+            code: "curl -fsSL https://tetherapp.vercel.app/install.sh | bash",
+          },
+          {
+            kind: "list",
+            items: [
+              "Detects macOS or Linux and the machine architecture.",
+              "Checks required system tools before changing anything.",
+              "Downloads the matching release artifact from GitHub Releases.",
+              "Installs the macOS app into Applications or the Linux package or AppImage path.",
+              "Use --dry-run to inspect the plan or --yes for non-interactive Linux package installation.",
+            ],
+          },
+        ],
+      },
       {
         title: "Local developer setup",
         blocks: [

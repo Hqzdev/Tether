@@ -8,6 +8,7 @@ import { NODES, type NodeStatus, type TraceNode } from "@/lib/data";
 
 const MACOS_DOWNLOAD_HREF = "https://github.com/Hqzdev/Tether/releases/latest/download/Tether.dmg";
 const LINUX_DOWNLOAD_HREF = "https://github.com/Hqzdev/Tether/releases";
+const INSTALL_COMMAND = "curl -fsSL https://tetherapp.vercel.app/install.sh | bash";
 
 
 type LandingIconName = IconName;
@@ -251,6 +252,7 @@ export default function TetherLanding() {
   const [feedbackText, setFeedbackText] = useState("");
   const [feedbackState, setFeedbackState] = useState<FeedbackState>("idle");
   const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [openFaqIndex, setOpenFaqIndex] = useState(0);
 
   useRevealOnScroll();
 
@@ -816,19 +818,6 @@ export default function TetherLanding() {
         </div>
       </section>
 
-      <section className="section-pad wrap deferred-section" id="sources">
-        <div className="section-head reveal">
-          <div className="kicker">Supported sources</div>
-          <h2 className="title">Adapters for the agents engineers already run.</h2>
-          <p className="section-sub">
-            Tether supports Codex local logs, Claude Code and local agent logs,
-            LangChain callbacks or proxy, LangGraph callbacks or proxy,
-            OpenAI/OpenGPT-style base_url proxying, and custom CLI agents through
-            tether capture --.
-          </p>
-        </div>
-      </section>
-
       <section className="section-pad wrap deferred-section" id="faq">
         <div className="section-head reveal">
           <div className="kicker">Buying objections</div>
@@ -836,12 +825,27 @@ export default function TetherLanding() {
             Questions engineers ask before installing a local proxy.
           </h2>
         </div>
-        <div className="faq-list">
-          {FAQ_ITEMS.map(({ q, a }) => (
-            <details className="faq-item reveal" key={q}>
-              <summary className="faq-q">{q}</summary>
-              <p className="faq-a">{a}</p>
-            </details>
+        <div className="faq-list reveal">
+          {FAQ_ITEMS.map(({ q, a }, index) => (
+            <div className={`faq-item ${openFaqIndex === index ? "open" : ""}`.trim()} key={q}>
+              <button
+                aria-controls={`faq-answer-${index}`}
+                aria-expanded={openFaqIndex === index}
+                className="faq-q"
+                onClick={() => setOpenFaqIndex(index)}
+                type="button"
+              >
+                {q}
+              </button>
+              <div
+                className="faq-answer"
+                id={`faq-answer-${index}`}
+                role="region"
+                aria-label={q}
+              >
+                <p className="faq-a">{a}</p>
+              </div>
+            </div>
           ))}
         </div>
       </section>
@@ -944,6 +948,10 @@ export default function TetherLanding() {
             </p>
             <p className="alpha-note">Tether works on macOS and Linux today, with one shared Rust proxy and platform-specific desktop clients.</p>
             <div className="download-actions">
+              <div className="terminal-install">
+                <span>Terminal install</span>
+                <code>{INSTALL_COMMAND}</code>
+              </div>
               <div className="download-direct">
                 <a
                   className="btn btn-primary pulse"
@@ -976,7 +984,7 @@ export default function TetherLanding() {
                   Open Linux releases
                 </a>
               </div>
-              <p className="download-note">macOS downloads the latest DMG directly. Linux opens the GitHub Releases page for AppImage and deb builds.</p>
+              <p className="download-note">The installer checks macOS or Linux, downloads the matching release, and only uses sudo when a Linux package install needs it.</p>
             </div>
             <div className="cta-row secondary-downloads">
               <a

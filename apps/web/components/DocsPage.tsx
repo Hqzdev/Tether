@@ -106,15 +106,15 @@ function DocsTopNav() {
           Docs
         </Link>
         <Link href="/#demo">Demo</Link>
-        <Link href="/download">Download</Link>
+        <Link href="/#download">Download</Link>
         <a href={GITHUB_HREF} rel="noreferrer" target="_blank">
           GitHub
         </a>
       </nav>
-      <a className={styles.topInstall} href={RELEASE_HREF} rel="noreferrer" target="_blank">
-        <Icon name="apple-finder" />
-        Download
-      </a>
+      <Link className={styles.topInstall} href="/docs/install">
+        <Icon name="arrow-down-long" />
+        Install
+      </Link>
     </header>
   );
 }
@@ -516,6 +516,10 @@ function PageToc({
           <Icon name="apple-finder" />
           Download
         </a>
+        <a href="/install.sh" target="_blank">
+          <Icon name="arrow-down-long" />
+          Installer script
+        </a>
         <Link href="/docs/api-reference">
           <Icon name="file-lines" />
           API reference
@@ -652,10 +656,10 @@ export function DocsPage({ page }: { page: DocsPageData }) {
             <h1>{page.title}</h1>
             <p>{page.description}</p>
             <div className={styles.heroActions}>
-              <a className={styles.primaryAction} href={RELEASE_HREF} rel="noreferrer" target="_blank">
-                <Icon name="apple-finder" />
-                Download
-              </a>
+              <Link className={styles.primaryAction} href="/docs/install">
+                <Icon name="arrow-down-long" />
+                Install
+              </Link>
               <Link className={styles.secondaryAction} href="/docs/install">
                 Setup steps
               </Link>
