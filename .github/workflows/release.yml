@@ -57,9 +57,35 @@ jobs:
           path: dist/linux/*
           if-no-files-found: error
 
+  macos:
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            core/proxy
+
+      - name: Build macOS app artifact
+        run: ./scripts/package-dmg.sh
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tether-macos
+          path: dist/Tether.dmg
+          if-no-files-found: error
+
   publish:
     runs-on: ubuntu-22.04
-    needs: [linux]
+    needs: [linux, macos]
 
     steps:
       - name: Checkout
@@ -76,5 +102,6 @@ jobs:
           body_path: .github/releases/v1.7.md
           files: |
             release-assets/tether-linux/*
+            release-assets/tether-macos/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

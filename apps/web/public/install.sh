@@ -6,7 +6,6 @@ REPO="Hqzdev/Tether"
 INSTALL_URL="https://tetherapp.vercel.app/install.sh"
 GITHUB_API="https://api.github.com/repos/${REPO}/releases/latest"
 GITHUB_RELEASES="https://github.com/${REPO}/releases/latest"
-MACOS_DMG_URL="https://github.com/${REPO}/releases/latest/download/Tether.dmg"
 YES=0
 DRY_RUN=0
 PREFIX="${HOME}/.local"
@@ -115,12 +114,21 @@ install_macos() {
   need_command ditto
 
   local temp_dir
+  local dmg_url
   temp_dir="$(mktemp -d)"
   local dmg_path="${temp_dir}/Tether.dmg"
   local mount_dir="${temp_dir}/mount"
   run mkdir -p "$mount_dir"
 
-  download "$MACOS_DMG_URL" "$dmg_path"
+  dmg_url="$(latest_asset_url '\.dmg$' || true)"
+  if [ -z "$dmg_url" ]; then
+    rm -rf "$temp_dir"
+    print_fail "The latest GitHub release does not include a macOS DMG."
+    printf '%s\n' "Open ${GITHUB_RELEASES} and check whether Tether.dmg is attached." >&2
+    exit 1
+  fi
+
+  download "$dmg_url" "$dmg_path"
 
   if [ "$DRY_RUN" -eq 0 ]; then
     hdiutil attach "$dmg_path" -mountpoint "$mount_dir" -nobrowse -quiet
