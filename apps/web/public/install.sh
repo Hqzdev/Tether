@@ -267,6 +267,21 @@ open_app() {
   esac
 }
 
+notify_update_success() {
+  case "$(detect_os)" in
+    macos)
+      if command -v osascript >/dev/null 2>&1; then
+        osascript -e 'display notification "Tether was updated successfully." with title "Tether updated"' >/dev/null 2>&1 || true
+      fi
+      ;;
+    linux)
+      if command -v notify-send >/dev/null 2>&1; then
+        notify-send "Tether updated" "Tether was updated successfully." >/dev/null 2>&1 || true
+      fi
+      ;;
+  esac
+}
+
 download() {
   need_command curl
   curl -fL --retry 3 --connect-timeout 15 "$1" -o "$2"
@@ -354,6 +369,8 @@ update_app() {
   if [ "$reopen" -eq 1 ]; then
     open_app
   fi
+
+  notify_update_success
 }
 
 installed_version() {

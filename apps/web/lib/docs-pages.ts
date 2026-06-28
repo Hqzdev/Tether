@@ -178,7 +178,7 @@ export const DOCS_PAGES: DocsPage[] = [
           {
             kind: "paragraph",
             text:
-              "tether update closes the desktop app if it is running, installs the newest release, and reopens it when it was open before the update. tether uninstall keeps local traces and settings unless --purge is passed.",
+              "tether update closes the desktop app if it is running, installs the newest release, reopens it when it was open before the update, and shows a desktop notification when the update succeeds. The macOS app exposes the same update path through an Update Tether confirmation window that opens Terminal before running the command. tether uninstall keeps local traces and settings unless --purge is passed.",
           },
         ],
       },

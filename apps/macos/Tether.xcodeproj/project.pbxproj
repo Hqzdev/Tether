@@ -92,6 +92,7 @@
 		C0F000000000000000000005 /* Tether/Features/Update/UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0F100000000000000000005 /* Tether/Features/Update/UpdateChecker.swift */; };
 		C0F000000000000000000006 /* Tether/Features/Update/UpdateBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0F100000000000000000006 /* Tether/Features/Update/UpdateBannerView.swift */; };
 		C0F000000000000000000007 /* Tether/Features/Inspector/Replay/ReplayDiffView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0F100000000000000000007 /* Tether/Features/Inspector/Replay/ReplayDiffView.swift */; };
+		C0F000000000000000000008 /* Tether/Features/Update/UpdateInstallController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0F100000000000000000008 /* Tether/Features/Update/UpdateInstallController.swift */; };
 		C0FA00000000000000000001 /* Tether/Features/Graph/Canvas/GraphConnectionModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FB00000000000000000001 /* Tether/Features/Graph/Canvas/GraphConnectionModels.swift */; };
 		C0FA00000000000000000002 /* Tether/Features/Inspector/Replay/CometReplaySection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FB00000000000000000002 /* Tether/Features/Inspector/Replay/CometReplaySection.swift */; };
 /* End PBXBuildFile section */
@@ -179,6 +180,7 @@
 		C0F100000000000000000005 /* Tether/Features/Update/UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tether/Features/Update/UpdateChecker.swift; sourceTree = SOURCE_ROOT; };
 		C0F100000000000000000006 /* Tether/Features/Update/UpdateBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tether/Features/Update/UpdateBannerView.swift; sourceTree = SOURCE_ROOT; };
 		C0F100000000000000000007 /* Tether/Features/Inspector/Replay/ReplayDiffView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tether/Features/Inspector/Replay/ReplayDiffView.swift; sourceTree = SOURCE_ROOT; };
+		C0F100000000000000000008 /* Tether/Features/Update/UpdateInstallController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tether/Features/Update/UpdateInstallController.swift; sourceTree = SOURCE_ROOT; };
 		C0FB00000000000000000001 /* Tether/Features/Graph/Canvas/GraphConnectionModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tether/Features/Graph/Canvas/GraphConnectionModels.swift; sourceTree = SOURCE_ROOT; };
 		C0FB00000000000000000002 /* Tether/Features/Inspector/Replay/CometReplaySection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tether/Features/Inspector/Replay/CometReplaySection.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
@@ -294,6 +296,7 @@
 				C0FB00000000000000000001 /* Tether/Features/Graph/Canvas/GraphConnectionModels.swift */,
 				C0F100000000000000000005 /* Tether/Features/Update/UpdateChecker.swift */,
 				C0F100000000000000000006 /* Tether/Features/Update/UpdateBannerView.swift */,
+				C0F100000000000000000008 /* Tether/Features/Update/UpdateInstallController.swift */,
 				C0D800000000000000000032 /* Tether/Features/Welcome/WelcomeBranding.swift */,
 				C0D800000000000000000033 /* Tether/Features/Welcome/WelcomeFeatureGrid.swift */,
 				C0D800000000000000000034 /* Tether/Features/Welcome/WelcomeFooter.swift */,
@@ -470,6 +473,7 @@
 				C0FA00000000000000000001 /* Tether/Features/Graph/Canvas/GraphConnectionModels.swift in Sources */,
 				C0F000000000000000000005 /* Tether/Features/Update/UpdateChecker.swift in Sources */,
 				C0F000000000000000000006 /* Tether/Features/Update/UpdateBannerView.swift in Sources */,
+				C0F000000000000000000008 /* Tether/Features/Update/UpdateInstallController.swift in Sources */,
 				C0D900000000000000000032 /* Tether/Features/Welcome/WelcomeBranding.swift in Sources */,
 				C0D900000000000000000033 /* Tether/Features/Welcome/WelcomeFeatureGrid.swift in Sources */,
 				C0D900000000000000000034 /* Tether/Features/Welcome/WelcomeFooter.swift in Sources */,

@@ -11,6 +11,12 @@ struct AgentTraceMenuCommands: Commands {
             .keyboardShortcut(",", modifiers: .command)
         }
 
+        CommandGroup(after: .appInfo) {
+            Button("Update Tether...") {
+                UpdateInstallController.confirmAndOpenTerminal()
+            }
+        }
+
         CommandGroup(replacing: .newItem) {
             Button("Export Traces...") {
                 NotificationCenter.default.post(name: .agentTraceExportTraces, object: nil)

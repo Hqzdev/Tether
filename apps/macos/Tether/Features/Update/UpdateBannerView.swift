@@ -1,4 +1,3 @@
-import AppKit
 import SwiftUI
 import UI
 
@@ -43,7 +42,7 @@ struct UpdateBannerView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            Button("Download") { openDownload(release) }
+            Button("Update") { UpdateInstallController.confirmAndOpenTerminal() }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.small)
 
@@ -76,11 +75,5 @@ struct UpdateBannerView: View {
             return nil
         }
         return body
-    }
-
-    /// Opens the release page in the user's browser.
-    private func openDownload(_ release: GitHubRelease) {
-        guard let url = URL(string: release.htmlUrl) else { return }
-        NSWorkspace.shared.open(url)
     }
 }

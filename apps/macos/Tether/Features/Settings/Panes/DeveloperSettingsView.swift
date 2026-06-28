@@ -79,6 +79,16 @@ struct DeveloperSettingsView: View {
             }
 
             SettingsButtonRow(
+                "Update Tether",
+                subtitle: "Open Terminal, show the update command, close the app if needed, and install the latest release.",
+                buttonTitle: "Update",
+                systemImage: "arrow.down.circle",
+                palette: palette
+            ) {
+                UpdateInstallController.confirmAndOpenTerminal()
+            }
+
+            SettingsButtonRow(
                 "Reset all preferences",
                 subtitle: "Restore every Tether setting on this pane and others to its default.",
                 buttonTitle: "Reset",
