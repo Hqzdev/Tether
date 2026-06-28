@@ -160,7 +160,7 @@ export const DOCS_PAGES: DocsPage[] = [
               "Detects macOS or Linux and the machine architecture.",
               "Checks required system tools before changing anything.",
               "Downloads the matching release artifact from GitHub Releases.",
-              "Installs the macOS app into Applications or the Linux package or AppImage path.",
+              "Installs or replaces the macOS app at /Applications/Tether.app, using sudo when needed, or installs the Linux package or AppImage path.",
               "Installs the tether CLI with help, update, uninstall, version, doctor, and open commands.",
               "Use --dry-run to inspect the plan or --yes for non-interactive Linux package installation.",
             ],
@@ -178,7 +178,7 @@ export const DOCS_PAGES: DocsPage[] = [
           {
             kind: "paragraph",
             text:
-              "tether update closes the desktop app if it is running, installs the newest release, reopens it when it was open before the update, and shows a desktop notification when the update succeeds. The macOS app exposes the same update path through an Update Tether confirmation window that opens Terminal before running the command. tether uninstall keeps local traces and settings unless --purge is passed.",
+              "tether update closes the desktop app if it is running, replaces /Applications/Tether.app with the newest macOS release, reopens it when it was open before the update, and shows a desktop notification when the update succeeds. The macOS app exposes the same update path through an Update Tether confirmation window that opens Terminal before running the command. tether uninstall keeps local traces and settings unless --purge is passed.",
           },
         ],
       },

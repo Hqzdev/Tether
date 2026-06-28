@@ -97,6 +97,55 @@ latest_asset_url() {
     head -n 1
 }
 
+macos_bundle_version() {
+  defaults read "${1}/Contents/Info" CFBundleShortVersionString 2>/dev/null || printf '%s\n' "unknown"
+}
+
+remove_macos_user_app_copy() {
+  local user_app="${HOME}/Applications/Tether.app"
+
+  if [ ! -d "$user_app" ]; then
+    return 0
+  fi
+
+  if [ "$DRY_RUN" -eq 1 ]; then
+    printf 'dry-run: rm -rf %s\n' "$user_app"
+    return 0
+  fi
+
+  rm -rf "$user_app"
+  print_ok "Removed duplicate app at ${user_app}"
+}
+
+install_macos_app_bundle() {
+  local source_app="$1"
+  local target_dir="/Applications"
+  local target_app="${target_dir}/Tether.app"
+
+  if [ "$DRY_RUN" -eq 1 ]; then
+    if [ -w "$target_dir" ]; then
+      printf 'dry-run: rm -rf %s\n' "$target_app"
+      printf 'dry-run: ditto %s %s\n' "$source_app" "$target_app"
+    else
+      printf 'dry-run: sudo rm -rf %s\n' "$target_app"
+      printf 'dry-run: sudo ditto %s %s\n' "$source_app" "$target_app"
+    fi
+    return 0
+  fi
+
+  if [ -w "$target_dir" ]; then
+    rm -rf "$target_app"
+    ditto "$source_app" "$target_app"
+  else
+    need_command sudo
+    sudo rm -rf "$target_app"
+    sudo ditto "$source_app" "$target_app"
+  fi
+
+  remove_macos_user_app_copy
+  print_ok "Tether installed at ${target_app} ($(macos_bundle_version "$target_app"))"
+}
+
 ensure_prefix() {
   run mkdir -p "$PREFIX/bin" "$PREFIX/share/tether"
 }
@@ -195,6 +244,27 @@ latest_asset_url() {
     head -n 1
 }
 
+macos_bundle_version() {
+  defaults read "${1}/Contents/Info" CFBundleShortVersionString 2>/dev/null || printf '%s\n' "unknown"
+}
+
+remove_macos_user_app_copy() {
+  local user_app="${HOME}/Applications/Tether.app"
+
+  if [ ! -d "$user_app" ]; then
+    return 0
+  fi
+
+  rm -rf "$user_app"
+  print_ok "Removed duplicate app at ${user_app}"
+}
+
+warn_macos_app_conflict() {
+  if [ -d "/Applications/Tether.app" ] && [ -d "${HOME}/Applications/Tether.app" ]; then
+    print_warn "Both /Applications/Tether.app and ${HOME}/Applications/Tether.app exist. Tether CLI uses /Applications/Tether.app."
+  fi
+}
+
 macos_app_path() {
   if [ -d "/Applications/Tether.app" ]; then
     printf '%s\n' "/Applications/Tether.app"
@@ -287,6 +357,25 @@ download() {
   curl -fL --retry 3 --connect-timeout 15 "$1" -o "$2"
 }
 
+install_macos_app_bundle() {
+  local source_app="$1"
+  local target_dir="/Applications"
+  local target_app="${target_dir}/Tether.app"
+
+  if [ -w "$target_dir" ]; then
+    rm -rf "$target_app"
+    ditto "$source_app" "$target_app"
+  else
+    need_command sudo
+    sudo rm -rf "$target_app"
+    sudo ditto "$source_app" "$target_app"
+  fi
+
+  remove_macos_user_app_copy
+  print_ok "Tether updated at ${target_app} ($(macos_bundle_version "$target_app"))"
+  warn_macos_app_conflict
+}
+
 install_macos_latest() {
   need_command hdiutil
   need_command ditto
@@ -309,23 +398,15 @@ install_macos_latest() {
   hdiutil attach "$dmg_path" -mountpoint "$mount_dir" -nobrowse -quiet
   trap 'hdiutil detach "$mount_dir" -quiet >/dev/null 2>&1 || true; rm -rf "$temp_dir"' EXIT
 
-  local target_dir="/Applications"
-  if [ ! -w "$target_dir" ]; then
-    target_dir="${HOME}/Applications"
-    mkdir -p "$target_dir"
-  fi
-
   if [ ! -d "${mount_dir}/Tether.app" ]; then
     print_fail "Tether.app was not found inside the DMG"
     exit 1
   fi
 
-  rm -rf "${target_dir}/Tether.app"
-  ditto "${mount_dir}/Tether.app" "${target_dir}/Tether.app"
+  install_macos_app_bundle "${mount_dir}/Tether.app"
   hdiutil detach "$mount_dir" -quiet
   rm -rf "$temp_dir"
   trap - EXIT
-  print_ok "Tether updated at ${target_dir}/Tether.app"
 }
 
 install_linux_latest() {
@@ -381,7 +462,7 @@ installed_version() {
         printf '%s\n' "not installed"
         return 0
       }
-      defaults read "${path}/Contents/Info" CFBundleShortVersionString 2>/dev/null || printf '%s\n' "unknown"
+      macos_bundle_version "$path"
       ;;
     linux)
       linux_app_path >/dev/null 2>&1 && printf '%s\n' "installed" || printf '%s\n' "not installed"
@@ -396,6 +477,7 @@ doctor() {
   printf 'App: %s\n' "$(app_path 2>/dev/null || printf '%s' "not installed")"
   printf 'Installed: %s\n' "$(installed_version)"
   printf 'Latest: %s\n' "$(latest_tag || printf '%s' "unknown")"
+  warn_macos_app_conflict
   case ":${PATH}:" in
     *":$(dirname "$0"):"*) print_ok "$(dirname "$0") is on PATH" ;;
     *) print_warn "$(dirname "$0") is not on PATH" ;;
@@ -494,15 +576,9 @@ install_macos() {
   fi
 
   local source_app="${mount_dir}/Tether.app"
-  local target_dir="/Applications"
-
-  if [ ! -w "$target_dir" ]; then
-    target_dir="${HOME}/Applications"
-    run mkdir -p "$target_dir"
-  fi
 
   if [ "$DRY_RUN" -eq 1 ]; then
-    printf 'dry-run: install Tether.app into %s\n' "$target_dir"
+    install_macos_app_bundle "$source_app"
     rm -rf "$temp_dir"
   else
     if [ ! -d "$source_app" ]; then
@@ -510,15 +586,13 @@ install_macos() {
       exit 1
     fi
 
-    rm -rf "${target_dir}/Tether.app"
-    ditto "$source_app" "${target_dir}/Tether.app"
+    install_macos_app_bundle "$source_app"
     hdiutil detach "$mount_dir" -quiet
     rm -rf "$temp_dir"
     trap - EXIT
   fi
 
-  print_ok "Tether installed for macOS"
-  printf '%s\n' "Open it from ${target_dir}/Tether.app"
+  printf '%s\n' "Open it from /Applications/Tether.app"
   install_cli_shim
 }
 
